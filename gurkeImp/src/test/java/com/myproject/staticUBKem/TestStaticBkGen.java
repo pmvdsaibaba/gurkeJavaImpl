@@ -9,7 +9,7 @@ import java.util.List;
 public class TestStaticBkGen {
 
     @Test
-    public void testBKGen() {
+    public void testBKGen() throws Exception {
         int n = 5;  // Example value for n
         
         // Generate (ek, dk1, dk2, ..., dkn) using BK.gen(n)

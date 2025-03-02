@@ -15,7 +15,7 @@ import java.security.SecureRandom;
 public class TestStaticBkFin {
 
     @Test
-    public void testBKFin() {
+    public void testBKFin() throws Exception {
         // Step 1: Generate a sample EncapsulationResult (u)
         SecureRandom random = new SecureRandom();
 

@@ -11,7 +11,7 @@ import java.security.SecureRandom;
 public class TestStaticBkDec {
 
     @Test
-    public void testBKDec() {
+    public void testBKDec() throws Exception {
         // Step 1: Generate sample data for dk, ad, and c
         SecureRandom random = new SecureRandom();
 

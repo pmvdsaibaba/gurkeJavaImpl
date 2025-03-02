@@ -10,7 +10,7 @@ import java.util.List;
 public class BKFin {
 
     // This method implements the BK.fin function
-    public static FinResult fin(EncapsulationResult u, byte[] ad) {
+    public static FinResult fin(EncapsulationResult u, byte[] ad) throws Exception {
         // Step 06: Extract k′ and c′ from u
         byte[] kPrime = u.getK(); // Extract k′ (key)
         byte[] cPrime = u.getC(); // Extract c′ (ciphertext)
@@ -21,10 +21,13 @@ public class BKFin {
         byte[] k = oracleResult.getK(); // Key (k)
 
         // Step 08: Use K.gen(s) to get the encapsulation key (ek)
-        byte[] ek = KEM.gen(s); // Generate encapsulation key (ek) using the seed s
+        KEM.KeyPair keyPair = KEM.gen(s); // Generate new decapsulation key (dk) using the seed s
+
+        byte[] new_ek = keyPair.getEk(); // Extract encapsulation key
+        byte[] new_dk = keyPair.getDk(); // Extract decapsulation key
 
         // Step 09: Return both ek and k
-        return new FinResult(ek, k); // Return encapsulation key (ek) and key (k)
+        return new FinResult(new_ek, k); // Return encapsulation key (ek) and key (k)
     }
 
     // FinResult class to hold the results of BK.fin (ek and k)

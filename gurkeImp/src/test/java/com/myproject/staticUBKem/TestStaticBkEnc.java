@@ -2,19 +2,27 @@
 package com.myproject.staticUBKem.test;
 
 import com.myproject.staticUBKem.BKEnc;
+import com.myproject.staticUBKem.BKGen;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.security.SecureRandom;
 
+import java.util.List;
+
+
 public class TestStaticBkEnc {
 
     @Test
-    public void testBKEnc() {
+    public void testBKEnc() throws Exception  {
         // Simulate the encapsulation key (ek), in this case, we just use random bytes
-        SecureRandom random = new SecureRandom();
-        byte[] ek = new byte[16];  // Example encapsulation key size (16 bytes)
-        random.nextBytes(ek);      // Randomly generate the encapsulation key
+        // SecureRandom random = new SecureRandom();
+        // byte[] ek = new byte[16];  // Example encapsulation key size (16 bytes)
+        // random.nextBytes(ek);      // Randomly generate the encapsulation key
+
+        // Generate (ek, dk1, dk2, ..., dkn) using BK.gen(n)
+        List<byte[]> Keygen = BKGen.gen(1);
+        byte[] ek = Keygen.get(0);
 
         // Call BK.enc with the encapsulation key (ek)
         BKEnc.EncapsulationReturn result = BKEnc.enc(ek);

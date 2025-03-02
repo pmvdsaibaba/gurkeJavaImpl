@@ -7,7 +7,7 @@ import java.util.List;
 public class BKGen {
 
     // This method implements the BK.gen(n) function
-    public static List<byte[]> gen(int n) {
+    public static List<byte[]> gen(int n) throws Exception {
         // Step 0: Generate (ek, dk) using K.gen
         KEM.KeyPair keyPair = KEM.gen();  // Get the encapsulation key (ek) and decapsulation key (dk)
         byte[] ek = keyPair.getEk(); // Extract encapsulation key

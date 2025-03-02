@@ -4,7 +4,7 @@ import com.myproject.standardKEM.KEM;
 public class BKEnc {
 
     // This method implements the BK.enc function
-    public static EncapsulationReturn enc(byte[] ek) {
+    public static EncapsulationReturn enc(byte[] ek) throws Exception {
         // Step 03: Use KEM.enc(ek) to get the key and ciphertext
         KEM.EncapsulationResult result = KEM.enc(ek);
 
