@@ -1,11 +1,17 @@
 package com.myproject.staticUBKem.test;
 
+import com.myproject.staticUBKem.BKGen;
 import com.myproject.staticUBKem.BKDec;  // Import the BKDec class
+
+import com.myproject.staticUBKem.BKEnc;  
 import com.myproject.standardKEM.KEM;      // Import the K class
 import com.myproject.RandomOracle.RandomOracle;  // Import the RandomOracle class
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
+
+import java.util.List;
 import java.security.SecureRandom;
 
 public class TestStaticBkDec {
@@ -13,19 +19,35 @@ public class TestStaticBkDec {
     @Test
     public void testBKDec() throws Exception {
         // Step 1: Generate sample data for dk, ad, and c
-        SecureRandom random = new SecureRandom();
+        // SecureRandom random = new SecureRandom();
 
-        // Generate random decapsulation key dk (16 bytes for example)
-        byte[] dk = new byte[16];
-        random.nextBytes(dk);
+        // // Generate random decapsulation key dk (16 bytes for example)
+        // byte[] dk = new byte[16];
+        // random.nextBytes(dk);
 
-        // Generate associated data (ad)
-        byte[] ad = new byte[16]; // Example associated data size (16 bytes)
-        random.nextBytes(ad);
+        // // Generate associated data (ad)
+        // byte[] ad = new byte[16]; // Example associated data size (16 bytes)
+        // random.nextBytes(ad);
+        // Define the constant associated data
+        byte[] ad = "12345".getBytes(StandardCharsets.UTF_8);
 
-        // Generate random ciphertext (c)
-        byte[] c = new byte[16]; // Example ciphertext size (16 bytes)
-        random.nextBytes(c);
+
+        // // Generate random ciphertext (c)
+        // byte[] c = new byte[16]; // Example ciphertext size (16 bytes)
+        // random.nextBytes(c);
+
+        // Generate (ek, dk1, dk2, ..., dkn) using BK.gen(n)
+        List<byte[]> Keygen = BKGen.gen(1);
+        byte[] ek = Keygen.get(0);
+        byte[] dk = Keygen.get(1);
+
+        // Call BK.enc with the encapsulation key (ek)
+        BKEnc.EncapsulationReturn EncResult = BKEnc.enc(ek);
+        byte[] c = EncResult.getC();
+        BKEnc.EncapsulationResult u = EncResult.getU();
+        byte[] secretKEy = u.getK();
+
+
 
         // Step 2: Call BKDec.dec() with the dk, ad, and c
         BKDec.DecResult result = BKDec.dec(dk, ad, c);
@@ -46,6 +68,8 @@ public class TestStaticBkDec {
         printByteArray(newDk);
         System.out.println("Generated Key (k): ");
         printByteArray(k);
+        System.out.println("secret Key (k): ");
+        printByteArray(secretKEy);
     }
 
     // Utility method to print byte arrays in a readable format
