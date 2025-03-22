@@ -6,7 +6,7 @@ import java.security.interfaces.*;
 import java.security.spec.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-public class NIKEexample.java {
+public class NIKEexample {
 
     // NIKE Algorithm definition
     // N.gen : SK → PK, generates a public key from a secret key
