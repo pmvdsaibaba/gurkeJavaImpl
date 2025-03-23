@@ -1,4 +1,4 @@
-package com.myproject.staticUBKem.test;
+package com.myproject.TestStaticUBKem;
 
 import com.myproject.staticUBKem.BKGen;
 import org.junit.jupiter.api.Test;

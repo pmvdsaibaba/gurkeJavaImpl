@@ -1,5 +1,5 @@
 
-package com.myproject.staticUBKem.test;
+package com.myproject.TestStaticUBKem;
 
 import com.myproject.staticUBKem.BKEnc;
 import com.myproject.staticUBKem.BKGen;

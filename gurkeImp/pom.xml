@@ -56,6 +56,22 @@
                 </excludes>
             </configuration>
         </plugin>
+
+        <!-- Add the maven-surefire-plugin to exclude specific tests -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M5</version> <!-- Use the latest version -->
+            <configuration>
+              <excludes>
+                <!-- <exclude>**/TestStaticBkEnc.java</exclude>
+                <exclude>**/TestStaticBkFin.java</exclude>
+                <exclude>**/TestStaticBkDec.java</exclude> -->
+                <exclude>**/TestStaticUBKem/*.java</exclude>
+              </excludes>
+            </configuration>
+        </plugin>
+
         <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>

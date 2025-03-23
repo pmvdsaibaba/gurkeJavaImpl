@@ -1,4 +1,4 @@
-package com.myproject.staticUBKem.test;
+package com.myproject.TestStaticUBKem;
 
 import com.myproject.staticUBKem.BKGen;
 import com.myproject.staticUBKem.BKDec;  // Import the BKDec class
