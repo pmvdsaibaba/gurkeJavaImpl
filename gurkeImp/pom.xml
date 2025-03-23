@@ -48,11 +48,13 @@
                 <target>1.8</target>
                  <includes>
                     <!-- Include all files in folder1 (relative to src/main/java) -->
+                    <!-- <include>**/standardKEM/*.java</include> -->
                     <!-- <include>**/staticUBKem/*.java</include> -->
                 </includes>
                 <excludes>
                     <!-- Exclude all files in folder2 (relative to src/main/java) -->
-                    <!-- <exclude>**/nike/*.java</exclude> -->
+                    <!-- <exclude>**/staticUBKem/*.java</exclude>
+                    <exclude>**/TestStaticUBKem/*.java</exclude> -->
                 </excludes>
             </configuration>
         </plugin>
@@ -67,7 +69,7 @@
                 <!-- <exclude>**/TestStaticBkEnc.java</exclude>
                 <exclude>**/TestStaticBkFin.java</exclude>
                 <exclude>**/TestStaticBkDec.java</exclude> -->
-                <exclude>**/TestStaticUBKem/*.java</exclude>
+                <!-- <exclude>**/TestStaticUBKem/*.java</exclude> -->
               </excludes>
             </configuration>
         </plugin>
