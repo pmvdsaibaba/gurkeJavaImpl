@@ -55,6 +55,8 @@
                     <!-- Exclude all files in folder2 (relative to src/main/java) -->
                     <!-- <exclude>**/staticUBKem/*.java</exclude>
                     <exclude>**/TestStaticUBKem/*.java</exclude> -->
+                    <!-- <exclude>**/TestStandardKemGen_RSA.java</exclude>
+                    <exclude>**/KEM_RSA.java</exclude> -->
                 </excludes>
             </configuration>
         </plugin>
@@ -70,6 +72,8 @@
                 <exclude>**/TestStaticBkFin.java</exclude>
                 <exclude>**/TestStaticBkDec.java</exclude> -->
                 <!-- <exclude>**/TestStaticUBKem/*.java</exclude> -->
+                <exclude>**/TestStandardKemGen_RSA.java</exclude>
+                <exclude>**/TestStandardKemGen_DH.java</exclude>
               </excludes>
             </configuration>
         </plugin>
