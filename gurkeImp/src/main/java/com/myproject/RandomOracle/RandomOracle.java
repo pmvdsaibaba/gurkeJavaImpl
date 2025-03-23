@@ -16,17 +16,17 @@ public class RandomOracle {
             System.arraycopy(ad, 0, input, c.length + k.length, ad.length);
 
             // Perform SHA-256 hashing
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
             byte[] hash = digest.digest(input);
 
             // Split the hash into two parts: s (seed) and k (key)
-            byte[] s = Arrays.copyOfRange(hash, 0, 16); // First 16 bytes as the seed
-            byte[] kResult = Arrays.copyOfRange(hash, 16, 32); // Next 16 bytes as the key
+            byte[] s = Arrays.copyOfRange(hash, 0, 32); // First 32 bytes as the seed
+            byte[] kResult = Arrays.copyOfRange(hash, 32, 64); // Next 32 bytes as the key
 
             return new RandomOracleResult(s, kResult);
 
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found", e);
+            throw new RuntimeException("SHA-512 algorithm not found", e);
         }
     }
 

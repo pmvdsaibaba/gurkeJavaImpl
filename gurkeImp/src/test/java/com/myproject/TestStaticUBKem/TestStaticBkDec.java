@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
-
+import java.util.Arrays;
 import java.util.List;
 import java.security.SecureRandom;
 
@@ -29,7 +29,10 @@ public class TestStaticBkDec {
         // byte[] ad = new byte[16]; // Example associated data size (16 bytes)
         // random.nextBytes(ad);
         // Define the constant associated data
-        byte[] ad = "12345".getBytes(StandardCharsets.UTF_8);
+        // byte[] ad = "12345".getBytes(StandardCharsets.UTF_8);
+
+        byte[] ad = new byte[32]; // 256-bit seed
+        Arrays.fill(ad, (byte) 0xEF); // Fill with 0xEF
 
 
         // // Generate random ciphertext (c)
@@ -64,8 +67,8 @@ public class TestStaticBkDec {
         assertNotNull(k, "Key (k) should not be null");
 
         // Step 6: Optionally, print the results for verification
-        System.out.println("Generated Decapsulation Key (dk): ");
-        printByteArray(newDk);
+        // System.out.println("Generated Decapsulation Key (dk): ");
+        // printByteArray(newDk);
         System.out.println("Generated Key (k): ");
         printByteArray(k);
         System.out.println("secret Key (k): ");

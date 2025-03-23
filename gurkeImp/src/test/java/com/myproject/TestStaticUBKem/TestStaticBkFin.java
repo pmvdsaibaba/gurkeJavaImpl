@@ -74,7 +74,7 @@ public class TestStaticBkFin {
         System.out.println("DecK Key (k): ");
         printByteArray(DecK);
 
-        // assertArrayEquals(DecK,Fink, "Check Dec key and Fin Key");
+        assertArrayEquals(DecK,Fink, "Check Dec key and Fin Key");
     }
 
     // Utility method to print byte arrays in a readable format

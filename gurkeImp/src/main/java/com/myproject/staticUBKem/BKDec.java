@@ -9,10 +9,42 @@ public class BKDec {
         // Step 10: Use K.dec(dk, c) to get k' (key)
         KEM.DecapsulationResult kPrime = KEM.dec(dk, c); // K.dec returns k'
 
+// System.out.println("C in dec: ");
+// StringBuilder sb = new StringBuilder();
+// for (byte b : c) {
+//     sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+// }
+// System.out.println(sb.toString());
+
+// System.out.println("K in dec: ");
+//  sb = new StringBuilder();
+// for (byte b : kPrime.getK()) {
+//     sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+// }
+// System.out.println(sb.toString());
+
+// System.out.println("ad in dec: ");
+//  sb = new StringBuilder();
+// for (byte b : ad) {
+//     sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+// }
+// System.out.println(sb.toString());
+
         // Step 11: Use RandomOracle H(c, k', ad) to get s (seed) and k (key)
         RandomOracle.RandomOracleResult oracleResult = RandomOracle.H(c, kPrime.getK(), ad);
         byte[] s = oracleResult.getS(); // Seed (s)
         byte[] k = oracleResult.getK(); // Key (k)
+
+
+
+// System.out.println("Seed in dec: ");
+//  sb = new StringBuilder();
+// for (byte b : s) {
+//     sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+// }
+// System.out.println(sb.toString());
+
+
 
         // Step 12: Use K.gen(s) to get the decapsulation key (dk)
         KEM.KeyPair keyPair = KEM.gen(s); // Generate new decapsulation key (dk) using the seed s
