@@ -1,4 +1,4 @@
-package com.myproject.nike.test;
+package com.myproject.TestNike.test;
 
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;

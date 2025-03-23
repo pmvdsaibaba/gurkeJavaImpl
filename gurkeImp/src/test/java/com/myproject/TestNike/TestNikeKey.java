@@ -1,4 +1,4 @@
-package com.myproject.nike.test;
+package com.myproject.TestNike.test;
 
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
@@ -68,6 +68,25 @@ public class TestNikeKey {
         printByteArray(sharedKEy2);
 
         assertArrayEquals(sharedKEy1,sharedKEy2, "Check if shared keys are equal");
+
+
+        for (int i = 0; i < 3; i++) {
+            result2 = Nike.gen(seed1);
+             ek1 = result2.getEk();
+             dk1 = result2.getDk(); 
+
+
+            // System.out.println("seed:  ");
+            // printByteArray(seed1);
+            
+            // assertNotNull(ek1);
+            // System.out.println("Nike Encapsulation Key (ek1): ");
+            // printByteArray(ek1);
+
+            assertNotNull(dk1);
+            System.out.println("Nike decapsulation Key (dk1): ");
+            printByteArray(dk1);
+        }
 
     }
     

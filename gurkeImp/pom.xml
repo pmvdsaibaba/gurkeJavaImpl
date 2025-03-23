@@ -46,6 +46,14 @@
             <configuration>
                 <source>1.8</source> <!-- Use JDK 8 or later -->
                 <target>1.8</target>
+                 <includes>
+                    <!-- Include all files in folder1 (relative to src/main/java) -->
+                    <!-- <include>**/staticUBKem/*.java</include> -->
+                </includes>
+                <excludes>
+                    <!-- Exclude all files in folder2 (relative to src/main/java) -->
+                    <!-- <exclude>**/nike/*.java</exclude> -->
+                </excludes>
             </configuration>
         </plugin>
         <plugin>
