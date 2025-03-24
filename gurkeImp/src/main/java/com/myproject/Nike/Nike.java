@@ -19,7 +19,7 @@ import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
 import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
-
+import org.bouncycastle.crypto.prng.FixedSecureRandom;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 
@@ -110,7 +110,9 @@ public class Nike {
         // Security.addProvider(new BouncyCastleProvider());
 
         // Initialize the SecureRandom instance with the provided seed
-        SecureRandom random = new SecureRandom(seed);
+        // SecureRandom random = new SecureRandom(seed);
+
+        FixedSecureRandom random = new FixedSecureRandom(seed); // Pass the seed directly
 
         // Initialize the X25519 key pair generator
         X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();
