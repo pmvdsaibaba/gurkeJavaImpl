@@ -1,4 +1,4 @@
-package com.myproject.Nike;
+//package com.myproject.Nike;
 
 import java.security.SecureRandom;
 import java.security.Security;
