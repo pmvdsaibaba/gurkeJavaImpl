@@ -1,5 +1,6 @@
 package com.myproject.Tree;
 
+import com.myproject.Tree.TreeEK;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,64 +47,6 @@ class TreeDK {
 }
 
 
-
-class TreeEK {
-    private int depth;
-    private List<byte[]> dataPk;
-
-    public TreeEK() {
-        this.depth = 3;
-        // this.dataPk = new ArrayList<>();
-        // for (int i = 0; i < (int) Math.pow(2, depth) - 1; i++) {
-        //     this.dataPk.add(null);
-        // }
-    }
-
-    public void setDataPk(List<byte[]> dataPk) {
-        this.dataPk = dataPk;
-    }
-
-    public List<byte[]> getDataPk() {
-        return dataPk;
-    }
-
-    public Object get(int index) {
-        return dataPk.get(index);
-    }
-
-    // public void set(int index, Object value) {
-    //     if (index >= this.size()) {
-    //         // Expanding the list as needed
-    //         int newDepth = (int) Math.log(index + 1) + 1;
-    //         for (int i = this.size(); i < (int) Math.pow(2, newDepth) - 1; i++) {
-    //             dataPk.add(null);
-    //         }
-    //         this.depth = newDepth;
-    //     }
-    //     dataPk.set(index, value);
-    // }
-
-    public int size() {
-        return dataPk.size();
-    }
-
-    public List<Integer> path(int i) {
-        return Pathable.Path(i);
-    }
-
-    public List<Integer> copath(int i) {
-        return Pathable.Copath(i);
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    public int getSize() {
-        return (int) Math.pow(2, depth) - 1;
-    }
-}
-
 public class Tree {
     private int numLeaves;
     private int size;
@@ -133,14 +76,14 @@ public class Tree {
     }
 
     public TreeEK setNodes(List<byte[]> pkList) {
-        TreeEK ek = new TreeEK();
+        TreeEK treeek = new TreeEK();
         // for (int i = 0; i < ekList.size(); i++) {
         //     ek.set(i, ekList.get(i));
         // }
-        ek.setDataPk(pkList);
-        this.treeEk = ek;
+        treeek.setDataPk(pkList);
+        this.treeEk = treeek;
 
-        return ek;
+        return treeek;
     }
 
     public static TreeDK setPath(int leaf, List<Object> dks) {

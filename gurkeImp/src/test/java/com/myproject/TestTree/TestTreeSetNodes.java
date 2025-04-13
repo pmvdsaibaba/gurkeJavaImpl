@@ -1,6 +1,7 @@
 package com.myproject.TestTree;
 
 import com.myproject.Tree.Tree;
+import com.myproject.Tree.TreeEK;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
