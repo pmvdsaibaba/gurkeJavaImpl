@@ -52,6 +52,9 @@ public class Tree {
     private int size;
     private TreeEK treeEk;
 
+    // // Hold the single instance here
+    // private static Tree instance;
+
     public static Tree init(int n) {
         Tree tree = new Tree();
         tree.numLeaves = n;
@@ -133,6 +136,17 @@ public class Tree {
         // Logic for adding a new decapsulation key
         return null; // Placeholder
     }
+    public static List<Integer> T_path( int i) {
+        // Logic for adding a new decapsulation key
+        return Pathable.path(i); // Placeholder
+    }
+
+    // public static Tree getInstance() {
+    // if (instance == null) {
+    //     // throw new IllegalStateException("Tree is not initialized. Call Tree.init(n) first.");
+    // }
+    // return instance;
+    // }
 }
 
 class Pathable {
@@ -149,6 +163,7 @@ class Pathable {
         List<Integer> path = new ArrayList<>();
         int a = leaf + 1;
         while (a != 1) {
+            System.out.println(a-1);
             path.add(a - 1);
             a /= 2;
         }
