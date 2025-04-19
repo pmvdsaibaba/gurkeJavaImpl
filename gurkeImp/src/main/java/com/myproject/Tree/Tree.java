@@ -4,47 +4,7 @@ import com.myproject.Tree.TreeEK;
 import java.util.ArrayList;
 import java.util.List;
 
-class TreeDK {
-    // A UBKEM decapsulation key
-    private List<Object> dataSk;
-    private Integer leaf;
 
-    public TreeDK(int initialDepth, List<Object> dkList, Integer leaf) {
-        if (dkList != null) {
-            this.dataSk = dkList;
-        } else {
-            this.dataSk = new ArrayList<>();
-            for (int i = 0; i < initialDepth; i++) {
-                this.dataSk.add(null);
-            }
-        }
-        this.leaf = leaf;
-    }
-
-    public Object pop(int index) {
-        return dataSk.remove(index);
-    }
-
-    public Object get(int index) {
-        return dataSk.get(index);
-    }
-
-    public void set(int index, Object value) {
-        dataSk.set(index, value);
-    }
-
-    public int size() {
-        return dataSk.size();
-    }
-
-    public void append(Object item) {
-        dataSk.add(item);
-    }
-
-    public List<Integer> path() {
-        return Pathable.path(this.leaf);
-    }
-}
 
 
 public class Tree {
@@ -89,13 +49,15 @@ public class Tree {
         return treeek;
     }
 
-    public static TreeDK setPath(int leaf, List<Object> dks) {
-        List<Integer> pathIndices = Pathable.path(leaf);
-        List<Object> dkBranch = new ArrayList<>();
-        for (Integer index : pathIndices) {
-            dkBranch.add(dks.get(index));
-        }
-        return new TreeDK(0, dkBranch, leaf); // 0 depth as placeholder
+    public static TreeDK setPath(int leaf, List<byte[]> skList) {
+        // List<Integer> pathIndices = Pathable.path(leaf);
+        TreeDK treeDk = new TreeDK();
+        // List<Object> dkBranch = new ArrayList<>();
+        // for (Integer index : pathIndices) {
+        //     dkBranch.add(dks.get(index));
+        // }
+        treeDk.setDataSk(skList);
+        return treeDk;
     }
 
     public static List<Integer> rmEK(TreeEK ek, int i) {
