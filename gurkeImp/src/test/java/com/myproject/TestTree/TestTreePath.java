@@ -1,6 +1,7 @@
 package com.myproject.TestTree;
 
 import com.myproject.Tree.Tree;
+import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
@@ -53,12 +54,19 @@ public class TestTreePath {
 
         TreeEK ek = Tree1.setNodes(PkList);
 
-        List<Integer> pastList = Tree1.T_path(7);
+        List<Integer> pathList = Tree1.T_path(7);
 
         System.out.println("Path: ");
-        printIntList(pastList);
+        printIntList(pathList);
 
         // System.out.println(Tree.numLeaves);
+
+        TreeV2.init(7);
+
+        int leaves = TreeV2.getInstance().getNumLeaves();
+
+        System.out.println("Leaves: " + leaves);
+
     }
     
     // Utility method to print byte arrays in a readable format
