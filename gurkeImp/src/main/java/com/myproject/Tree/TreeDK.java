@@ -30,6 +30,29 @@ public class TreeDK {
         this.leaf = leaf;
     }
 
+    // Helper class to hold the result
+    public static class DkData {
+        public List<byte[]> dataSk;
+        public Integer leaf;
+
+        public DkData(List<byte[]> dataSk, Integer leaf) {
+            this.dataSk = dataSk;
+            this.leaf = leaf;
+        }
+
+        public List<byte[]> getDataSk() {
+            return dataSk;
+        }
+        public Integer getDataLeaf() {
+            return leaf;
+        }
+    }
+
+    public DkData getDkPath() {
+        return new DkData(this.dataSk, this.leaf);
+    }
+
+
     // public Object pop(int index) {
     //     return dataSk.remove(index);
     // }

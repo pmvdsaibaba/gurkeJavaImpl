@@ -38,6 +38,11 @@ public class Tree {
         return ek.getDataPk();
     }
 
+    public TreeDK.DkData getPath(TreeDK dk) {
+        return dk.getDkPath();
+    }
+
+
     public TreeEK setNodes(List<byte[]> pkList) {
         TreeEK treeek = new TreeEK();
         // for (int i = 0; i < ekList.size(); i++) {
