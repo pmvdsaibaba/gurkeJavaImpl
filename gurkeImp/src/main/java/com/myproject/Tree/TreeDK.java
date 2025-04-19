@@ -26,13 +26,17 @@ public class TreeDK {
         this.dataSk = dataSk;
     }
 
-    public Object pop(int index) {
-        return dataSk.remove(index);
+    public void setLeaf(int leaf) {
+        this.leaf = leaf;
     }
 
-    public Object get(int index) {
-        return dataSk.get(index);
-    }
+    // public Object pop(int index) {
+    //     return dataSk.remove(index);
+    // }
+
+    // public Object get(int index) {
+    //     return dataSk.get(index);
+    // }
 
     // public void set(int index, Object value) {
     //     dataSk.set(index, value);

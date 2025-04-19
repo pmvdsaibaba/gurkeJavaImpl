@@ -69,12 +69,15 @@ public class TestTreeSetPath {
             {
                 skListLeaf.add(skList.get(pathList.get(j)));
             }
-
+            // System.out.println("Size of the skListLeaf: ");
+            // System.out.println(skListLeaf.size());
+            skListLeaf.clear();
             dk = Tree1.setPath(i,skListLeaf);
             dkList.add(dk);
 
         }
-
+            // System.out.println("Size of the dkList: ");
+            // System.out.println(dkList.size());
 
 // sk0 = skList.get(0);
 // YourType sk4 = skList.get(4);

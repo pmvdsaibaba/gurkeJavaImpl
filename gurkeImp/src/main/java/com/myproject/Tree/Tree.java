@@ -34,7 +34,7 @@ public class Tree {
         return nodeIndexes;
     }
 
-    public Object[] getNodes(TreeEK ek) {
+    public List<byte[]> getNodes(TreeEK ek) {
         return new Object[]{ek}; // Example, replace with actual logic
     }
 
@@ -56,7 +56,9 @@ public class Tree {
         // for (Integer index : pathIndices) {
         //     dkBranch.add(dks.get(index));
         // }
+
         treeDk.setDataSk(skList);
+        treeDk.setLeaf(leaf);
         return treeDk;
     }
 
@@ -101,7 +103,7 @@ public class Tree {
     public List<Integer> T_path( int i) {
         // Logic for adding a new decapsulation key
         // int leaf = numLeaves +  i -1 ;
-        return Pathable.path(numLeaves +  i -1); // Placeholder
+        return Pathable.path(numLeaves +  i -2); // Placeholder
     }
 
     // public static Tree getInstance() {
