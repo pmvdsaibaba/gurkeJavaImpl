@@ -35,7 +35,7 @@ public class Tree {
     }
 
     public List<byte[]> getNodes(TreeEK ek) {
-        return new Object[]{ek}; // Example, replace with actual logic
+        return ek.getDataPk();
     }
 
     public TreeEK setNodes(List<byte[]> pkList) {
