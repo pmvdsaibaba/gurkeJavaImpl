@@ -19,7 +19,8 @@ public class TestTreePath {
     @Test
     public void testTreePath() throws Exception {
         
-        Tree Tree1 = Tree.init(5);
+        int groupMem = 7;
+        Tree Tree1 = Tree.init(groupMem);
         int Treesize = Tree1.getSize();
         List<Integer> nodes = Tree1.nodes(); 
 
@@ -54,14 +55,24 @@ public class TestTreePath {
 
         TreeEK ek = Tree1.setNodes(PkList);
 
-        List<Integer> pathList = Tree1.T_path(7);
+        List<Integer> pathList = Tree1.T_path(1);
 
-        System.out.println("Path: ");
-        printIntList(pathList);
+        // System.out.println("Path: ");
+        // printIntList(pathList);
+
+        // pathList = Tree1.T_path(2);
+        // System.out.println("Path: ");
+        // printIntList(pathList);
+
+        for (int i = 1; i <= groupMem; i++) {
+            pathList = Tree1.T_path(i);
+            System.out.println("Path: ");
+            printIntList(pathList);
+        }
 
         // System.out.println(Tree.numLeaves);
 
-        TreeV2.init(7);
+        TreeV2.init(groupMem);
 
         int leaves = TreeV2.getInstance().getNumLeaves();
 

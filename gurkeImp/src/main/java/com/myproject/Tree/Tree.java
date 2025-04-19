@@ -136,9 +136,10 @@ public class Tree {
         // Logic for adding a new decapsulation key
         return null; // Placeholder
     }
-    public static List<Integer> T_path( int i) {
+    public List<Integer> T_path( int i) {
         // Logic for adding a new decapsulation key
-        return Pathable.path(i); // Placeholder
+        // int leaf = numLeaves +  i -1 ;
+        return Pathable.path(numLeaves +  i -1); // Placeholder
     }
 
     // public static Tree getInstance() {
@@ -163,7 +164,7 @@ class Pathable {
         List<Integer> path = new ArrayList<>();
         int a = leaf + 1;
         while (a != 1) {
-            System.out.println(a-1);
+            // System.out.println(a-1);
             path.add(a - 1);
             a /= 2;
         }
