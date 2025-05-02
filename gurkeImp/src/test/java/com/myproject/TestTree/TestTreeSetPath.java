@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
@@ -46,46 +47,43 @@ public class TestTreeSetPath {
             skList.add(nikeGenKeyPair.getDk());
         }
 
-        // System.out.println("PkList:");
-        // for (byte[] ek : PkList) {
-        //     printByteArray(ek);
-        // }
-
-        // System.out.println("skList:");
-        // for (byte[] dk : skList) { 
-        //     printByteArray(dk);
-        // }
-
         TreeEK ek = Tree1.setNodes(PkList);
         List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDK dk = Tree1.setPath(1,skList);
+        TreeDK dk;
 
-        List<Integer> pathList = Tree1.T_path(1);
+        List<Integer> pathList = new ArrayList<>();
         List<TreeDK> dkList = new ArrayList<>();
 
-        for (int i = 1; i <= groupMem; i++) {
+        for (int i = 1; i <= groupMem; i++) 
+        {
             pathList = Tree1.T_path(i);
             System.out.println("Path: ");
             printIntList(pathList);
+
             for (int j = 0; j< pathList.size(); j++)
             {
                 skListLeaf.add(skList.get((pathList.get(j)) - 1));
             }
-            // System.out.println("Size of the skListLeaf: ");
-            // System.out.println(skListLeaf.size());
-            skListLeaf.clear();
+
             dk = Tree1.setPath(i,skListLeaf);
+            skListLeaf.clear();
             dkList.add(dk);
 
         }
-            // System.out.println("Size of the dkList: ");
-            // System.out.println(dkList.size());
 
-// sk0 = skList.get(0);
-// YourType sk4 = skList.get(4);
-
-
-
+        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+            Tree.Node node = Tree1.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  index: " + node.getindex());
+            System.out.println("  rootnode: " + node.getRootnode());
+            System.out.println("  leftnode: " + node.getLeftnode());
+            System.out.println("  rightnode: " + node.getRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+            // printByteArray(node.getPk());
+        }
 
     }
     

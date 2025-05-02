@@ -56,7 +56,7 @@ public class TestTreePath {
 
         TreeEK ek = Tree1.setNodes(PkList);
 
-        List<Integer> pathList = Tree1.T_path(1);
+        List<Integer> pathList = new ArrayList<>();
 
         // System.out.println("Path: ");
         // printIntList(pathList);
@@ -82,6 +82,7 @@ public class TestTreePath {
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
             Tree.Node node = Tree1.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  index: " + node.getindex());
             System.out.println("  rootnode: " + node.getRootnode());
             System.out.println("  leftnode: " + node.getLeftnode());
             System.out.println("  rightnode: " + node.getRightnode());

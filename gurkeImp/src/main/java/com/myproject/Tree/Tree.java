@@ -9,6 +9,8 @@ public class Tree {
     private int numLeaves;
     private int size;
     private TreeEK treeEk;
+
+    // node indexes as 1,2,3,.... N
     private List<Integer> nodeIndexes;
     List<Node> nodes = new ArrayList<>();
 
@@ -117,6 +119,7 @@ public class Tree {
         tree.size = 2 * n - 1;
 
         tree.nodeIndexes = new ArrayList<>();
+
         for (int i = 1; i < 2 * n; i++) {
 
             tree.nodeIndexes.add(i);
@@ -192,13 +195,28 @@ public class Tree {
         return treeek;
     }
 
-    public static TreeDK setPath(int leaf, List<byte[]> skList) {
+    public TreeDK setPath(int leaf, List<byte[]> skList) {
         // List<Integer> pathIndices = Pathable.path(leaf);
         TreeDK treeDk = new TreeDK();
         // List<Object> dkBranch = new ArrayList<>();
         // for (Integer index : pathIndices) {
         //     dkBranch.add(dks.get(index));
         // }
+
+        List<Integer> leafPath = T_path(leaf);
+
+        for (int i = 0; i < getNodesInternal().size(); i++) 
+        {
+            Tree.Node node = getNodesInternal().get(i);
+
+            for (int j = 0; j < leafPath.size(); j++)
+            {
+                if(node.getindex() == leafPath.get(j) )
+                {
+                    node.setSk(skList.get(j));
+                }
+            }
+        }
 
         treeDk.setDataSk(skList);
         treeDk.setLeaf(leaf);
@@ -243,6 +261,7 @@ public class Tree {
         // Logic for adding a new decapsulation key
         return null; // Placeholder
     }
+
     public List<Integer> T_path( int Leaf_i) {
         int leafcount = 0;
         int leafindex;
@@ -264,7 +283,6 @@ public class Tree {
             }
         }
 
-
         while (currentIndex != -1)
         {
             Node currentNode = null;
@@ -284,9 +302,8 @@ public class Tree {
             currentIndex = currentNode.getRootnode();
         }
 
-
-        // return Pathable.path(numLeaves +  Leaf_i -2); // Placeholder
-        return returnlist; // Placeholder
+        // return Pathable.path(numLeaves +  Leaf_i -2);
+        return returnlist;
     }
 
     // public static Tree getInstance() {
