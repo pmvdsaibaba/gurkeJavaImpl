@@ -3,7 +3,7 @@ package com.myproject.Tree;
 import com.myproject.Tree.TreeEK;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Collections;
 
 public class Tree {
     private int numLeaves;
@@ -263,9 +263,72 @@ public class Tree {
         return i - 1;
     }
 
-    public static Object T_add_Ek(TreeEK ek) {
-        // Logic for adding a new node and splitting leaves goes here
-        return null; // Placeholder
+    public void T_add_Ek(TreeEK ek)
+    {
+        List<Integer> nodeLevelList = new ArrayList<>();
+        for (int i = 0; i < getNodesInternal().size(); i++) {
+            Tree.Node node = getNodesInternal().get(i);
+
+            if(node.isLeaf() == true) {
+                nodeLevelList.add(node.getnodeLevel());
+            }
+        }
+        Collections.sort(nodeLevelList);
+
+        List<Integer> nodeIndexList = new ArrayList<>();
+        for (int i = 0; i < getNodesInternal().size(); i++) {
+            Tree.Node node = getNodesInternal().get(i);
+
+            if(node.isLeaf() == true) {
+                if(node.getnodeLevel() == nodeLevelList.get(0)){
+                    nodeIndexList.add(node.getindex());
+                }
+            }
+        }
+
+        Collections.sort(nodeIndexList);
+        System.out.println(nodeIndexList);
+
+        int nodeIndex = -1;
+        for (int i = 0; i < getNodesInternal().size(); i++) {
+            Tree.Node node = getNodesInternal().get(i);
+
+            if(node.isLeaf() == true) {
+                if(node.getindex() == nodeIndexList.get(0)){
+                    nodeIndex = i;
+                }
+            }
+        }
+    
+        System.out.println(nodeIndex);
+
+
+        Tree.Node currentLEafNode = getNodesInternal().get(nodeIndex);
+
+        Tree.Node node1 = new Tree.Node.Builder()
+            .setindex(getNodesInternal().size() + 1)
+            .build();
+        if( nodeIndex != -1)
+        {
+            node1.setRootnode(currentLEafNode.getRootnode());
+            node1.setnodeLevel(currentLEafNode.getnodeLevel());
+            node1.setLeftnode(currentLEafNode.getindex());
+            node1.setRightnode(getNodesInternal().size() + 2);
+        }
+        addNode(node1);
+
+        Tree.Node node2 = new Tree.Node.Builder()
+            .setindex(getNodesInternal().size() + 1)
+            .build();
+
+        node2.setRootnode(getNodesInternal().size());
+        node2.setnodeLevel(currentLEafNode.getnodeLevel()+1);
+        node2.setIsLeaf(true);
+
+        currentLEafNode.setRootnode(getNodesInternal().size());
+        currentLEafNode.setnodeLevel(node2.getnodeLevel());
+        addNode(node2);
+
     }
 
     public static Object T_add_DK(TreeDK dk, int i) {

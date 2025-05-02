@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
-
+import java.util.Collections;
 import java.util.List;
 
 public class TestTreeSetPath {
@@ -85,6 +85,36 @@ public class TestTreeSetPath {
             System.out.println();
             // printByteArray(node.getPk());
         }
+
+        // List<Integer> nodeLevelList = new ArrayList<>();
+        // for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+        //     Tree.Node node = Tree1.getNodesInternal().get(i);
+
+        //     if(node.isLeaf() == true) {
+        //         nodeLevelList.add(node.getnodeLevel());
+        //     }
+        // }
+
+        // Collections.sort(nodeLevelList);
+
+        // for (Integer level : nodeLevelList) {
+        //     System.out.println(level);
+        // }
+
+        // System.out.println(nodeLevelList);
+
+        // List<Integer> nodeIndexList = new ArrayList<>();
+        // for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+        //     Tree.Node node = Tree1.getNodesInternal().get(i);
+
+        //     if(node.isLeaf() == true) {
+        //         if(node.getnodeLevel() == nodeLevelList.get(0)){
+        //             nodeIndexList.add(node.getindex());
+        //         }
+        //     }
+        // }
+
+        // System.out.println(nodeIndexList);
 
     }
     
