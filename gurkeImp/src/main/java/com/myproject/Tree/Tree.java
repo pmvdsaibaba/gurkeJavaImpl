@@ -12,7 +12,7 @@ public class Tree {
 
     // node indexes as 1,2,3,.... N
     private List<Integer> nodeIndexes;
-    List<Node> nodes = new ArrayList<>();
+    List<Node> internalNode = new ArrayList<>();
 
     // // Hold the single instance here
     // private static Tree instance;
@@ -23,6 +23,7 @@ public class Tree {
         private int rootnode;
         private int leftnode;
         private int rightnode;
+        private int nodeLevel;
         private byte[] pk;
         private byte[] sk;
         private boolean isLeaf;
@@ -33,6 +34,7 @@ public class Tree {
             this.rootnode = builder.rootnode;
             this.leftnode = builder.leftnode;
             this.rightnode = builder.rightnode;
+            this.nodeLevel = builder.nodeLevel;
             this.pk = builder.pk;
             this.sk = builder.sk;
             this.isLeaf = builder.isLeaf;
@@ -44,6 +46,7 @@ public class Tree {
             private int rootnode = -1;
             private int leftnode = -1;
             private int rightnode = -1;
+            private int nodeLevel = -1;
             private byte[] pk = null;
             private byte[] sk = null;
             private boolean isLeaf = false;
@@ -65,6 +68,11 @@ public class Tree {
 
             public Builder setRightnode(int rightnode) {
                 this.rightnode = rightnode;
+                return this;
+            }
+
+            public Builder setnodeLevel(int nodeLevel) {
+                this.nodeLevel = nodeLevel;
                 return this;
             }
 
@@ -92,6 +100,7 @@ public class Tree {
         public int getRootnode() { return rootnode; }
         public int getLeftnode() { return leftnode; }
         public int getRightnode() { return rightnode; }
+        public int getnodeLevel() { return nodeLevel; }
         public byte[] getPk() { return pk; }
         public byte[] getSk() { return sk; }
         public boolean isLeaf() { return isLeaf; }
@@ -100,17 +109,18 @@ public class Tree {
         public void setRootnode(int rootnode) {this.rootnode = rootnode; }
         public void setLeftnode(int leftnode) {this.leftnode = leftnode; }
         public void setRightnode(int rightnode) { this.rightnode = rightnode; }
+        public void setnodeLevel(int nodeLevel) { this.nodeLevel = nodeLevel; }
         public void setPk(byte[] pk) { this.pk = pk; }
         public void setSk(byte[] sk) { this.sk = sk;  }
         public void setIsLeaf(boolean isLeaf) {   this.isLeaf = isLeaf;  }
     }
 
     public void addNode(Node node) {
-        nodes.add(node);
+        internalNode.add(node);
     }
 
     public List<Node> getNodesInternal() {
-        return nodes;
+        return internalNode;
     }
 
     public static Tree init(int n) {
@@ -131,6 +141,7 @@ public class Tree {
             if( i != 1)
             {
                 node.setRootnode(i/2);
+                node.setnodeLevel((int) (Math.log(i) / Math.log(2)));
             }
 
             if((2* i) < (2*n))
@@ -166,7 +177,7 @@ public class Tree {
         return nodeIndexesTemp;
     }
 
-    public List<byte[]> getNodes(TreeEK ek) {
+    public List<byte[]> T_getNodes(TreeEK ek) {
         return ek.getDataPk();
     }
 
@@ -252,12 +263,12 @@ public class Tree {
         return i - 1;
     }
 
-    public static Object add(TreeEK ek) {
+    public static Object T_add_Ek(TreeEK ek) {
         // Logic for adding a new node and splitting leaves goes here
         return null; // Placeholder
     }
 
-    public static Object addDK(TreeDK dk, int i) {
+    public static Object T_add_DK(TreeDK dk, int i) {
         // Logic for adding a new decapsulation key
         return null; // Placeholder
     }

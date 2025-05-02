@@ -55,7 +55,7 @@ public class TestTreeGetNodes {
         }
 
         TreeEK ek2 = Tree1.setNodes(PkList);
-        List<byte[]> PkListGet= Tree1.getNodes(ek2);
+        List<byte[]> PkListGet= Tree1.T_getNodes(ek2);
 
         System.out.println("PkListGet:");
         for (byte[] ek : PkListGet) {
@@ -66,6 +66,7 @@ public class TestTreeGetNodes {
             Tree.Node node = Tree1.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
             System.out.println("  index: " + node.getindex());
+            System.out.println("  level: " + node.getnodeLevel());
             System.out.println("  rootnode: " + node.getRootnode());
             System.out.println("  leftnode: " + node.getLeftnode());
             System.out.println("  rightnode: " + node.getRightnode());
@@ -74,6 +75,8 @@ public class TestTreeGetNodes {
             System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
             System.out.println();
         }
+
+
 
     }
     
