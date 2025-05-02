@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
@@ -52,6 +53,20 @@ public class TestTreeSetNodes {
         }
 
         TreeEK ek = Tree1.setNodes(PkList);
+
+
+        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+            Tree.Node node = Tree1.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  rootnode: " + node.getRootnode());
+            System.out.println("  leftnode: " + node.getLeftnode());
+            System.out.println("  rightnode: " + node.getRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+            // printByteArray(node.getPk());
+        }
     }
     
     // Utility method to print byte arrays in a readable format

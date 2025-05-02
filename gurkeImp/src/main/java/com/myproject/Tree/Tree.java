@@ -5,20 +5,148 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
-
 public class Tree {
     private int numLeaves;
     private int size;
     private TreeEK treeEk;
+    private List<Integer> nodeIndexes;
+    List<Node> nodes = new ArrayList<>();
 
     // // Hold the single instance here
     // private static Tree instance;
+
+    public static class Node {
+        // Use wrapper types so fields can be null (optional)
+        private int index;
+        private int rootnode;
+        private int leftnode;
+        private int rightnode;
+        private byte[] pk;
+        private byte[] sk;
+        private boolean isLeaf;
+
+        // Private constructor — only accessible through the builder
+        private Node(Builder builder) {
+            this.index = builder.index;
+            this.rootnode = builder.rootnode;
+            this.leftnode = builder.leftnode;
+            this.rightnode = builder.rightnode;
+            this.pk = builder.pk;
+            this.sk = builder.sk;
+            this.isLeaf = builder.isLeaf;
+        }
+
+        // Builder class
+        public static class Builder {
+            private int index = -1;
+            private int rootnode = -1;
+            private int leftnode = -1;
+            private int rightnode = -1;
+            private byte[] pk = null;
+            private byte[] sk = null;
+            private boolean isLeaf = false;
+
+            public Builder setRootnode(int rootnode) {
+                this.rootnode = rootnode;
+                return this;
+            }
+
+            public Builder setindex(int index) {
+                this.index = index;
+                return this;
+            }
+
+            public Builder setLeftnode(int leftnode) {
+                this.leftnode = leftnode;
+                return this;
+            }
+
+            public Builder setRightnode(int rightnode) {
+                this.rightnode = rightnode;
+                return this;
+            }
+
+            public Builder setPk(byte[] pk) {
+                this.pk = pk;
+                return this;
+            }
+
+            public Builder setSk(byte[] sk) {
+                this.sk = sk;
+                return this;
+            }
+            
+            public Builder setIsLeaf(boolean isLeaf) {
+                this.isLeaf = isLeaf;
+                return this;
+            }
+
+            public Node build() {
+                return new Node(this);
+            }
+        }
+
+        public int getindex() { return index; }
+        public int getRootnode() { return rootnode; }
+        public int getLeftnode() { return leftnode; }
+        public int getRightnode() { return rightnode; }
+        public byte[] getPk() { return pk; }
+        public byte[] getSk() { return sk; }
+        public boolean isLeaf() { return isLeaf; }
+
+        public void setindex(int index) {this.index = index; }
+        public void setRootnode(int rootnode) {this.rootnode = rootnode; }
+        public void setLeftnode(int leftnode) {this.leftnode = leftnode; }
+        public void setRightnode(int rightnode) { this.rightnode = rightnode; }
+        public void setPk(byte[] pk) { this.pk = pk; }
+        public void setSk(byte[] sk) { this.sk = sk;  }
+        public void setIsLeaf(boolean isLeaf) {   this.isLeaf = isLeaf;  }
+    }
+
+    public void addNode(Node node) {
+        nodes.add(node);
+    }
+
+    public List<Node> getNodesInternal() {
+        return nodes;
+    }
 
     public static Tree init(int n) {
         Tree tree = new Tree();
         tree.numLeaves = n;
         tree.size = 2 * n - 1;
+
+        tree.nodeIndexes = new ArrayList<>();
+        for (int i = 1; i < 2 * n; i++) {
+
+            tree.nodeIndexes.add(i);
+
+            Tree.Node node = new Tree.Node.Builder()
+                .setindex(i)
+                .build();
+
+            if( i != 1)
+            {
+                node.setRootnode(i/2);
+            }
+
+            if((2* i) < (2*n))
+            {
+                node.setLeftnode(2*i);
+            }
+            else
+            {
+                node.setIsLeaf(true);
+            }
+
+            if(((2* i) +1) < (2*n))
+            {
+                node.setRightnode((2*i) + 1);
+            }
+
+            tree.addNode(node);
+        }
+
         return tree;
     }
 
@@ -27,11 +155,12 @@ public class Tree {
     }
 
     public List<Integer> nodes() {
-        List<Integer> nodeIndexes = new ArrayList<>();
-        for (int i = 1; i < 2 * numLeaves; i++) {
-            nodeIndexes.add(i);
-        }
-        return nodeIndexes;
+        List<Integer> nodeIndexesTemp = new ArrayList<>();
+        // for (int i = 1; i < 2 * numLeaves; i++) {
+        //     nodeIndexesTemp.add(i);
+        // }
+        nodeIndexesTemp.addAll(this.nodeIndexes);
+        return nodeIndexesTemp;
     }
 
     public List<byte[]> getNodes(TreeEK ek) {
@@ -50,6 +179,15 @@ public class Tree {
         // }
         treeek.setDataPk(pkList);
         this.treeEk = treeek;
+
+        if(pkList.size() == getNodesInternal().size() )
+        {
+            for (int i = 0; i < getNodesInternal().size(); i++) {
+                Tree.Node node = getNodesInternal().get(i);
+                node.setPk(pkList.get(i));
+            }
+        }
+
 
         return treeek;
     }
