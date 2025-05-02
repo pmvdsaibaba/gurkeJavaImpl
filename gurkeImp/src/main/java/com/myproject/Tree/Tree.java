@@ -243,10 +243,50 @@ public class Tree {
         // Logic for adding a new decapsulation key
         return null; // Placeholder
     }
-    public List<Integer> T_path( int i) {
-        // Logic for adding a new decapsulation key
-        // int leaf = numLeaves +  i -1 ;
-        return Pathable.path(numLeaves +  i -2); // Placeholder
+    public List<Integer> T_path( int Leaf_i) {
+        int leafcount = 0;
+        int leafindex;
+        int currentIndex = -1;
+        List<Integer> returnlist = new ArrayList<>();
+
+        for (int i = 0; i < getNodesInternal().size(); i++)
+        {
+            Tree.Node node = getNodesInternal().get(i);
+            if (node.isLeaf() == true)
+            {
+                leafcount++;
+
+                if(leafcount == Leaf_i)
+                {
+                    leafindex = node.getindex();
+                    currentIndex = leafindex;
+                }
+            }
+        }
+
+
+        while (currentIndex != -1)
+        {
+            Node currentNode = null;
+
+            for (Node node : getNodesInternal()) {
+                if (node.getindex() == currentIndex) {
+                    currentNode = node;
+                    break;
+                }
+            }
+
+            if (currentNode == null)
+            {
+                break;
+            }
+            returnlist.add(currentIndex);
+            currentIndex = currentNode.getRootnode();
+        }
+
+
+        // return Pathable.path(numLeaves +  Leaf_i -2); // Placeholder
+        return returnlist; // Placeholder
     }
 
     // public static Tree getInstance() {

@@ -65,6 +65,7 @@ public class TestTreeGetNodes {
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
             Tree.Node node = Tree1.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  index: " + node.getindex());
             System.out.println("  rootnode: " + node.getRootnode());
             System.out.println("  leftnode: " + node.getLeftnode());
             System.out.println("  rightnode: " + node.getRightnode());

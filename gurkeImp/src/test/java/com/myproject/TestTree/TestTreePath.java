@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
@@ -37,7 +38,7 @@ public class TestTreePath {
         List<byte[]> skList = new ArrayList<>();
         Nike.KeyPair NikeGenKeyPair;
         
-        for (int i = 0; i < Treesize; i++) {
+        for (int i = 1; i < Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
             PkList.add(nikeGenKeyPair.getEk());
             skList.add(nikeGenKeyPair.getDk());
@@ -77,6 +78,19 @@ public class TestTreePath {
         int leaves = TreeV2.getInstance().getNumLeaves();
 
         System.out.println("Leaves: " + leaves);
+
+        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+            Tree.Node node = Tree1.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  rootnode: " + node.getRootnode());
+            System.out.println("  leftnode: " + node.getLeftnode());
+            System.out.println("  rightnode: " + node.getRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+            // printByteArray(node.getPk());
+        }
 
     }
     

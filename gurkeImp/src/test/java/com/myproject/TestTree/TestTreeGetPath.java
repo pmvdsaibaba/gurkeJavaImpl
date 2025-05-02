@@ -38,7 +38,7 @@ public class TestTreeGetPath {
         List<byte[]> skList = new ArrayList<>();
         Nike.KeyPair NikeGenKeyPair;
         
-        for (int i = 0; i < Treesize; i++) {
+        for (int i = 1; i <= Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
             PkList.add(nikeGenKeyPair.getEk());
             skList.add(nikeGenKeyPair.getDk());
@@ -67,7 +67,7 @@ public class TestTreeGetPath {
             printIntList(pathList);
             for (int j = 0; j< pathList.size(); j++)
             {
-                skListLeaf.add(skList.get(pathList.get(j)));
+                skListLeaf.add(skList.get((pathList.get(j)) - 1));
             }
             dk = Tree1.setPath(i,new ArrayList<>(skListLeaf));
             dkList.add(dk);
