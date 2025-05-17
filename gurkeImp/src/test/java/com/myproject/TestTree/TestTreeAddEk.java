@@ -1,5 +1,7 @@
 package com.myproject.TestTree;
 
+
+import com.myproject.Tree.TreeAddEkReturn;
 import com.myproject.Tree.Tree;
 import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
@@ -7,6 +9,11 @@ import com.myproject.Tree.TreeDK;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Map;
+import java.util.HashMap;
+
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,38 +79,6 @@ public class TestTreeAddEk {
 
         }
 
-
-
-        // List<Integer> nodeLevelList = new ArrayList<>();
-        // for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-        //     Tree.Node node = Tree1.getNodesInternal().get(i);
-
-        //     if(node.isLeaf() == true) {
-        //         nodeLevelList.add(node.getnodeLevel());
-        //     }
-        // }
-
-        // Collections.sort(nodeLevelList);
-
-        // for (Integer level : nodeLevelList) {
-        //     System.out.println(level);
-        // }
-
-        // System.out.println(nodeLevelList);
-
-        // List<Integer> nodeIndexList = new ArrayList<>();
-        // for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-        //     Tree.Node node = Tree1.getNodesInternal().get(i);
-
-        //     if(node.isLeaf() == true) {
-        //         if(node.getnodeLevel() == nodeLevelList.get(0)){
-        //             nodeIndexList.add(node.getindex());
-        //         }
-        //     }
-        // }
-
-        // System.out.println(nodeIndexList);
-
         for (int i = 1; i <= (groupMem); i++) {
             pathList = Tree1.T_path(i);
             System.out.println("Path: ");
@@ -114,125 +89,11 @@ public class TestTreeAddEk {
             printIntList(copathList);
         }
 
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        Tree1.T_add_Ek(ek);
-
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        for (int i = 1; i <= (groupMem +1); i++) {
-            pathList = Tree1.T_path(i);
-            System.out.println("Path: ");
-            printIntList(pathList);
-
-            copathList = Tree1.T_co_path(i);
-            System.out.println("co Path: ");
-            printIntList(copathList);
-        }
-
-        Tree1.T_add_Ek(ek);
-
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        Tree1.T_add_Ek(ek);
-
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        Tree1.T_add_Ek(ek);
-
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        Tree1.T_add_Ek(ek);
-
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
-        for (int i = 1; i <= (groupMem +5); i++) {
-            pathList = Tree1.T_path(i);
-            System.out.println("Path: ");
-            printIntList(pathList);
-
-            copathList = Tree1.T_co_path(i);
-            System.out.println("co Path: ");
-            printIntList(copathList);
-        }
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
     }
     
     // Utility method to print byte arrays in a readable format
@@ -252,4 +113,90 @@ public class TestTreeAddEk {
         }
         System.out.println(sb.toString().trim());  // Remove the trailing space
     }
+
+    private void printTreeStateAfterAddEk(Tree tree, TreeEK ek) throws Exception {
+        TreeAddEkReturn addEkReturn = tree.T_add_Ek(ek);
+
+        List<Integer> pathList;
+        List<Integer> copathList;
+
+        System.out.println("******************************************************************");
+        System.out.println("Add a leaf");
+        System.out.println("******************************************************************");
+        System.out.println();
+
+        for (int i = 0; i < tree.getNodesInternal().size(); i++) {
+            Tree.Node node = tree.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  index: " + node.getindex());
+            System.out.println("  level: " + node.getnodeLevel());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+        }
+
+        for (int i = 1; i <= addEkReturn.getLeafsCount(); i++) {
+            pathList = tree.T_path(i);
+            System.out.println("Path: ");
+            printIntList(pathList);
+
+            copathList = tree.T_co_path(i);
+            System.out.println("co Path: ");
+            printIntList(copathList);
+        }
+
+        System.out.print("Size of tree: ");
+        System.out.println(tree.getSize());
+        System.out.print("Number of leafs: ");
+        System.out.println(tree.getNumOfLeaf());
+
+        System.out.println("Path of the newly added leaf: " + addEkReturn.getPathList());
+        System.out.println("CoPath of the newly added leaf: " + addEkReturn.getCoPathList());
+        System.out.println("Number of leafs: " + addEkReturn.getLeafsCount());
+        System.out.println();
+
+        printTreeDiagram(tree);
+    }
+
+    private void printTreeDiagram(Tree tree) {
+        Map<Integer, Tree.Node> nodeMap = new HashMap<>();
+        for (Tree.Node node : tree.getNodesInternal()) {
+            nodeMap.put(node.getindex(), node);
+        }
+
+        Tree.Node root = null;
+        for (Tree.Node node : tree.getNodesInternal()) {
+            if (node.getRootnode() == -1) { // rootNode == -1 or similar logic
+                root = node;
+                break;
+            }
+        }
+
+        if (root == null) {
+            System.out.println("No root node found.");
+            return;
+        }
+
+        printTreeRecursive(root, nodeMap, "", true);
+    }
+
+    private void printTreeRecursive(Tree.Node node, Map<Integer, Tree.Node> nodeMap, String prefix, boolean isTail) {
+        System.out.println(prefix + (isTail ? "└── " : "├── ") + "[" + node.getindex() + "]");
+
+        Integer left = node.getChildLeftnode();
+        Integer right = node.getChildRightnode();
+
+        List<Tree.Node> children = new ArrayList<>();
+        if (left != null && left != -1) children.add(nodeMap.get(left));
+        if (right != null && right != -1) children.add(nodeMap.get(right));
+
+        for (int i = 0; i < children.size(); i++) {
+            printTreeRecursive(children.get(i), nodeMap, prefix + (isTail ? "    " : "│   "), i == children.size() - 1);
+        }
+}
+
 }

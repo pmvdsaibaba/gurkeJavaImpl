@@ -1,13 +1,14 @@
 package com.myproject.Tree;
 
 import com.myproject.Tree.TreeEK;
+import com.myproject.Tree.TreeAddEkReturn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
 public class Tree {
     private int numLeaves;
-    private int size;
+    private int treeSize;
     private TreeEK treeEk;
 
     // node indexes as 1,2,3,.... N
@@ -126,7 +127,7 @@ public class Tree {
     public static Tree init(int n) {
         Tree tree = new Tree();
         tree.numLeaves = n;
-        tree.size = 2 * n - 1;
+        tree.treeSize = 2 * n - 1;
 
         tree.nodeIndexes = new ArrayList<>();
 
@@ -165,7 +166,10 @@ public class Tree {
     }
 
     public int getSize() {
-        return size;
+        return treeSize;
+    }
+    public int getNumOfLeaf() {
+        return numLeaves;
     }
 
     public List<Integer> nodes() {
@@ -263,7 +267,7 @@ public class Tree {
         return i - 1;
     }
 
-    public void T_add_Ek(TreeEK ek)
+    public TreeAddEkReturn T_add_Ek(TreeEK ek)
     {
         // List to store the levels of all leaf nodes
         List<Integer> nodeLevelList = new ArrayList<>();
@@ -366,6 +370,12 @@ public class Tree {
 
         // Add the new leaf node to the tree
         addNode(node2);
+
+        treeSize++;
+        treeSize++;
+        numLeaves++;
+
+        return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
     }
 
 
