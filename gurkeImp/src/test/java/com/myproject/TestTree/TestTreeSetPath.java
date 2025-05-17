@@ -3,7 +3,7 @@ package com.myproject.TestTree;
 import com.myproject.Tree.Tree;
 import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeDkReturn;
+import com.myproject.Tree.TreeDk;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,10 +49,10 @@ public class TestTreeSetPath {
 
         TreeEK ek = Tree1.setNodes(PkList);
         List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDkReturn dk;
+        TreeDk dk;
 
         List<Integer> pathList = new ArrayList<>();
-        List<TreeDkReturn> dkList = new ArrayList<>();
+        List<TreeDk> dkList = new ArrayList<>();
 
         for (int i = 1; i <= groupMem; i++) 
         {

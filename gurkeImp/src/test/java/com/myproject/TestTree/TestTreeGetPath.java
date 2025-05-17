@@ -3,7 +3,7 @@ package com.myproject.TestTree;
 import com.myproject.Tree.Tree;
 
 import com.myproject.Tree.TreeGetPathReturn;
-import com.myproject.Tree.TreeDkReturn;
+import com.myproject.Tree.TreeDk;
 import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
 import com.myproject.Nike.Nike;
@@ -59,11 +59,11 @@ public class TestTreeGetPath {
 
         TreeEK ek = Tree1.setNodes(PkList);
         List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDkReturn dk = Tree1.setPath(1,skList);
+        TreeDk dk = Tree1.setPath(1,skList);
 
         List<Integer> pathList = new ArrayList<>();
         List<Integer> copathList = new ArrayList<>();
-        List<TreeDkReturn> dkList = new ArrayList<>();
+        List<TreeDk> dkList = new ArrayList<>();
 
         for (int i = 1; i <= groupMem; i++) {
             pathList = Tree1.T_path(i);

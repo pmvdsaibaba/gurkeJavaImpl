@@ -3,12 +3,12 @@ package com.myproject.Tree;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TreeDkReturn {
+public class TreeDk {
 
     private List<byte[]> dataSk;
     private Integer leaf;
 
-    public TreeDkReturn(List<byte[]> dataSk, int leaf) {
+    public TreeDk(List<byte[]> dataSk, int leaf) {
         this.dataSk = dataSk;
         this.leaf = leaf;
     }

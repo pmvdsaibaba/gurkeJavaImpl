@@ -4,7 +4,7 @@ import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeAddEkReturn;
 import com.myproject.Tree.TreeAddDkReturn;
 import com.myproject.Tree.TreeGetPathReturn;
-import com.myproject.Tree.TreeDkReturn;
+import com.myproject.Tree.TreeDk;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
@@ -189,7 +189,7 @@ public class Tree {
         return ek.getDataPk();
     }
 
-    public TreeGetPathReturn getPath(TreeDkReturn dk) {
+    public TreeGetPathReturn getPath(TreeDk dk) {
         return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf());
     }
 
@@ -205,7 +205,7 @@ public class Tree {
         return new TreeEK(pkList);
     }
 
-    public TreeDkReturn setPath(int leaf, List<byte[]> skList) {
+    public TreeDk setPath(int leaf, List<byte[]> skList) {
         List<Integer> leafPath = T_path(leaf);
 
         for (int i = 0; i < getNodesInternal().size(); i++) 
@@ -220,7 +220,7 @@ public class Tree {
             }
         }
 
-        return new TreeDkReturn(skList, leaf);
+        return new TreeDk(skList, leaf);
     }
 
 
