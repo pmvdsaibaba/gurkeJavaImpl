@@ -60,12 +60,18 @@ public class TestTreeGetPath {
         TreeDK dk = Tree1.setPath(1,skList);
 
         List<Integer> pathList = new ArrayList<>();
+        List<Integer> copathList = new ArrayList<>();
         List<TreeDK> dkList = new ArrayList<>();
 
         for (int i = 1; i <= groupMem; i++) {
             pathList = Tree1.T_path(i);
             System.out.println("Path: ");
             printIntList(pathList);
+
+            copathList = Tree1.T_co_path(i);
+            System.out.println("co Path: ");
+            printIntList(copathList);
+
             for (int j = 0; j< pathList.size(); j++)
             {
                 skListLeaf.add(skList.get((pathList.get(j)) - 1));
@@ -75,6 +81,12 @@ public class TestTreeGetPath {
             skListLeaf.clear();
 
         }
+
+        // for (int i = 1; i <= (groupMem+5); i++) {
+        //     copathList = Tree1.T_co_path(i);
+        //     System.out.println("co Path: ");
+        //     printIntList(copathList);
+        // }
 
             // System.out.println("Size of the dkList: ");
             // System.out.println(dkList.size());
@@ -102,9 +114,9 @@ public class TestTreeGetPath {
             System.out.println("Node " + (i + 1) + ":");
             System.out.println("  index: " + node.getindex());
             System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootnode: " + node.getRootnode());
-            System.out.println("  leftnode: " + node.getLeftnode());
-            System.out.println("  rightnode: " + node.getRightnode());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
             System.out.println("  isLeaf: " + node.isLeaf());
             System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
             System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));

@@ -20,9 +20,9 @@ public class Tree {
     public static class Node {
         // Use wrapper types so fields can be null (optional)
         private int index;
-        private int rootnode;
-        private int leftnode;
-        private int rightnode;
+        private int rootNode;
+        private int childLeftNode;
+        private int childRightNode;
         private int nodeLevel;
         private byte[] pk;
         private byte[] sk;
@@ -31,9 +31,9 @@ public class Tree {
         // Private constructor — only accessible through the builder
         private Node(Builder builder) {
             this.index = builder.index;
-            this.rootnode = builder.rootnode;
-            this.leftnode = builder.leftnode;
-            this.rightnode = builder.rightnode;
+            this.rootNode = builder.rootNode;
+            this.childLeftNode = builder.childLeftNode;
+            this.childRightNode = builder.childRightNode;
             this.nodeLevel = builder.nodeLevel;
             this.pk = builder.pk;
             this.sk = builder.sk;
@@ -43,16 +43,16 @@ public class Tree {
         // Builder class
         public static class Builder {
             private int index = -1;
-            private int rootnode = -1;
-            private int leftnode = -1;
-            private int rightnode = -1;
+            private int rootNode = -1;
+            private int childLeftNode = -1;
+            private int childRightNode = -1;
             private int nodeLevel = -1;
             private byte[] pk = null;
             private byte[] sk = null;
             private boolean isLeaf = false;
 
-            public Builder setRootnode(int rootnode) {
-                this.rootnode = rootnode;
+            public Builder setRootnode(int rootNode) {
+                this.rootNode = rootNode;
                 return this;
             }
 
@@ -61,13 +61,13 @@ public class Tree {
                 return this;
             }
 
-            public Builder setLeftnode(int leftnode) {
-                this.leftnode = leftnode;
+            public Builder setChildLeftnode(int childLeftNode) {
+                this.childLeftNode = childLeftNode;
                 return this;
             }
 
-            public Builder setRightnode(int rightnode) {
-                this.rightnode = rightnode;
+            public Builder setChildRightnode(int childRightNode) {
+                this.childRightNode = childRightNode;
                 return this;
             }
 
@@ -97,18 +97,18 @@ public class Tree {
         }
 
         public int getindex() { return index; }
-        public int getRootnode() { return rootnode; }
-        public int getLeftnode() { return leftnode; }
-        public int getRightnode() { return rightnode; }
+        public int getRootnode() { return rootNode; }
+        public int getChildLeftnode() { return childLeftNode; }
+        public int getChildRightnode() { return childRightNode; }
         public int getnodeLevel() { return nodeLevel; }
         public byte[] getPk() { return pk; }
         public byte[] getSk() { return sk; }
         public boolean isLeaf() { return isLeaf; }
 
         public void setindex(int index) {this.index = index; }
-        public void setRootnode(int rootnode) {this.rootnode = rootnode; }
-        public void setLeftnode(int leftnode) {this.leftnode = leftnode; }
-        public void setRightnode(int rightnode) { this.rightnode = rightnode; }
+        public void setRootnode(int rootNode) {this.rootNode = rootNode; }
+        public void setChildLeftnode(int childLeftNode) {this.childLeftNode = childLeftNode; }
+        public void setChildRightnode(int childRightNode) { this.childRightNode = childRightNode; }
         public void setnodeLevel(int nodeLevel) { this.nodeLevel = nodeLevel; }
         public void setPk(byte[] pk) { this.pk = pk; }
         public void setSk(byte[] sk) { this.sk = sk;  }
@@ -146,7 +146,7 @@ public class Tree {
 
             if((2* i) < (2*n))
             {
-                node.setLeftnode(2*i);
+                node.setChildLeftnode(2*i);
             }
             else
             {
@@ -155,7 +155,7 @@ public class Tree {
 
             if(((2* i) +1) < (2*n))
             {
-                node.setRightnode((2*i) + 1);
+                node.setChildRightnode((2*i) + 1);
             }
 
             tree.addNode(node);
@@ -265,71 +265,109 @@ public class Tree {
 
     public void T_add_Ek(TreeEK ek)
     {
+        // List to store the levels of all leaf nodes
         List<Integer> nodeLevelList = new ArrayList<>();
+
+        // Loop through all internal nodes and collect the level of each leaf node
         for (int i = 0; i < getNodesInternal().size(); i++) {
             Tree.Node node = getNodesInternal().get(i);
 
-            if(node.isLeaf() == true) {
+            if (node.isLeaf() == true) {
                 nodeLevelList.add(node.getnodeLevel());
             }
         }
+
+        // Sort the levels to find the leaf node(s) with the lowest level
         Collections.sort(nodeLevelList);
 
+        // List to store indexes of all leaf nodes that have the minimum level
         List<Integer> nodeIndexList = new ArrayList<>();
         for (int i = 0; i < getNodesInternal().size(); i++) {
             Tree.Node node = getNodesInternal().get(i);
 
-            if(node.isLeaf() == true) {
-                if(node.getnodeLevel() == nodeLevelList.get(0)){
+            if (node.isLeaf() == true) {
+                if (node.getnodeLevel() == nodeLevelList.get(0)) {
                     nodeIndexList.add(node.getindex());
                 }
             }
         }
 
+        // Sort the node indexes to pick the leftmost (smallest index) leaf node with the lowest level
         Collections.sort(nodeIndexList);
+        System.out.print("leftmost (smallest index) leaf node: ");
         System.out.println(nodeIndexList);
 
+        // Find the position of that node in the internal node list
         int nodeIndex = -1;
         for (int i = 0; i < getNodesInternal().size(); i++) {
             Tree.Node node = getNodesInternal().get(i);
 
-            if(node.isLeaf() == true) {
-                if(node.getindex() == nodeIndexList.get(0)){
+            if (node.isLeaf() == true) {
+                if (node.getindex() == nodeIndexList.get(0)) {
                     nodeIndex = i;
                 }
             }
         }
-    
+
+        System.out.print("position of the node: ");
         System.out.println(nodeIndex);
 
+        // Get the actual leaf node object
+        Tree.Node currentLeafNode = getNodesInternal().get(nodeIndex);
 
-        Tree.Node currentLEafNode = getNodesInternal().get(nodeIndex);
+        // Find the position of that node in the internal node list
+        int parentNodeIndex = -1;
+        for (int i = 0; i < getNodesInternal().size(); i++) {
+            Tree.Node node = getNodesInternal().get(i);
 
+            if (node.getindex() == currentLeafNode.getRootnode()) {
+                parentNodeIndex = i;
+            }
+        }
+
+        Tree.Node currentLeafNodeParent = getNodesInternal().get(parentNodeIndex);
+
+
+        // Create a new internal node (node1) to replace the current leaf node
         Tree.Node node1 = new Tree.Node.Builder()
             .setindex(getNodesInternal().size() + 1)
             .build();
-        if( nodeIndex != -1)
-        {
-            node1.setRootnode(currentLEafNode.getRootnode());
-            node1.setnodeLevel(currentLEafNode.getnodeLevel());
-            node1.setLeftnode(currentLEafNode.getindex());
-            node1.setRightnode(getNodesInternal().size() + 2);
+
+        if (nodeIndex != -1) {
+            // Set properties of the new internal node based on the current leaf node
+            node1.setRootnode(currentLeafNode.getRootnode());  // Inherit parent
+            node1.setnodeLevel(currentLeafNode.getnodeLevel());  // Same level as leaf
+            node1.setChildLeftnode(currentLeafNode.getindex());  // Left child is current leaf
+            node1.setChildRightnode(getNodesInternal().size() + 2);  // Right child will be the new leaf
         }
+
+        // Add the new internal node to the tree
         addNode(node1);
 
+        // Create a new leaf node (node2) as the right child of node1
         Tree.Node node2 = new Tree.Node.Builder()
-            .setindex(getNodesInternal().size() + 1)
+            .setindex(getNodesInternal().size() + 1)  // New index
             .build();
 
-        node2.setRootnode(getNodesInternal().size());
-        node2.setnodeLevel(currentLEafNode.getnodeLevel()+1);
-        node2.setIsLeaf(true);
+        // Set properties for the new leaf node
+        node2.setRootnode(getNodesInternal().size());  // Its parent is the newly added node1
+        node2.setnodeLevel(currentLeafNode.getnodeLevel() + 1);  // Level is increased
+        node2.setIsLeaf(true);  // It's a leaf
 
-        currentLEafNode.setRootnode(getNodesInternal().size());
-        currentLEafNode.setnodeLevel(node2.getnodeLevel());
+        // Update the original leaf node to now be an internal node with updated level and parent
+        currentLeafNode.setRootnode(getNodesInternal().size());  // New parent
+        currentLeafNode.setnodeLevel(node2.getnodeLevel());  // Updated level
+
+        if (currentLeafNodeParent.getChildLeftnode() == currentLeafNode.getindex()) {
+            currentLeafNodeParent.setChildLeftnode(node1.getindex());
+        } else if (currentLeafNodeParent.getChildRightnode() == currentLeafNode.getindex()) {
+             currentLeafNodeParent.setChildRightnode(node1.getindex());
+        }
+
+        // Add the new leaf node to the tree
         addNode(node2);
-
     }
+
 
     public static Object T_add_DK(TreeDK dk, int i) {
         // Logic for adding a new decapsulation key
@@ -378,6 +416,36 @@ public class Tree {
 
         // return Pathable.path(numLeaves +  Leaf_i -2);
         return returnlist;
+    }
+
+
+    public List<Integer> T_co_path( int Leaf_i) {
+        List<Integer> copath = new ArrayList<>();
+
+        // Step 1: Get path from selected leaf to root
+        List<Integer> path  = T_path(Leaf_i);
+
+
+        if (path.size() < 2) return copath; // no co-path if only one node
+
+        // Start from 2nd node in path (index 1), because first is the leaf
+        for (int i = 1; i < path.size(); i++) {
+            int childIndex = path.get(i - 1);  // 3
+            int parentIndex = path.get(i);   // 8
+
+            Node node = getNodesInternal().get(parentIndex-1);
+
+            int leftChild = node.getChildLeftnode();   // Assuming you have these methods
+            int rightChild = node.getChildRightnode();
+
+            if (leftChild == childIndex && rightChild != -1) {
+                copath.add(rightChild);
+            } else if (rightChild == childIndex && leftChild != -1) {
+                copath.add(leftChild);
+            }
+        }
+
+        return copath;
     }
 
     // public static Tree getInstance() {

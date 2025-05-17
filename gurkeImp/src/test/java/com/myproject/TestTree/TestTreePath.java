@@ -84,9 +84,9 @@ public class TestTreePath {
             System.out.println("Node " + (i + 1) + ":");
             System.out.println("  index: " + node.getindex());
             System.out.println("  level: " + node.getnodeLevel());
-            System.out.println("  rootnode: " + node.getRootnode());
-            System.out.println("  leftnode: " + node.getLeftnode());
-            System.out.println("  rightnode: " + node.getRightnode());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
             System.out.println("  isLeaf: " + node.isLeaf());
             System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
             System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
