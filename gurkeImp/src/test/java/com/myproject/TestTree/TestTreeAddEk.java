@@ -160,6 +160,10 @@ public class TestTreeAddEk {
         System.out.println(tree.getSize());
         System.out.print("Number of leafs: ");
         System.out.println(tree.getNumOfLeaf());
+        System.out.print("Node indexes Max: ");
+        System.out.println(tree.getNodeIndexMax());
+        System.out.print("Node indexes: ");
+        printIntList(tree.getNodeIndexes());
 
         System.out.println("Path of the newly added leaf: " + addEkReturn.getPathList());
         System.out.println("CoPath of the newly added leaf: " + addEkReturn.getCoPathList());

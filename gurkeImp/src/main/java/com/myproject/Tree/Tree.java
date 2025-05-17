@@ -14,7 +14,12 @@ public class Tree {
     private int treeSize;
 
     // node indexes as 1,2,3,.... N
-    private List<Integer> nodeIndexes;
+    // These Indexes should be unique. So once created, the index will be permanently assigned to a node. Even if the node is deleted that index will not be reused
+    List<Integer> nodeIndexes;
+    // To store the maximum node index value created
+    int nodeIndexMax;
+
+    // this holds all the nodes
     List<Node> internalNode = new ArrayList<>();
 
     // variables used in T.Add dk
@@ -163,16 +168,15 @@ public class Tree {
 
             tree.addNode(node);
         }
+        tree.nodeIndexMax = (2*n) - 1;
 
         return tree;
     }
 
-    public int getSize() {
-        return treeSize;
-    }
-    public int getNumOfLeaf() {
-        return numLeaves;
-    }
+    public int getSize() { return treeSize; }
+    public int getNumOfLeaf() { return numLeaves; }
+    public int getNodeIndexMax() { return nodeIndexMax; }
+    public List<Integer> getNodeIndexes() { return nodeIndexes; }
 
     public List<Integer> nodes() {
         List<Integer> nodeIndexesTemp = new ArrayList<>();
@@ -290,7 +294,7 @@ public class Tree {
 
         // Create a new internal node (node1) to replace the current leaf node
         Tree.Node node1 = new Tree.Node.Builder()
-            .setindex(getNodesInternal().size() + 1)
+            .setindex(nodeIndexMax + 1)
             .build();
 
         if (nodeIndex != -1) {
@@ -298,7 +302,7 @@ public class Tree {
             node1.setRootnode(currentLeafNode.getRootnode());  // Inherit parent
             node1.setnodeLevel(currentLeafNode.getnodeLevel());  // Same level as leaf
             node1.setChildLeftnode(currentLeafNode.getindex());  // Left child is current leaf
-            node1.setChildRightnode(getNodesInternal().size() + 2);  // Right child will be the new leaf
+            node1.setChildRightnode(nodeIndexMax + 2);  // Right child will be the new leaf
         }
 
 
@@ -306,15 +310,15 @@ public class Tree {
 
         // Create a new leaf node (node2) as the right child of node1
         Tree.Node node2 = new Tree.Node.Builder()
-            .setindex(getNodesInternal().size() + 1)  // New index
+            .setindex(nodeIndexMax + 2)  // New index
             .build();
 
-        node2.setRootnode(getNodesInternal().size());  // Its parent is the newly added node1
+        node2.setRootnode(nodeIndexMax + 1);  // Its parent is the newly added node1
         node2.setnodeLevel(currentLeafNode.getnodeLevel() + 1);  // Level is increased
         node2.setIsLeaf(true);  // It's a leaf
 
         // Update the original leaf node to now be an internal node with updated level and parent
-        currentLeafNode.setRootnode(getNodesInternal().size());  // New parent
+        currentLeafNode.setRootnode(nodeIndexMax + 1);  // New parent
         currentLeafNode.setnodeLevel(node2.getnodeLevel());  // Updated level
 
         if (currentLeafNodeParent.getChildLeftnode() == currentLeafNode.getindex()) {
@@ -332,6 +336,11 @@ public class Tree {
 
         node1Index = node1.getindex();
         node2Index = node2.getindex();
+
+        nodeIndexes.add(node1Index);
+        nodeIndexes.add(node2Index);
+
+        nodeIndexMax = node2Index;
     }
 
     public TreeAddEkReturn T_add_Ek(TreeEK ek)
