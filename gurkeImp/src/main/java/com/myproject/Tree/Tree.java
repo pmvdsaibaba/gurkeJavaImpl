@@ -12,22 +12,16 @@ import java.util.Collections;
 public class Tree {
     private int numLeaves;
     private int treeSize;
-    private TreeEK treeEk;
 
     // node indexes as 1,2,3,.... N
     private List<Integer> nodeIndexes;
     List<Node> internalNode = new ArrayList<>();
-
-    // // Hold the single instance here
-    // private static Tree instance;
-
 
     // variables used in T.Add dk
     private int node1Index;
     private int node2Index;
 
     public static class Node {
-        // Use wrapper types so fields can be null (optional)
         private int index;
         private int rootNode;
         private int childLeftNode;
@@ -182,10 +176,12 @@ public class Tree {
 
     public List<Integer> nodes() {
         List<Integer> nodeIndexesTemp = new ArrayList<>();
-        // for (int i = 1; i < 2 * numLeaves; i++) {
-        //     nodeIndexesTemp.add(i);
-        // }
-        nodeIndexesTemp.addAll(this.nodeIndexes);
+
+        for (int i = 0; i < getNodesInternal().size(); i++) 
+        {
+            nodeIndexesTemp.add(getNodesInternal().get(i).getindex());
+        }
+        // nodeIndexesTemp.addAll(this.nodeIndexes);
         return nodeIndexesTemp;
     }
 
@@ -197,12 +193,7 @@ public class Tree {
         return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf());
     }
 
-
     public TreeEK setNodes(List<byte[]> pkList) {
-        TreeEK treeek = new TreeEK();
-
-        treeek.setDataPk(pkList);
-        this.treeEk = treeek;
 
         if(pkList.size() == getNodesInternal().size() )
         {
@@ -211,9 +202,7 @@ public class Tree {
                 node.setPk(pkList.get(i));
             }
         }
-
-
-        return treeek;
+        return new TreeEK(pkList);
     }
 
     public TreeDkReturn setPath(int leaf, List<byte[]> skList) {
@@ -399,8 +388,6 @@ public class Tree {
             returnlist.add(currentIndex);
             currentIndex = currentNode.getRootnode();
         }
-
-        // return Pathable.path(numLeaves +  Leaf_i -2);
         return returnlist;
     }
 
@@ -408,20 +395,18 @@ public class Tree {
     public List<Integer> T_co_path( int Leaf_i) {
         List<Integer> copath = new ArrayList<>();
 
-        // Step 1: Get path from selected leaf to root
         List<Integer> path  = T_path(Leaf_i);
-
 
         if (path.size() < 2) return copath; // no co-path if only one node
 
         // Start from 2nd node in path (index 1), because first is the leaf
         for (int i = 1; i < path.size(); i++) {
-            int childIndex = path.get(i - 1);  // 3
-            int parentIndex = path.get(i);   // 8
+            int childIndex = path.get(i - 1);
+            int parentIndex = path.get(i);
 
             Node node = getNodesInternal().get(parentIndex-1);
 
-            int leftChild = node.getChildLeftnode();   // Assuming you have these methods
+            int leftChild = node.getChildLeftnode();
             int rightChild = node.getChildRightnode();
 
             if (leftChild == childIndex && rightChild != -1) {
@@ -434,111 +419,6 @@ public class Tree {
         return copath;
     }
 
-    // public static Tree getInstance() {
-    // if (instance == null) {
-    //     // throw new IllegalStateException("Tree is not initialized. Call Tree.init(n) first.");
-    // }
-    // return instance;
-    // }
-}
-
-class Pathable {
-    public static List<Integer> path(int leaf) {
-        return Path(leaf);
-    }
-
-    public static List<Integer> copath(int leaf) {
-        return Copath(leaf);
-    }
-
-    // Static methods for path and copath logic
-    public static List<Integer> Path(int leaf) {
-        List<Integer> path = new ArrayList<>();
-        int a = leaf + 1;
-        while (a != 1) {
-            // System.out.println(a-1);
-            path.add(a - 1);
-            a /= 2;
-        }
-        path.add(0);
-        path.sort((x, y) -> y - x); // Reverse the list
-        return path;
-    }
-
-    public static List<Integer> Copath(int leaf) {
-        List<Integer> path = Path(leaf);
-        List<Integer> copath = new ArrayList<>();
-        for (int i = 1; i < path.size(); i++) {
-            int p = path.get(i);
-            int cop = (p % 2 != 0) ? p + 1 : p - 1;
-            copath.add(cop);
-        }
-        return copath;
-    }
 }
 
 
-
-// Utility functions for tree structure
-class TreeUtils {
-
-    public static int parent(int node) {
-        return ((node + 1) / 2) - 1;
-    }
-
-    public static int leftChild(int node) {
-        return (node + 1) * 2 - 1;
-    }
-
-    public static int rightChild(int node) {
-        return (node + 1) * 2;
-    }
-
-    public static int sibling(int node) {
-        return (node % 2 == 1) ? node + 1 : node - 1;
-    }
-
-    public static int depth(int node) {
-        return Integer.toBinaryString(node + 1).length() - 1;
-    }
-
-    // this is bit unclear for now. 
-    public static int newLeaf(int leaf, int deletionDepth) {
-        int e = depth(leaf) - deletionDepth;
-        int gs = (int) Math.pow(2, e - 1);
-        int gn = (leaf + 1) % gs;
-        int pl = parent(leaf) + 1;
-        int pg = pl - (pl % gs);
-        return pg + gn - 1;
-    }
-
-    public static void move(List<Object> tree, int target, int home) {
-        int at = target;
-        int ah = home;
-        List<Integer> stack1 = new ArrayList<>();
-        List<Integer> stack2 = new ArrayList<>();
-
-        while (true) {
-            while (ah < tree.size() && tree.get(ah) != null) {
-                stack1.add(ah);
-                stack2.add(at);
-                tree.set(at, tree.get(ah));
-                tree.set(ah, null);
-                ah = leftChild(ah);
-                at = leftChild(at);
-            }
-            while (!stack1.isEmpty()) {
-                int p = stack1.remove(stack1.size() - 1);
-                int t = stack2.remove(stack2.size() - 1);
-                if (p % 2 == 1) {
-                    break;
-                }
-            }
-            if (stack1.isEmpty()) {
-                break;
-            }
-            ah = stack1.remove(stack1.size() - 1) + 1;
-            at = stack2.remove(stack2.size() - 1) + 1;
-        }
-    }
-}

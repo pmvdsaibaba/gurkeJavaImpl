@@ -93,6 +93,12 @@ public class TestTreeAddEk {
         printTreeStateAfterAddEk(Tree1, ek);
         printTreeStateAfterAddEk(Tree1, ek);
         printTreeStateAfterAddEk(Tree1, ek);
+
+
+        nodes = Tree1.nodes(); 
+
+        System.out.println("Nodes in the Tree ");
+        printIntList(nodes);
     }
     
     // Utility method to print byte arrays in a readable format
