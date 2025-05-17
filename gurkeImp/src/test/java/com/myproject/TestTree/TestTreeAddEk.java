@@ -2,10 +2,10 @@ package com.myproject.TestTree;
 
 
 import com.myproject.Tree.TreeAddEkReturn;
+import com.myproject.Tree.TreeDkReturn;
 import com.myproject.Tree.Tree;
 import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeDK;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,8 +27,8 @@ public class TestTreeAddEk {
 
     @Test
     public void testTreeAddEk() throws Exception {
-        
-        int groupMem = 3;
+
+        int groupMem = 10;
         Tree Tree1 = Tree.init(groupMem);
         int Treesize = Tree1.getSize();
         List<Integer> nodes = Tree1.nodes(); 
@@ -42,8 +42,6 @@ public class TestTreeAddEk {
         System.out.println("Nodes in the Tree ");
         printIntList(nodes);
 
-
-
         List<byte[]> PkList = new ArrayList<>();
         List<byte[]> skList = new ArrayList<>();
         Nike.KeyPair NikeGenKeyPair;
@@ -56,11 +54,11 @@ public class TestTreeAddEk {
 
         TreeEK ek = Tree1.setNodes(PkList);
         List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDK dk;
+        TreeDkReturn dk;
 
         List<Integer> pathList = new ArrayList<>();
         List<Integer> copathList = new ArrayList<>();
-        List<TreeDK> dkList = new ArrayList<>();
+        List<TreeDkReturn> dkList = new ArrayList<>();
 
         for (int i = 1; i <= groupMem; i++) 
         {
@@ -88,6 +86,7 @@ public class TestTreeAddEk {
             System.out.println("co Path: ");
             printIntList(copathList);
         }
+        printTreeDiagram(Tree1);
 
         printTreeStateAfterAddEk(Tree1, ek);
         printTreeStateAfterAddEk(Tree1, ek);
@@ -120,6 +119,7 @@ public class TestTreeAddEk {
         List<Integer> pathList;
         List<Integer> copathList;
 
+        System.out.println();
         System.out.println("******************************************************************");
         System.out.println("Add a leaf");
         System.out.println("******************************************************************");
@@ -141,12 +141,13 @@ public class TestTreeAddEk {
 
         for (int i = 1; i <= addEkReturn.getLeafsCount(); i++) {
             pathList = tree.T_path(i);
-            System.out.println("Path: ");
+            System.out.print("Path of the leaf " + (i) + ": ");
             printIntList(pathList);
 
             copathList = tree.T_co_path(i);
-            System.out.println("co Path: ");
+            System.out.print("CoPath of the leaf " + (i) + ": ");
             printIntList(copathList);
+            System.out.println();
         }
 
         System.out.print("Size of tree: ");

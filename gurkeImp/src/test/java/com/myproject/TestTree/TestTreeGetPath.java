@@ -1,9 +1,11 @@
 package com.myproject.TestTree;
 
 import com.myproject.Tree.Tree;
+
+import com.myproject.Tree.TreeGetPathReturn;
+import com.myproject.Tree.TreeDkReturn;
 import com.myproject.Tree.TreeV2;
 import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeDK;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,11 +59,11 @@ public class TestTreeGetPath {
 
         TreeEK ek = Tree1.setNodes(PkList);
         List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDK dk = Tree1.setPath(1,skList);
+        TreeDkReturn dk = Tree1.setPath(1,skList);
 
         List<Integer> pathList = new ArrayList<>();
         List<Integer> copathList = new ArrayList<>();
-        List<TreeDK> dkList = new ArrayList<>();
+        List<TreeDkReturn> dkList = new ArrayList<>();
 
         for (int i = 1; i <= groupMem; i++) {
             pathList = Tree1.T_path(i);
@@ -82,24 +84,15 @@ public class TestTreeGetPath {
 
         }
 
-        // for (int i = 1; i <= (groupMem+5); i++) {
-        //     copathList = Tree1.T_co_path(i);
-        //     System.out.println("co Path: ");
-        //     printIntList(copathList);
-        // }
-
-            // System.out.println("Size of the dkList: ");
-            // System.out.println(dkList.size());
-
-        TreeDK.DkData dkGet = Tree1.getPath(dkList.get(1));
+        TreeGetPathReturn dkGet = Tree1.getPath(dkList.get(1));
 
         List<byte[]> dkGetSK = dkGet.getDataSk();
-        Integer dkGetLeaf = dkGet.getDataLeaf();
+        Integer dkGetLeaf = dkGet.getLeafIndex();
 
         for (int j = 0; j< dkList.size(); j++){
             dkGet = Tree1.getPath(dkList.get(j));
             dkGetSK = dkGet.getDataSk();
-            dkGetLeaf = dkGet.getDataLeaf();
+            dkGetLeaf = dkGet.getLeafIndex();
 
             System.out.println("skListGetPath:");
             for (byte[] dkprint : dkGetSK) { 

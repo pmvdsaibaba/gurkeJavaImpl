@@ -61,38 +61,3 @@ public class TreeEK {
         return (int) Math.pow(2, depth) - 1;
     }
 }
-
-
-// class Pathable {
-//     public static List<Integer> path(int leaf) {
-//         return Path(leaf);
-//     }
-
-//     public static List<Integer> copath(int leaf) {
-//         return Copath(leaf);
-//     }
-
-//     // Static methods for path and copath logic
-//     public static List<Integer> Path(int leaf) {
-//         List<Integer> path = new ArrayList<>();
-//         int a = leaf + 1;
-//         while (a != 1) {
-//             path.add(a - 1);
-//             a /= 2;
-//         }
-//         path.add(0);
-//         path.sort((x, y) -> y - x); // Reverse the list
-//         return path;
-//     }
-
-//     public static List<Integer> Copath(int leaf) {
-//         List<Integer> path = Path(leaf);
-//         List<Integer> copath = new ArrayList<>();
-//         for (int i = 1; i < path.size(); i++) {
-//             int p = path.get(i);
-//             int cop = (p % 2 != 0) ? p + 1 : p - 1;
-//             copath.add(cop);
-//         }
-//         return copath;
-//     }
-// }

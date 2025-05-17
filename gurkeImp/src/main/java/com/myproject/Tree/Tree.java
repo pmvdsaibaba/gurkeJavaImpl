@@ -2,6 +2,9 @@ package com.myproject.Tree;
 
 import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeAddEkReturn;
+import com.myproject.Tree.TreeAddDkReturn;
+import com.myproject.Tree.TreeGetPathReturn;
+import com.myproject.Tree.TreeDkReturn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
@@ -17,6 +20,11 @@ public class Tree {
 
     // // Hold the single instance here
     // private static Tree instance;
+
+
+    // variables used in T.Add dk
+    private int node1Index;
+    private int node2Index;
 
     public static class Node {
         // Use wrapper types so fields can be null (optional)
@@ -185,16 +193,14 @@ public class Tree {
         return ek.getDataPk();
     }
 
-    public TreeDK.DkData getPath(TreeDK dk) {
-        return dk.getDkPath();
+    public TreeGetPathReturn getPath(TreeDkReturn dk) {
+        return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf());
     }
 
 
     public TreeEK setNodes(List<byte[]> pkList) {
         TreeEK treeek = new TreeEK();
-        // for (int i = 0; i < ekList.size(); i++) {
-        //     ek.set(i, ekList.get(i));
-        // }
+
         treeek.setDataPk(pkList);
         this.treeEk = treeek;
 
@@ -210,20 +216,12 @@ public class Tree {
         return treeek;
     }
 
-    public TreeDK setPath(int leaf, List<byte[]> skList) {
-        // List<Integer> pathIndices = Pathable.path(leaf);
-        TreeDK treeDk = new TreeDK();
-        // List<Object> dkBranch = new ArrayList<>();
-        // for (Integer index : pathIndices) {
-        //     dkBranch.add(dks.get(index));
-        // }
-
+    public TreeDkReturn setPath(int leaf, List<byte[]> skList) {
         List<Integer> leafPath = T_path(leaf);
 
         for (int i = 0; i < getNodesInternal().size(); i++) 
         {
             Tree.Node node = getNodesInternal().get(i);
-
             for (int j = 0; j < leafPath.size(); j++)
             {
                 if(node.getindex() == leafPath.get(j) )
@@ -233,42 +231,11 @@ public class Tree {
             }
         }
 
-        treeDk.setDataSk(skList);
-        treeDk.setLeaf(leaf);
-        return treeDk;
+        return new TreeDkReturn(skList, leaf);
     }
 
-    public static List<Integer> rmEK(TreeEK ek, int i) {
-        List<Integer> p = ek.path(i);
-        List<Integer> cp = ek.copath(i);
-        List<Integer> result = new ArrayList<>();
-        result.addAll(p);
-        result.addAll(cp);
-        return result;
-    }
 
-    public static int intersectionDepth(int node1, int node2) {
-        List<Integer> path1 = Pathable.path(node1);
-        List<Integer> path2 = Pathable.path(node2);
-        int i = 0;
-        while (i < path1.size() && i < path2.size() && path1.get(i).equals(path2.get(i))) {
-            i++;
-        }
-        return i - 1;
-    }
-
-    public static int rmDK(TreeDK dk, int iprime) {
-        List<Integer> path1 = dk.path();
-        List<Integer> path2 = Pathable.path(iprime);
-        int i = 0;
-        while (i < path1.size() && path1.get(i).equals(path2.get(i))) {
-            i++;
-        }
-        return i - 1;
-    }
-
-    public TreeAddEkReturn T_add_Ek(TreeEK ek)
-    {
+    private void treeAddInternal(){ 
         // List to store the levels of all leaf nodes
         List<Integer> nodeLevelList = new ArrayList<>();
 
@@ -345,7 +312,7 @@ public class Tree {
             node1.setChildRightnode(getNodesInternal().size() + 2);  // Right child will be the new leaf
         }
 
-        // Add the new internal node to the tree
+
         addNode(node1);
 
         // Create a new leaf node (node2) as the right child of node1
@@ -353,7 +320,6 @@ public class Tree {
             .setindex(getNodesInternal().size() + 1)  // New index
             .build();
 
-        // Set properties for the new leaf node
         node2.setRootnode(getNodesInternal().size());  // Its parent is the newly added node1
         node2.setnodeLevel(currentLeafNode.getnodeLevel() + 1);  // Level is increased
         node2.setIsLeaf(true);  // It's a leaf
@@ -375,14 +341,24 @@ public class Tree {
         treeSize++;
         numLeaves++;
 
+        node1Index = node1.getindex();
+        node2Index = node2.getindex();
+    }
+
+    public TreeAddEkReturn T_add_Ek(TreeEK ek)
+    {
+        treeAddInternal();
+
         return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
     }
 
+    // public TreeAddDkReturn T_add_dk(TreeDK dk)
+    // {
+    //     treeAddInternal();
+    //     TreeDK.DkData dkData = dk.DkData();
+    //     return new TreeAddDkReturn(dkData.getDataSk(), node2Index, node1Index);
+    // }
 
-    public static Object T_add_DK(TreeDK dk, int i) {
-        // Logic for adding a new decapsulation key
-        return null; // Placeholder
-    }
 
     public List<Integer> T_path( int Leaf_i) {
         int leafcount = 0;
