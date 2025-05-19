@@ -23,10 +23,10 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.Collections;
 import java.util.List;
 
-public class TestTreeAddEk {
+public class TestTreeRemEk {
 
     @Test
-    public void testTreeAddEk() throws Exception {
+    public void TestTreeRemEk() throws Exception {
 
         int groupMem = 10;
         Tree Tree1 = Tree.init(groupMem);
@@ -88,11 +88,22 @@ public class TestTreeAddEk {
         }
         printTreeDiagram(Tree1);
 
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+
+
+        printTreeStateAfterRemEk(Tree1, ek, 4);
+        printTreeStateAfterRemEk(Tree1, ek, 3);
+        printTreeStateAfterRemEk(Tree1, ek, 5);
+
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+
 
 
         nodes = Tree1.nodes(); 
@@ -118,6 +129,68 @@ public class TestTreeAddEk {
         }
         System.out.println(sb.toString().trim());  // Remove the trailing space
     }
+
+
+
+    private void printTreeStateAfterRemEk(Tree tree, TreeEK ek, int leaf) throws Exception {
+        TreeAddEkReturn addEkReturn = tree.T_rem_Ek(ek, leaf);
+
+        List<Integer> pathList;
+        List<Integer> copathList;
+
+        System.out.println();
+        System.out.println("******************************************************************");
+        System.out.println("Remove a leaf");
+        System.out.println("******************************************************************");
+        System.out.println();
+
+        for (int i = 0; i < tree.getNodesInternal().size(); i++) {
+            Tree.Node node = tree.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  nodeIndex: " + node.getNodeIndex());
+            System.out.println("  level: " + node.getNodeLevel());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  leafIndex: " + node.getLeafIndex());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+        }
+
+        for (int i = 1; i <= addEkReturn.getLeafsCount(); i++) {
+            pathList = tree.T_path(i);
+            System.out.print("Path of the leaf " + (i) + ": ");
+            printIntList(pathList);
+
+            copathList = tree.T_co_path(i);
+            System.out.print("CoPath of the leaf " + (i) + ": ");
+            printIntList(copathList);
+            System.out.println();
+        }
+
+        System.out.print("Size of tree: ");
+        System.out.println(tree.getSize());
+        System.out.print("Number of leafs: ");
+        System.out.println(tree.getNumOfLeaf());
+        System.out.print("Node indexes Max: ");
+        System.out.println(tree.getNodeIndexMax());
+        System.out.print("Node indexes: ");
+        printIntList(tree.getNodeIndexes());
+        System.out.print("Leaf indexes Max: ");
+        System.out.println(tree.getLeafIndexMax());
+        System.out.print("Leaf indexes: ");
+        printIntList(tree.getLeafIndexes());
+
+        System.out.println("Path of the newly added leaf: " + addEkReturn.getPathList());
+        System.out.println("CoPath of the newly added leaf: " + addEkReturn.getCoPathList());
+        System.out.println("Number of leafs: " + addEkReturn.getLeafsCount());
+        System.out.println();
+
+        printTreeDiagram(tree);
+    }
+
 
     private void printTreeStateAfterAddEk(Tree tree, TreeEK ek) throws Exception {
         TreeAddEkReturn addEkReturn = tree.T_add_Ek(ek);
@@ -177,6 +250,7 @@ public class TestTreeAddEk {
 
         printTreeDiagram(tree);
     }
+
 
     private void printTreeDiagram(Tree tree) {
         Map<Integer, Tree.Node> nodeMap = new HashMap<>();

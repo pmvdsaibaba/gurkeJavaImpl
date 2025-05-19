@@ -58,8 +58,8 @@ public class TestTreeSetNodes {
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
             Tree.Node node = Tree1.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
+            System.out.println("  nodeIndex: " + node.getNodeIndex());
+            System.out.println("  level: " + node.getNodeLevel());
             System.out.println("  rootNode: " + node.getRootnode());
             System.out.println("  childLeftNode: " + node.getChildLeftnode());
             System.out.println("  childRightNode: " + node.getChildRightnode());

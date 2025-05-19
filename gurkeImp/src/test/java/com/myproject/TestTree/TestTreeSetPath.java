@@ -74,8 +74,8 @@ public class TestTreeSetPath {
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
             Tree.Node node = Tree1.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  index: " + node.getindex());
-            System.out.println("  level: " + node.getnodeLevel());
+            System.out.println("  nodeIndex: " + node.getNodeIndex());
+            System.out.println("  level: " + node.getNodeLevel());
             System.out.println("  rootNode: " + node.getRootnode());
             System.out.println("  childLeftNode: " + node.getChildLeftnode());
             System.out.println("  childRightNode: " + node.getChildRightnode());
@@ -91,7 +91,7 @@ public class TestTreeSetPath {
         //     Tree.Node node = Tree1.getNodesInternal().get(i);
 
         //     if(node.isLeaf() == true) {
-        //         nodeLevelList.add(node.getnodeLevel());
+        //         nodeLevelList.add(node.getNodeLevel());
         //     }
         // }
 
@@ -108,8 +108,8 @@ public class TestTreeSetPath {
         //     Tree.Node node = Tree1.getNodesInternal().get(i);
 
         //     if(node.isLeaf() == true) {
-        //         if(node.getnodeLevel() == nodeLevelList.get(0)){
-        //             nodeIndexList.add(node.getindex());
+        //         if(node.getNodeLevel() == nodeLevelList.get(0)){
+        //             nodeIndexList.add(node.getNodeIndex());
         //         }
         //     }
         // }

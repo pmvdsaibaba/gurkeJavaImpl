@@ -19,6 +19,9 @@ public class Tree {
     // To store the maximum node index value created
     int nodeIndexMax;
 
+    List<Integer> leafIndexes;
+    int leafIndexMax;
+
     // this holds all the nodes
     List<Node> internalNode = new ArrayList<>();
 
@@ -27,22 +30,24 @@ public class Tree {
     private int node2Index;
 
     public static class Node {
-        private int index;
+        private int nodeIndex;
         private int rootNode;
         private int childLeftNode;
         private int childRightNode;
         private int nodeLevel;
+        private int leafIndex;
         private byte[] pk;
         private byte[] sk;
         private boolean isLeaf;
 
         // Private constructor — only accessible through the builder
         private Node(Builder builder) {
-            this.index = builder.index;
+            this.nodeIndex = builder.nodeIndex;
             this.rootNode = builder.rootNode;
             this.childLeftNode = builder.childLeftNode;
             this.childRightNode = builder.childRightNode;
             this.nodeLevel = builder.nodeLevel;
+            this.leafIndex = builder.leafIndex;
             this.pk = builder.pk;
             this.sk = builder.sk;
             this.isLeaf = builder.isLeaf;
@@ -50,11 +55,12 @@ public class Tree {
 
         // Builder class
         public static class Builder {
-            private int index = -1;
+            private int nodeIndex = -1;
             private int rootNode = -1;
             private int childLeftNode = -1;
             private int childRightNode = -1;
             private int nodeLevel = -1;
+            private int leafIndex = -1;
             private byte[] pk = null;
             private byte[] sk = null;
             private boolean isLeaf = false;
@@ -64,8 +70,8 @@ public class Tree {
                 return this;
             }
 
-            public Builder setindex(int index) {
-                this.index = index;
+            public Builder setNodeIndex(int nodeIndex) {
+                this.nodeIndex = nodeIndex;
                 return this;
             }
 
@@ -79,8 +85,13 @@ public class Tree {
                 return this;
             }
 
-            public Builder setnodeLevel(int nodeLevel) {
+            public Builder setNodeLevel(int nodeLevel) {
                 this.nodeLevel = nodeLevel;
+                return this;
+            }
+
+            public Builder setLeafIndex(int leafIndex) {
+                this.leafIndex = leafIndex;
                 return this;
             }
 
@@ -104,20 +115,22 @@ public class Tree {
             }
         }
 
-        public int getindex() { return index; }
+        public int getNodeIndex() { return nodeIndex; }
         public int getRootnode() { return rootNode; }
         public int getChildLeftnode() { return childLeftNode; }
         public int getChildRightnode() { return childRightNode; }
-        public int getnodeLevel() { return nodeLevel; }
+        public int getNodeLevel() { return nodeLevel; }
+        public int getLeafIndex() { return leafIndex; }
         public byte[] getPk() { return pk; }
         public byte[] getSk() { return sk; }
         public boolean isLeaf() { return isLeaf; }
 
-        public void setindex(int index) {this.index = index; }
+        public void setNodeIndex(int nodeIndex) {this.nodeIndex = nodeIndex; }
         public void setRootnode(int rootNode) {this.rootNode = rootNode; }
         public void setChildLeftnode(int childLeftNode) {this.childLeftNode = childLeftNode; }
         public void setChildRightnode(int childRightNode) { this.childRightNode = childRightNode; }
-        public void setnodeLevel(int nodeLevel) { this.nodeLevel = nodeLevel; }
+        public void setNodeLevel(int nodeLevel) { this.nodeLevel = nodeLevel; }
+        public void setLeafIndex(int leafIndex) { this.leafIndex = leafIndex; }
         public void setPk(byte[] pk) { this.pk = pk; }
         public void setSk(byte[] sk) { this.sk = sk;  }
         public void setIsLeaf(boolean isLeaf) {   this.isLeaf = isLeaf;  }
@@ -135,21 +148,23 @@ public class Tree {
         Tree tree = new Tree();
         tree.numLeaves = n;
         tree.treeSize = 2 * n - 1;
+        int leafCount = 1;
 
         tree.nodeIndexes = new ArrayList<>();
+        tree.leafIndexes = new ArrayList<>();
 
         for (int i = 1; i < 2 * n; i++) {
 
             tree.nodeIndexes.add(i);
 
             Tree.Node node = new Tree.Node.Builder()
-                .setindex(i)
+                .setNodeIndex(i)
                 .build();
 
             if( i != 1)
             {
                 node.setRootnode(i/2);
-                node.setnodeLevel((int) (Math.log(i) / Math.log(2)));
+                node.setNodeLevel((int) (Math.log(i) / Math.log(2)));
             }
 
             if((2* i) < (2*n))
@@ -159,6 +174,10 @@ public class Tree {
             else
             {
                 node.setIsLeaf(true);
+                node.setLeafIndex(leafCount);
+                tree.leafIndexes.add(leafCount);
+                tree.leafIndexMax = leafCount;
+                leafCount++;
             }
 
             if(((2* i) +1) < (2*n))
@@ -177,13 +196,15 @@ public class Tree {
     public int getNumOfLeaf() { return numLeaves; }
     public int getNodeIndexMax() { return nodeIndexMax; }
     public List<Integer> getNodeIndexes() { return nodeIndexes; }
+    public int getLeafIndexMax() { return leafIndexMax; }
+    public List<Integer> getLeafIndexes() { return leafIndexes; }
 
     public List<Integer> nodes() {
         List<Integer> nodeIndexesTemp = new ArrayList<>();
 
         for (int i = 0; i < getNodesInternal().size(); i++) 
         {
-            nodeIndexesTemp.add(getNodesInternal().get(i).getindex());
+            nodeIndexesTemp.add(getNodesInternal().get(i).getNodeIndex());
         }
         // nodeIndexesTemp.addAll(this.nodeIndexes);
         return nodeIndexesTemp;
@@ -217,7 +238,7 @@ public class Tree {
             Tree.Node node = getNodesInternal().get(i);
             for (int j = 0; j < leafPath.size(); j++)
             {
-                if(node.getindex() == leafPath.get(j) )
+                if(node.getNodeIndex() == leafPath.get(j) )
                 {
                     node.setSk(skList.get(j));
                 }
@@ -226,7 +247,6 @@ public class Tree {
 
         return new TreeDk(skList, leaf);
     }
-
 
     private void treeAddInternal(){ 
         // List to store the levels of all leaf nodes
@@ -237,7 +257,7 @@ public class Tree {
             Tree.Node node = getNodesInternal().get(i);
 
             if (node.isLeaf() == true) {
-                nodeLevelList.add(node.getnodeLevel());
+                nodeLevelList.add(node.getNodeLevel());
             }
         }
 
@@ -250,8 +270,8 @@ public class Tree {
             Tree.Node node = getNodesInternal().get(i);
 
             if (node.isLeaf() == true) {
-                if (node.getnodeLevel() == nodeLevelList.get(0)) {
-                    nodeIndexList.add(node.getindex());
+                if (node.getNodeLevel() == nodeLevelList.get(0)) {
+                    nodeIndexList.add(node.getNodeIndex());
                 }
             }
         }
@@ -267,7 +287,7 @@ public class Tree {
             Tree.Node node = getNodesInternal().get(i);
 
             if (node.isLeaf() == true) {
-                if (node.getindex() == nodeIndexList.get(0)) {
+                if (node.getNodeIndex() == nodeIndexList.get(0)) {
                     nodeIndex = i;
                 }
             }
@@ -284,7 +304,7 @@ public class Tree {
         for (int i = 0; i < getNodesInternal().size(); i++) {
             Tree.Node node = getNodesInternal().get(i);
 
-            if (node.getindex() == currentLeafNode.getRootnode()) {
+            if (node.getNodeIndex() == currentLeafNode.getRootnode()) {
                 parentNodeIndex = i;
             }
         }
@@ -294,14 +314,14 @@ public class Tree {
 
         // Create a new internal node (node1) to replace the current leaf node
         Tree.Node node1 = new Tree.Node.Builder()
-            .setindex(nodeIndexMax + 1)
+            .setNodeIndex(nodeIndexMax + 1)
             .build();
 
         if (nodeIndex != -1) {
             // Set properties of the new internal node based on the current leaf node
             node1.setRootnode(currentLeafNode.getRootnode());  // Inherit parent
-            node1.setnodeLevel(currentLeafNode.getnodeLevel());  // Same level as leaf
-            node1.setChildLeftnode(currentLeafNode.getindex());  // Left child is current leaf
+            node1.setNodeLevel(currentLeafNode.getNodeLevel());  // Same level as leaf
+            node1.setChildLeftnode(currentLeafNode.getNodeIndex());  // Left child is current leaf
             node1.setChildRightnode(nodeIndexMax + 2);  // Right child will be the new leaf
         }
 
@@ -310,21 +330,24 @@ public class Tree {
 
         // Create a new leaf node (node2) as the right child of node1
         Tree.Node node2 = new Tree.Node.Builder()
-            .setindex(nodeIndexMax + 2)  // New index
+            .setNodeIndex(nodeIndexMax + 2)  // New index
             .build();
 
         node2.setRootnode(nodeIndexMax + 1);  // Its parent is the newly added node1
-        node2.setnodeLevel(currentLeafNode.getnodeLevel() + 1);  // Level is increased
+        node2.setNodeLevel(currentLeafNode.getNodeLevel() + 1);  // Level is increased
         node2.setIsLeaf(true);  // It's a leaf
+        leafIndexMax++;
+        node2.setLeafIndex(leafIndexMax);
+        leafIndexes.add(leafIndexMax);
 
         // Update the original leaf node to now be an internal node with updated level and parent
         currentLeafNode.setRootnode(nodeIndexMax + 1);  // New parent
-        currentLeafNode.setnodeLevel(node2.getnodeLevel());  // Updated level
+        currentLeafNode.setNodeLevel(node2.getNodeLevel());  // Updated level
 
-        if (currentLeafNodeParent.getChildLeftnode() == currentLeafNode.getindex()) {
-            currentLeafNodeParent.setChildLeftnode(node1.getindex());
-        } else if (currentLeafNodeParent.getChildRightnode() == currentLeafNode.getindex()) {
-             currentLeafNodeParent.setChildRightnode(node1.getindex());
+        if (currentLeafNodeParent.getChildLeftnode() == currentLeafNode.getNodeIndex()) {
+            currentLeafNodeParent.setChildLeftnode(node1.getNodeIndex());
+        } else if (currentLeafNodeParent.getChildRightnode() == currentLeafNode.getNodeIndex()) {
+             currentLeafNodeParent.setChildRightnode(node1.getNodeIndex());
         }
 
         // Add the new leaf node to the tree
@@ -334,8 +357,8 @@ public class Tree {
         treeSize++;
         numLeaves++;
 
-        node1Index = node1.getindex();
-        node2Index = node2.getindex();
+        node1Index = node1.getNodeIndex();
+        node2Index = node2.getNodeIndex();
 
         nodeIndexes.add(node1Index);
         nodeIndexes.add(node2Index);
@@ -350,18 +373,170 @@ public class Tree {
         return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
     }
 
-    // public TreeAddDkReturn T_add_dk(TreeDK dk)
-    // {
-    //     treeAddInternal();
-    //     TreeDK.DkData dkData = dk.DkData();
-    //     return new TreeAddDkReturn(dkData.getDataSk(), node2Index, node1Index);
-    // }
+    public TreeAddDkReturn T_add_dk(TreeDk dk)
+    {
+        treeAddInternal();
+        return new TreeAddDkReturn(dk.getDataSk(), node2Index, node1Index);
+    }
 
+    private void treeRemInternal(int leaf){
+
+        Tree.Node NodeToBeRemoved = null;
+        Tree.Node NodeRootToBeRemoved = null;
+        Tree.Node NewNodeRoot = null;
+        Tree.Node tempNode;
+
+        List<Integer> pathList = T_path(leaf);
+
+        if(pathList.size() > 2)
+        {
+            // Todo: add an implementation to throw an exception if pathList size is < 4
+            int LeafNodeIndex = pathList.get(0);
+            int LeafRootNodeIndex = pathList.get(1);
+            int newLeafRootNodeIndex = pathList.get(2);
+
+            // System.out.print("LeafNodeIndex: ");
+            // System.out.println(LeafNodeIndex);
+
+            for (int i = 0; i < getNodesInternal().size(); i++) {
+
+                tempNode = getNodesInternal().get(i);
+
+                if (tempNode.getNodeIndex() == LeafNodeIndex) {
+                    NodeToBeRemoved = getNodesInternal().get(i);
+                }
+
+                if (tempNode.getNodeIndex() == LeafRootNodeIndex) {
+                    NodeRootToBeRemoved = getNodesInternal().get(i);
+                }
+
+                if (tempNode.getNodeIndex() == newLeafRootNodeIndex) {
+                    NewNodeRoot = getNodesInternal().get(i);
+                }
+            }
+
+            if (NewNodeRoot.getChildLeftnode() == NodeToBeRemoved.getRootnode())
+            {
+                if (NodeRootToBeRemoved.getChildLeftnode() == NodeToBeRemoved.getNodeIndex())
+                {
+                    NewNodeRoot.setChildLeftnode(NodeRootToBeRemoved.getChildRightnode());
+
+                    for (int i = 0; i < getNodesInternal().size(); i++) 
+                    {
+                        tempNode = getNodesInternal().get(i);
+                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildRightnode()) 
+                        {
+                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());
+                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                        }
+                    }
+                }
+                else if (NodeRootToBeRemoved.getChildRightnode() == NodeToBeRemoved.getNodeIndex())
+                {
+                    NewNodeRoot.setChildLeftnode(NodeRootToBeRemoved.getChildLeftnode());
+
+                    for (int i = 0; i < getNodesInternal().size(); i++) 
+                    {
+                        tempNode = getNodesInternal().get(i);
+                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildLeftnode()) 
+                        {
+                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());
+                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                        }
+                    }
+                }
+            } else if (NewNodeRoot.getChildRightnode() == NodeToBeRemoved.getRootnode())
+            {
+                if (NodeRootToBeRemoved.getChildLeftnode() == NodeToBeRemoved.getNodeIndex())
+                {
+                    NewNodeRoot.setChildRightnode(NodeRootToBeRemoved.getChildRightnode());
+
+                    for (int i = 0; i < getNodesInternal().size(); i++) 
+                    {
+                        tempNode = getNodesInternal().get(i);
+                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildRightnode()) 
+                        {
+                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());
+                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                        }
+                    }
+                }
+                else if (NodeRootToBeRemoved.getChildRightnode() == NodeToBeRemoved.getNodeIndex())
+                {
+                    NewNodeRoot.setChildRightnode(NodeRootToBeRemoved.getChildLeftnode());
+
+                    for (int i = 0; i < getNodesInternal().size(); i++) 
+                    {
+                        tempNode = getNodesInternal().get(i);
+                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildLeftnode()) 
+                        {
+                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());
+                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                        }
+                    }
+                }
+
+            }
+
+            NodeToBeRemoved.setRootnode(-1);
+            NodeToBeRemoved.setNodeLevel(-1);
+            NodeToBeRemoved.setLeafIndex(-1);
+            NodeToBeRemoved.setIsLeaf(false);
+            NodeToBeRemoved.setPk(null);
+            NodeToBeRemoved.setSk(null);
+
+            NodeRootToBeRemoved.setRootnode(-1);
+            NodeRootToBeRemoved.setNodeLevel(-1);
+            NodeRootToBeRemoved.setLeafIndex(-1);
+            NodeRootToBeRemoved.setChildRightnode(-1);
+            NodeRootToBeRemoved.setChildLeftnode(-1);
+            NodeRootToBeRemoved.setIsLeaf(false);
+            NodeRootToBeRemoved.setPk(null);
+            NodeRootToBeRemoved.setSk(null);
+
+            for (Node node : getNodesInternal()) {
+                List<Integer> path = getPathToRoot(node.getNodeIndex());
+
+                // Level is the path length minus 1, or -1 if root
+                int level = (path.size() > 0 && path.get(path.size() - 1) == node.getNodeIndex()) ? -1 : path.size() - 1;
+                node.setNodeLevel(level);
+            }
+        }
+
+    }
+
+    public List<Integer> getPathToRoot(int nodeIndex) {
+        List<Integer> path = new ArrayList<>();
+        int current = nodeIndex;
+
+        while (current != -1) {
+            Node currentNode = null;
+            for (Node node : getNodesInternal()) {
+                if (node.getNodeIndex() == current) {
+                    currentNode = node;
+                    break;
+                }
+            }
+            if (currentNode == null) break;
+
+            path.add(current);
+            current = currentNode.getRootnode();
+        }
+
+        return path;
+    }
+
+
+    public TreeAddEkReturn T_rem_Ek(TreeEK ek, int leaf)
+    {
+        treeRemInternal(leaf);
+
+        return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
+    }
 
     public List<Integer> T_path( int Leaf_i) {
-        int leafcount = 0;
-        int leafindex;
-        int currentIndex = -1;
+        int tempNodeIndex;
+        int currentNodeIndex = -1;
         List<Integer> returnlist = new ArrayList<>();
 
         for (int i = 0; i < getNodesInternal().size(); i++)
@@ -369,22 +544,20 @@ public class Tree {
             Tree.Node node = getNodesInternal().get(i);
             if (node.isLeaf() == true)
             {
-                leafcount++;
-
-                if(leafcount == Leaf_i)
+                if(node.getLeafIndex() == Leaf_i)
                 {
-                    leafindex = node.getindex();
-                    currentIndex = leafindex;
+                    tempNodeIndex = node.getNodeIndex();
+                    currentNodeIndex = tempNodeIndex;
                 }
             }
         }
 
-        while (currentIndex != -1)
+        while (currentNodeIndex != -1)
         {
             Node currentNode = null;
 
             for (Node node : getNodesInternal()) {
-                if (node.getindex() == currentIndex) {
+                if (node.getNodeIndex() == currentNodeIndex) {
                     currentNode = node;
                     break;
                 }
@@ -394,8 +567,8 @@ public class Tree {
             {
                 break;
             }
-            returnlist.add(currentIndex);
-            currentIndex = currentNode.getRootnode();
+            returnlist.add(currentNodeIndex);
+            currentNodeIndex = currentNode.getRootnode();
         }
         return returnlist;
     }
