@@ -26,8 +26,12 @@ public class Tree {
     List<Node> internalNode = new ArrayList<>();
 
     // variables used in T.Add dk
-    private int node1Index;
-    private int node2Index;
+    private int TAddnode1Index;
+    private int TAddnode2Index;
+
+    // variables used in T.Rem dk
+    private int TRemnode1Index;
+    private int TRemnode2Index;
 
     public static class Node {
         private int nodeIndex;
@@ -357,26 +361,26 @@ public class Tree {
         treeSize++;
         numLeaves++;
 
-        node1Index = node1.getNodeIndex();
-        node2Index = node2.getNodeIndex();
+        TAddnode1Index = node1.getNodeIndex();
+        TAddnode2Index = node2.getNodeIndex();
 
-        nodeIndexes.add(node1Index);
-        nodeIndexes.add(node2Index);
+        nodeIndexes.add(TAddnode1Index);
+        nodeIndexes.add(TAddnode2Index);
 
-        nodeIndexMax = node2Index;
+        nodeIndexMax = TAddnode2Index;
     }
 
     public TreeAddEkReturn T_add_Ek(TreeEK ek)
     {
         treeAddInternal();
 
-        return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
+        return new TreeAddEkReturn(ek.getDataPk(), T_path(leafIndexMax), T_co_path(leafIndexMax), numLeaves);
     }
 
     public TreeAddDkReturn T_add_dk(TreeDk dk)
     {
         treeAddInternal();
-        return new TreeAddDkReturn(dk.getDataSk(), node2Index, node1Index);
+        return new TreeAddDkReturn(dk.getDataSk(), TAddnode2Index, TAddnode1Index);
     }
 
     private void treeRemInternal(int leaf){
@@ -428,6 +432,7 @@ public class Tree {
                         {
                             tempNode.setRootnode(NewNodeRoot.getNodeIndex());
                             tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                            TAddnode2Index = tempNode.getNodeIndex();
                         }
                     }
                 }
@@ -442,6 +447,7 @@ public class Tree {
                         {
                             tempNode.setRootnode(NewNodeRoot.getNodeIndex());
                             tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                            TAddnode2Index = tempNode.getNodeIndex();
                         }
                     }
                 }
@@ -458,6 +464,7 @@ public class Tree {
                         {
                             tempNode.setRootnode(NewNodeRoot.getNodeIndex());
                             tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                            TAddnode2Index = tempNode.getNodeIndex();
                         }
                     }
                 }
@@ -472,6 +479,7 @@ public class Tree {
                         {
                             tempNode.setRootnode(NewNodeRoot.getNodeIndex());
                             tempNode.setNodeLevel(tempNode.getNodeLevel()-1);
+                            TAddnode2Index = tempNode.getNodeIndex();
                         }
                     }
                 }
@@ -501,6 +509,12 @@ public class Tree {
                 int level = (path.size() > 0 && path.get(path.size() - 1) == node.getNodeIndex()) ? -1 : path.size() - 1;
                 node.setNodeLevel(level);
             }
+
+            numLeaves--;
+            treeSize--;
+            treeSize--;
+
+            TRemnode1Index = NewNodeRoot.getNodeIndex();
         }
 
     }
@@ -531,7 +545,14 @@ public class Tree {
     {
         treeRemInternal(leaf);
 
-        return new TreeAddEkReturn(ek.getDataPk(), T_path(numLeaves), T_co_path(numLeaves), numLeaves);
+        return new TreeAddEkReturn(ek.getDataPk(), T_path(leafIndexMax), T_co_path(leafIndexMax), leafIndexMax);
+    }
+
+    public TreeAddEkReturn T_rem_Dk(TreeDk dk, int leaf)
+    {
+        treeRemInternal(leaf);
+
+        return new TreeAddEkReturn(dk.getDataSk(), T_path(TAddnode2Index), T_co_path(TAddnode2Index), TRemnode1Index);
     }
 
     public List<Integer> T_path( int Leaf_i) {

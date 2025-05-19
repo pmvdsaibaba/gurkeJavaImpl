@@ -99,10 +99,10 @@ public class TestTreeRemEk {
         printTreeStateAfterRemEk(Tree1, ek, 3);
         printTreeStateAfterRemEk(Tree1, ek, 5);
 
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
+        printTreeStateAfterAddEk(Tree1, ek);
 
 
 
@@ -159,7 +159,7 @@ public class TestTreeRemEk {
             System.out.println();
         }
 
-        for (int i = 1; i <= addEkReturn.getLeafsCount(); i++) {
+        for (int i = 1; i <= tree.getLeafIndexMax(); i++) {
             pathList = tree.T_path(i);
             System.out.print("Path of the leaf " + (i) + ": ");
             printIntList(pathList);
@@ -219,7 +219,7 @@ public class TestTreeRemEk {
             System.out.println();
         }
 
-        for (int i = 1; i <= addEkReturn.getLeafsCount(); i++) {
+        for (int i = 1; i <= tree.getLeafIndexMax(); i++) {
             pathList = tree.T_path(i);
             System.out.print("Path of the leaf " + (i) + ": ");
             printIntList(pathList);
