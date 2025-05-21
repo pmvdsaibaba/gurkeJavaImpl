@@ -2,21 +2,11 @@ package com.myproject.TestStandardSignature;
 
 import com.myproject.signatureScheme.SignatureScheme;
 import com.myproject.signatureScheme.SignatureScheme.KeyPair;
-
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.bouncycastle.util.encoders.Hex;
-
-import java.security.*;
-import java.security.spec.ECGenParameterSpec;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 public class TestSignatureScheme {
-
 
     @Test
     public void testSignatureGenerationAndVerification() throws Exception {
@@ -24,9 +14,9 @@ public class TestSignatureScheme {
         KeyPair keyPair = SignatureScheme.gen();
         assertNotNull(keyPair);
 
-        // Extract keys
-        PrivateKey sk = keyPair.getSk();
-        PublicKey vk = keyPair.getVk();
+        // Extract keys as byte arrays
+        byte[] sk = keyPair.getSk();
+        byte[] vk = keyPair.getVk();
 
         // Message to sign
         String msg = "This is a secure message.";
@@ -35,9 +25,6 @@ public class TestSignatureScheme {
         // Sign the message
         byte[] signature = SignatureScheme.sgn(sk, message);
         assertNotNull(signature, "Signature should not be null");
-
-        // msg = "This is a secure message...";
-        // message = msg.getBytes(StandardCharsets.UTF_8);
 
         // Verify signature
         boolean isValid = SignatureScheme.vfy(vk, message, signature);
@@ -50,10 +37,9 @@ public class TestSignatureScheme {
 
         // Optional: Print results
         System.out.println("Original Message: " + msg);
-        System.out.println("Original Message: " + isValid);
+        System.out.println("Verification return value: " + isValid);
         System.out.println("Signature (hex): " + bytesToHex(signature));
     }
-
 
     // Utility function to print byte[] as hex
     public static String bytesToHex(byte[] bytes) {

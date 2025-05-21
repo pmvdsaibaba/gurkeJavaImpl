@@ -5,6 +5,10 @@ import org.bouncycastle.util.encoders.Hex;
 
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Arrays;
+
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 
 public class SignatureScheme {
@@ -14,47 +18,62 @@ public class SignatureScheme {
     }
 
     // --- S.gen : ∅ →$ VK × SK ---
-    public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException
-    {
+    public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
         keyGen.initialize(new ECGenParameterSpec("secp384r1"), new SecureRandom());
         java.security.KeyPair kp = keyGen.generateKeyPair();
-        return new KeyPair(kp.getPublic(), kp.getPrivate());
+
+        // Convert the keys to byte arrays (encoded format)
+        byte[] publicKeyBytes = kp.getPublic().getEncoded();
+        byte[] privateKeyBytes = kp.getPrivate().getEncoded();
+
+        return new KeyPair(publicKeyBytes, privateKeyBytes);
     }
 
     public static class KeyPair {
-        PublicKey vk;
-        PrivateKey sk;
+        byte[] vk; // public key in bytes
+        byte[] sk; // private key in bytes
 
-        public KeyPair(PublicKey vk, PrivateKey sk) {
+        public KeyPair(byte[] vk, byte[] sk) {
             this.vk = vk;
             this.sk = sk;
         }
 
-        public PublicKey getVk() {
+        public byte[] getVk() {
             return vk;
         }
 
-        public PrivateKey getSk() {
+        public byte[] getSk() {
             return sk;
         }
     }
 
     // --- S.sgn : SK × M →$ S ---
-    public static byte[] sgn(PrivateKey sk, byte[] message) throws Exception {
+    public static byte[] sgn(byte[] sk, byte[] message) throws Exception {
+        // Convert byte[] back to PrivateKey
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(sk);
+        KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
+        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+
+        // Sign the message using the private key
         Signature signature = Signature.getInstance("SHA512withECDSA", "BC");
-        signature.initSign(sk, new SecureRandom());
+        // signature.initSign(privateKey, new SecureRandom());
+        signature.initSign(privateKey);
         signature.update(message);
         return signature.sign(); // S
     }
 
-
     // --- S.vfy : VK × M × S → {0, 1} ---
-    public static boolean vfy(PublicKey vk, byte[] message, byte[] sig) throws Exception {
+    public static boolean vfy(byte[] vk, byte[] message, byte[] sig) throws Exception {
+        // Convert byte[] back to PublicKey
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(vk);
+        KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
+
+        // Verify the signature using the public key
         Signature signature = Signature.getInstance("SHA512withECDSA", "BC");
-        signature.initVerify(vk);
+        signature.initVerify(publicKey);
         signature.update(message);
         return signature.verify(sig);
     }
-
 }
