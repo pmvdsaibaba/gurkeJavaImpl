@@ -143,31 +143,34 @@ public class TestTreeRemEk {
         System.out.println("Remove a leaf");
         System.out.println("******************************************************************");
         System.out.println();
+        boolean debugTreeStructure = false;
 
-        for (int i = 0; i < tree.getNodesInternal().size(); i++) {
-            Tree.Node node = tree.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  nodeIndex: " + node.getNodeIndex());
-            System.out.println("  level: " + node.getNodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  leafIndex: " + node.getLeafIndex());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-        }
+        if (debugTreeStructure) {
+            for (int i = 0; i < tree.getNodesInternal().size(); i++) {
+                Tree.Node node = tree.getNodesInternal().get(i);
+                System.out.println("Node " + (i + 1) + ":");
+                System.out.println("  nodeIndex: " + node.getNodeIndex());
+                System.out.println("  level: " + node.getNodeLevel());
+                System.out.println("  rootNode: " + node.getRootnode());
+                System.out.println("  childLeftNode: " + node.getChildLeftnode());
+                System.out.println("  childRightNode: " + node.getChildRightnode());
+                System.out.println("  isLeaf: " + node.isLeaf());
+                System.out.println("  leafIndex: " + node.getLeafIndex());
+                System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+                System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+                System.out.println();
+            }
 
-        for (int i = 1; i <= tree.getLeafIndexMax(); i++) {
-            pathList = tree.T_path(i);
-            System.out.print("Path of the leaf " + (i) + ": ");
-            printIntList(pathList);
+            for (int i = 1; i <= tree.getLeafIndexMax(); i++) {
+                pathList = tree.T_path(i);
+                System.out.print("Path of the leaf " + (i) + ": ");
+                printIntList(pathList);
 
-            copathList = tree.T_co_path(i);
-            System.out.print("CoPath of the leaf " + (i) + ": ");
-            printIntList(copathList);
-            System.out.println();
+                copathList = tree.T_co_path(i);
+                System.out.print("CoPath of the leaf " + (i) + ": ");
+                printIntList(copathList);
+                System.out.println();
+            }
         }
 
         System.out.print("Size of tree: ");
@@ -204,20 +207,24 @@ public class TestTreeRemEk {
         System.out.println("******************************************************************");
         System.out.println();
 
-        for (int i = 0; i < tree.getNodesInternal().size(); i++) {
-            Tree.Node node = tree.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  nodeIndex: " + node.getNodeIndex());
-            System.out.println("  level: " + node.getNodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  leafIndex: " + node.getLeafIndex());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-        }
+        boolean debugTreeStructure = false;
+
+        if (debugTreeStructure) {
+
+            for (int i = 0; i < tree.getNodesInternal().size(); i++) {
+                Tree.Node node = tree.getNodesInternal().get(i);
+                System.out.println("Node " + (i + 1) + ":");
+                System.out.println("  nodeIndex: " + node.getNodeIndex());
+                System.out.println("  level: " + node.getNodeLevel());
+                System.out.println("  rootNode: " + node.getRootnode());
+                System.out.println("  childLeftNode: " + node.getChildLeftnode());
+                System.out.println("  childRightNode: " + node.getChildRightnode());
+                System.out.println("  isLeaf: " + node.isLeaf());
+                System.out.println("  leafIndex: " + node.getLeafIndex());
+                System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+                System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+                System.out.println();
+            }
 
         for (int i = 1; i <= tree.getLeafIndexMax(); i++) {
             pathList = tree.T_path(i);
@@ -230,6 +237,7 @@ public class TestTreeRemEk {
             System.out.println();
         }
 
+        }
         System.out.print("Size of tree: ");
         System.out.println(tree.getSize());
         System.out.print("Number of leafs: ");
