@@ -6,8 +6,8 @@ import java.util.Arrays;
 
 public class RandomOracle {
 
-    // This method simulates the random oracle H(c′, k′, ad) which produces s (seed) and k (key)
-    public static RandomOracleResult H(byte[] c, byte[] k, byte[] ad) {
+    // Generalized method to accept any number of byte[] inputs
+    public static RandomOracleResult H(byte[]... inputs) {
         try {
             // Calculate total length
             int totalLength = 0;
