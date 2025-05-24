@@ -167,6 +167,8 @@ public class KEM {
         // KeyFactory keyFactory = KeyFactory.getInstance("X25519", "BC");
         X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(dk, 0);
 
+        int debugPrintEnable = 0;
+
         // Use X25519Agreement to perform the key agreement
         X25519Agreement agreement = new X25519Agreement();
         agreement.init(privateKey);
@@ -174,13 +176,15 @@ public class KEM {
         byte[] decryptedKey = new byte[agreement.getAgreementSize()];
         agreement.calculateAgreement(new X25519PublicKeyParameters(c, 0), decryptedKey, 0);
 
-        System.out.println("decryptedKey Key (k in dec): ");
-        // printByteArray(decryptedKey);
-        StringBuilder sb = new StringBuilder();
-        for (byte b : decryptedKey) {
-            sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+        if (debugPrintEnable != 0)
+        {    System.out.println("decryptedKey Key (k in dec): ");
+            // printByteArray(decryptedKey);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : decryptedKey) {
+                sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
+            }
+            System.out.println(sb.toString());
         }
-        System.out.println(sb.toString());
 
         // Return the result as a DecapsulationResult containing the decrypted shared key
         return new DecapsulationResult(decryptedKey);
