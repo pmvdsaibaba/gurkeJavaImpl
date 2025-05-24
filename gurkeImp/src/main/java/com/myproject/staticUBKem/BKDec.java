@@ -31,13 +31,10 @@ public class BKDec {
 // System.out.println(sb.toString());
 
         // Step 11: Use RandomOracle H(c, k', ad) to get s (seed) and k (key)
-        // RandomOracle.RandomOracleResult oracleResult = RandomOracle.H(c, kPrime.getK(), ad);
-        // byte[] s = oracleResult.getS(); // Seed (s)
-        // byte[] k = oracleResult.getK(); // Key (k)
-    byte[][] oracleResult = RandomOracle.H(c, kPrime.getK(), ad);
+        RandomOracle.RandomOracleResult oracleResult = RandomOracle.H(c, kPrime.getK(), ad);
+        byte[] s = oracleResult.getS(); // Seed (s)
+        byte[] k = oracleResult.getK(); // Key (k)
 
-    byte[] s = oracleResult[0]; // Corresponds to input 'c'
-    byte[] k = oracleResult[1]; // Corresponds to input 'kPrime.getK()'
 
 
 // System.out.println("Seed in dec: ");
