@@ -138,6 +138,8 @@ public class UB_KEM {
 
             byte[] kPrime = Nike.key(sk, pkj);
 
+
+
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
             byte[] s = hashOutput.getS();
             byte[] kj = hashOutput.getK();
@@ -148,6 +150,13 @@ public class UB_KEM {
 
             if (kFinal == null) {
                 kFinal = kj; // Use k1 as the final key 
+
+                // System.out.println("BK.fin SK:");
+                // printByteArray(sk);
+                // System.out.println("BK.fin PK:");
+                // printByteArray(pkj);
+                // System.out.println("BK.fin  k prime ");
+                // printByteArray(kPrime);
             }
         }
 
@@ -181,6 +190,9 @@ public class UB_KEM {
         for (byte[] skl : skList) {
             byte[] kPrime = Nike.key(skl, pk);
 
+
+
+
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
             byte[] s = hashOutput.getS();
             byte[] kl = hashOutput.getK();
@@ -191,12 +203,28 @@ public class UB_KEM {
 
             if (kFinal == null) {
                 kFinal = kl; // Use k1 as the final key
+
+                // System.out.println("BK.dec SK:");
+                // printByteArray(skl);
+                // System.out.println("BK.dec PK:");
+                // printByteArray(pk);
+                // System.out.println("BK.dec  k prime ");
+                // printByteArray(kPrime);
             }
+
+            kFinal = kl;
         }
 
         TreeDk newDk = this.tree.setPath(i, updatedSkList);
 
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
-
+    // Utility to print byte arrays
+    private void printByteArray(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b));
+        }
+        System.out.println(sb.toString());
+    }
 }
