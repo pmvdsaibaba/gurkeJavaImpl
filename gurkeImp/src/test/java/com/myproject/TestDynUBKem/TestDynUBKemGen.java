@@ -15,8 +15,10 @@ public class TestDynUBKemGen {
     public void testUBKemGen() throws Exception {
         int n = 5;  // Number of users / leaves
 
+        UB_KEM ubKem = new UB_KEM();
+
         // Generate keys using UB_KEM
-        UB_KEM.BKGenResult result = UB_KEM.gen(n);
+        UB_KEM.BKGenResult result = ubKem.gen(n);
 
         // Validate EK
         TreeEK ek = result.ek;
