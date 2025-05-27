@@ -144,7 +144,6 @@ public class TestTreeRemEk {
         System.out.println("******************************************************************");
         System.out.println();
         boolean debugTreeStructure = false;
-        boolean debugTreeStructure = true;
 
         if (debugTreeStructure) {
             for (int i = 0; i < tree.getNodesInternal().size(); i++) {
@@ -209,6 +208,7 @@ public class TestTreeRemEk {
         System.out.println("******************************************************************");
         System.out.println();
 
+        boolean debugTreeStructure = false;
 
         if (debugTreeStructure) {
 
