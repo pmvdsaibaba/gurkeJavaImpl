@@ -84,13 +84,13 @@ public class TestTreeGetPath {
 
         }
 
-        TreeGetPathReturn dkGet = Tree1.getPath(dkList.get(1));
+        TreeGetPathReturn dkGet = Tree.getPath(dkList.get(1));
 
         List<byte[]> dkGetSK = dkGet.getDataSk();
         Integer dkGetLeaf = dkGet.getLeafIndex();
 
         for (int j = 0; j< dkList.size(); j++){
-            dkGet = Tree1.getPath(dkList.get(j));
+            dkGet = Tree.getPath(dkList.get(j));
             dkGetSK = dkGet.getDataSk();
             dkGetLeaf = dkGet.getLeafIndex();
 

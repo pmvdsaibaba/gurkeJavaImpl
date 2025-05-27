@@ -220,7 +220,7 @@ public class Tree {
         return ek.getDataPk();
     }
 
-    public TreeGetPathReturn getPath(TreeDk dk) {
+    public static TreeGetPathReturn getPath(TreeDk dk) {
         return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf());
     }
 

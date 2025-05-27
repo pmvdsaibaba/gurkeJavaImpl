@@ -178,7 +178,7 @@ public class UB_KEM {
 
     public DecResult dec(TreeDk dk, byte[] ad, byte[] c) throws Exception {
 
-        TreeGetPathReturn pathResult = this.tree.getPath(dk);
+        TreeGetPathReturn pathResult = Tree.getPath(dk);
         int i = pathResult.getLeafIndex();
         List<byte[]> skList = pathResult.getDataSk();
 
