@@ -55,7 +55,7 @@ public class TestTreeGetNodes {
         }
 
         TreeEK ek2 = Tree1.setNodes(PkList);
-        List<byte[]> PkListGet= Tree1.T_getNodes(ek2);
+        List<byte[]> PkListGet= Tree.getNodes(ek2);
 
         System.out.println("PkListGet:");
         for (byte[] ek : PkListGet) {

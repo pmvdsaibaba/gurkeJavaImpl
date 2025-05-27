@@ -129,7 +129,7 @@ public class UB_KEM {
         byte[] sk = u.sk;
         byte[] c = u.c;
 
-        List<byte[]> pkList = this.tree.T_getNodes(ek); 
+        List<byte[]> pkList = Tree.getNodes(ek); 
 
         List<byte[]> newPkList = new ArrayList<>();
 

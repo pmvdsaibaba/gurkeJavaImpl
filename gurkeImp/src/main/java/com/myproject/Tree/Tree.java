@@ -216,7 +216,7 @@ public class Tree {
         return nodeIndexesTemp;
     }
 
-    public List<byte[]> T_getNodes(TreeEK ek) {
+    public static List<byte[]> getNodes(TreeEK ek) {
         return ek.getDataPk();
     }
 
