@@ -2,6 +2,7 @@ package com.myproject.TestTree;
 
 import com.myproject.Tree.Tree;
 import com.myproject.Tree.TreeEK;
+import com.myproject.Tree.TreeGetNodesReturn;
 import com.myproject.Nike.Nike;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,7 +56,10 @@ public class TestTreeGetNodes {
         }
 
         TreeEK ek2 = Tree1.setNodes(PkList);
-        List<byte[]> PkListGet= Tree.getNodes(ek2);
+
+        TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek2);
+        List<byte[]> PkListGet = getnodesreturn.getDataPk();
+
 
         System.out.println("PkListGet:");
         for (byte[] ek : PkListGet) {

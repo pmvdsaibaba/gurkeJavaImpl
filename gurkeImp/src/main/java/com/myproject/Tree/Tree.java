@@ -4,6 +4,7 @@ import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeAddEkReturn;
 import com.myproject.Tree.TreeAddDkReturn;
 import com.myproject.Tree.TreeGetPathReturn;
+import com.myproject.Tree.TreeGetNodesReturn;
 import com.myproject.Tree.TreeDk;
 import java.util.ArrayList;
 import java.util.List;
@@ -216,12 +217,12 @@ public class Tree {
         return nodeIndexesTemp;
     }
 
-    public static List<byte[]> getNodes(TreeEK ek) {
-        return ek.getDataPk();
+    public static TreeGetNodesReturn getNodes(TreeEK ek) {
+        return new TreeGetNodesReturn(ek.getDataPk(), ek.getTree());
     }
 
     public static TreeGetPathReturn getPath(TreeDk dk) {
-        return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf());
+        return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf(), dk.getTree());
     }
 
     public TreeEK setNodes(List<byte[]> pkList) {

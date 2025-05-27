@@ -7,6 +7,7 @@ import com.myproject.Nike.Nike;
 import com.myproject.RandomOracle.RandomOracle;
 import com.myproject.Tree.TreeGetPathReturn;
 import com.myproject.Tree.TreeAddEkReturn;
+import com.myproject.Tree.TreeGetNodesReturn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +130,9 @@ public class UB_KEM {
         byte[] sk = u.sk;
         byte[] c = u.c;
 
-        List<byte[]> pkList = Tree.getNodes(ek); 
+
+        TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek); 
+        List<byte[]> pkList = getnodesreturn.getDataPk();
 
         List<byte[]> newPkList = new ArrayList<>();
 
@@ -216,7 +219,7 @@ public class UB_KEM {
             kFinal = kl;
         }
 
-        TreeDk newDk = this.tree.setPath(i, updatedSkList);
+        TreeDk newDk = pathResult.getTree().setPath(i, updatedSkList);
 
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
