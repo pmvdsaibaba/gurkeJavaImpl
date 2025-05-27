@@ -194,9 +194,6 @@ public class UB_KEM {
         for (byte[] skl : skList) {
             byte[] kPrime = Nike.key(skl, pk);
 
-
-
-
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
             byte[] s = hashOutput.getS();
             byte[] kl = hashOutput.getK();

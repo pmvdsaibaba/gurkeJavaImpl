@@ -144,6 +144,7 @@ public class TestTreeRemEk {
         System.out.println("******************************************************************");
         System.out.println();
         boolean debugTreeStructure = false;
+        boolean debugTreeStructure = true;
 
         if (debugTreeStructure) {
             for (int i = 0; i < tree.getNodesInternal().size(); i++) {
@@ -155,6 +156,7 @@ public class TestTreeRemEk {
                 System.out.println("  childLeftNode: " + node.getChildLeftnode());
                 System.out.println("  childRightNode: " + node.getChildRightnode());
                 System.out.println("  isLeaf: " + node.isLeaf());
+                System.out.println("  isValidNode: " + node.isValidNode());
                 System.out.println("  leafIndex: " + node.getLeafIndex());
                 System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
                 System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
@@ -207,7 +209,6 @@ public class TestTreeRemEk {
         System.out.println("******************************************************************");
         System.out.println();
 
-        boolean debugTreeStructure = false;
 
         if (debugTreeStructure) {
 
@@ -220,6 +221,7 @@ public class TestTreeRemEk {
                 System.out.println("  childLeftNode: " + node.getChildLeftnode());
                 System.out.println("  childRightNode: " + node.getChildRightnode());
                 System.out.println("  isLeaf: " + node.isLeaf());
+                System.out.println("  isValidNode: " + node.isValidNode());
                 System.out.println("  leafIndex: " + node.getLeafIndex());
                 System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
                 System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));

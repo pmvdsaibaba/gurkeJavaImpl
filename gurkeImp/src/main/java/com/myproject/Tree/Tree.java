@@ -46,6 +46,7 @@ public class Tree {
         private byte[] pk;
         private byte[] sk;
         private boolean isLeaf;
+        private boolean isValidNode;
 
         // Private constructor — only accessible through the builder
         private Node(Builder builder) {
@@ -58,6 +59,7 @@ public class Tree {
             this.pk = builder.pk;
             this.sk = builder.sk;
             this.isLeaf = builder.isLeaf;
+            this.isValidNode = builder.isValidNode;
         }
 
         // Builder class
@@ -71,6 +73,7 @@ public class Tree {
             private byte[] pk = null;
             private byte[] sk = null;
             private boolean isLeaf = false;
+            private boolean isValidNode = false;
 
             public Builder setRootnode(int rootNode) {
                 this.rootNode = rootNode;
@@ -111,9 +114,14 @@ public class Tree {
                 this.sk = sk;
                 return this;
             }
-            
+
             public Builder setIsLeaf(boolean isLeaf) {
                 this.isLeaf = isLeaf;
+                return this;
+            }
+
+            public Builder setIsValidNode(boolean isValidNode) {
+                this.isValidNode = isValidNode;
                 return this;
             }
 
@@ -131,6 +139,7 @@ public class Tree {
         public byte[] getPk() { return pk; }
         public byte[] getSk() { return sk; }
         public boolean isLeaf() { return isLeaf; }
+        public boolean isValidNode() { return isValidNode; }
 
         public void setNodeIndex(int nodeIndex) {this.nodeIndex = nodeIndex; }
         public void setRootnode(int rootNode) {this.rootNode = rootNode; }
@@ -141,6 +150,7 @@ public class Tree {
         public void setPk(byte[] pk) { this.pk = pk; }
         public void setSk(byte[] sk) { this.sk = sk;  }
         public void setIsLeaf(boolean isLeaf) {   this.isLeaf = isLeaf;  }
+        public void setIsValidNode(boolean isValidNode) { this.isValidNode = isValidNode;  }
     }
 
     public void addNode(Node node) {
@@ -191,7 +201,7 @@ public class Tree {
             {
                 node.setChildRightnode((2*i) + 1);
             }
-
+            node.setIsValidNode(true);
             tree.addNode(node);
         }
         tree.nodeIndexMax = (2*n) - 1;
@@ -211,7 +221,10 @@ public class Tree {
 
         for (int i = 0; i < getNodesInternal().size(); i++) 
         {
-            nodeIndexesTemp.add(getNodesInternal().get(i).getNodeIndex());
+            if ( getNodesInternal().get(i).isValidNode() == true)
+            {
+                nodeIndexesTemp.add(getNodesInternal().get(i).getNodeIndex());
+            }
         }
         // nodeIndexesTemp.addAll(this.nodeIndexes);
         return nodeIndexesTemp;
@@ -332,7 +345,7 @@ public class Tree {
             node1.setChildRightnode(nodeIndexMax + 2);  // Right child will be the new leaf
         }
 
-
+        node1.setIsValidNode(true);
         addNode(node1);
 
         // Create a new leaf node (node2) as the right child of node1
@@ -357,6 +370,7 @@ public class Tree {
              currentLeafNodeParent.setChildRightnode(node1.getNodeIndex());
         }
 
+        node2.setIsValidNode(true);
         // Add the new leaf node to the tree
         addNode(node2);
 
@@ -493,6 +507,7 @@ public class Tree {
             NodeToBeRemoved.setNodeLevel(-1);
             NodeToBeRemoved.setLeafIndex(-1);
             NodeToBeRemoved.setIsLeaf(false);
+            NodeToBeRemoved.setIsValidNode(false);
             NodeToBeRemoved.setPk(null);
             NodeToBeRemoved.setSk(null);
 
@@ -502,6 +517,7 @@ public class Tree {
             NodeRootToBeRemoved.setChildRightnode(-1);
             NodeRootToBeRemoved.setChildLeftnode(-1);
             NodeRootToBeRemoved.setIsLeaf(false);
+            NodeRootToBeRemoved.setIsValidNode(false);
             NodeRootToBeRemoved.setPk(null);
             NodeRootToBeRemoved.setSk(null);
 
