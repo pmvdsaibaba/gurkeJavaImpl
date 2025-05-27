@@ -233,7 +233,7 @@ public class Tree {
                 node.setPk(pkList.get(i));
             }
         }
-        return new TreeEK(pkList);
+        return new TreeEK(this, pkList);
     }
 
     public TreeDk setPath(int leaf, List<byte[]> skList) {
@@ -251,7 +251,7 @@ public class Tree {
             }
         }
 
-        return new TreeDk(skList, leaf);
+        return new TreeDk(this, skList, leaf);
     }
 
     private void treeAddInternal(){ 

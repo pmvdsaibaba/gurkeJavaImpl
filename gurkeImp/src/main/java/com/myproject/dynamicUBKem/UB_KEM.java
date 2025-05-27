@@ -6,6 +6,7 @@ import com.myproject.Tree.TreeEK;
 import com.myproject.Nike.Nike;
 import com.myproject.RandomOracle.RandomOracle;
 import com.myproject.Tree.TreeGetPathReturn;
+import com.myproject.Tree.TreeAddEkReturn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -219,6 +220,81 @@ public class UB_KEM {
 
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
+
+    // public class BKAddResult {
+    //     public TreeEK ek;
+    //     public TreeDk dk;
+    //     public byte[] c;
+
+    //     public BKAddResult(TreeEK ek, TreeDk dk, byte[] c) {
+    //         this.ek = ek;
+    //         this.dk = dk;
+    //         this.c = c;
+    //     }
+    // }
+
+    // public BKAddResult add(TreeEK ek) throws Exception {
+
+    //     TreeAddEkReturn addReturn = this.tree.add(ek);
+    //     List<byte[]> pkList = addReturn.getDataPk();
+    //     List<Integer> path = addReturn.getPathList(); 
+    //     List<Integer> addCoPath = addReturn.getCoPathList(); 
+    //     int n = addReturn.getLeafIndex();
+
+    //     // Step 23: pk* ← (pkcpl)l∈[2,L]
+    //     List<byte[]> pkStarList = new ArrayList<>();
+    //     for (int i = 1; i < addCoPath.size(); i++) { // starts at index 1 to get l ∈ [2, L]
+    //         int idx = addCoPath.get(i);
+    //         pkStarList.add(pkList.get(idx));
+    //     }
+
+    //     // Step 24: Generate (pkpL, skpL)
+    //     Nike.KeyPair lastPair = Nike.gen();
+    //     List<byte[]> skList = new ArrayList<>();
+    //     List<byte[]> pkNewList = new ArrayList<>();
+    //     byte[] sk = lastPair.getDk();
+    //     byte[] pk = lastPair.getEk();
+    //     skList.add(sk);
+    //     pkNewList.add(pk);
+
+    //     // Step 25: s′ ←$ {0,1}^κ
+    //     byte[] sPrime = RandomOracle.random(); // You must implement this — random 256-bit value (32 bytes)
+
+    //     // Step 26–30: From L down to 2
+    //     for (int l = path.size() - 1; l > 0; l--) {
+    //         Nike.KeyPair kp = Nike.gen(sPrime);
+    //         byte[] pk_l = kp.getEk();
+    //         byte[] sk_l = kp.getDk();
+    //         pkNewList.add(0, pk_l); // insert at front
+    //         skList.add(0, sk_l);    // insert at front
+
+    //         byte[] k = Nike.key(sk_l, pkStarList.get(l - 1));
+    //         RandomOracle.RandomOracleResult roRes = RandomOracle.H(k, pk_l);
+    //         byte[] s = roRes.getS();
+    //         sPrime = roRes.getK(); // updated s′
+
+    //         Nike.KeyPair kpPrev = Nike.gen(s);
+    //         byte[] pkPrev = kpPrev.getEk();
+    //         byte[] skPrev = kpPrev.getDk();
+
+    //         pkNewList.set(0, pkPrev);
+    //         skList.set(0, skPrev);
+    //     }
+
+    //     // Step 31: Set updated encryption key
+    //     TreeEK newEk = this.tree.setNodes(pkList);
+
+    //     // Step 32: Set new path with secret keys
+    //     TreeDk newDk = this.tree.setPath(n, skList);
+
+    //     // Step 33: Build ciphertext (A, pk*, pk′_2,...,pk′_L)
+    //     byte A = (byte) 'A';
+    //     List<byte[]> pkPrimeList = pkNewList.subList(1, pkNewList.size()); // l ∈ [2..L]
+    //     byte[] c = buildAddCiphertext(A, pkStarList, pkPrimeList);
+
+    //     return new BKAddResult(newEk, newDk, c);
+    // }
+
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
