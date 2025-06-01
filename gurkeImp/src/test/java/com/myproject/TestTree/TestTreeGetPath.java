@@ -101,21 +101,6 @@ public class TestTreeGetPath {
 
         }
 
-        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
-            Tree.Node node = Tree1.getNodesInternal().get(i);
-            System.out.println("Node " + (i + 1) + ":");
-            System.out.println("  nodeIndex: " + node.getNodeIndex());
-            System.out.println("  level: " + node.getNodeLevel());
-            System.out.println("  rootNode: " + node.getRootnode());
-            System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            System.out.println("  childRightNode: " + node.getChildRightnode());
-            System.out.println("  isLeaf: " + node.isLeaf());
-            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
-            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
-            System.out.println();
-            // printByteArray(node.getPk());
-        }
-
         for (int j = 0; j < dkList.size(); j++)
         {
             TreeGetPathReturn dkGet = Tree.getPath(dkList.get(j));

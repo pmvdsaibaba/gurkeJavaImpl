@@ -229,83 +229,91 @@ public class UB_KEM {
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
 
-    // public class BKAddResult {
-    //     public TreeEK ek;
-    //     public TreeDk dk;
-    //     public byte[] c;
+    public class BKAddResult {
+        public TreeEK ek;
+        public TreeDk dk;
+        public c_BKAdd c;
 
-    //     public BKAddResult(TreeEK ek, TreeDk dk, byte[] c) {
-    //         this.ek = ek;
-    //         this.dk = dk;
-    //         this.c = c;
-    //     }
-    // }
+        public BKAddResult(TreeEK ek, TreeDk dk, c_BKAdd c) {
+            this.ek = ek;
+            this.dk = dk;
+            this.c = c;
+        }
+    }
 
-    // public BKAddResult add(TreeEK ek) throws Exception {
+    public class c_BKAdd {
+        public byte t;
+        public Map<Integer, byte[]> pkstarMap;
+        public Map<Integer, byte[]> pk_lMap;
 
-    //     TreeAddEkReturn addReturn = Tree.add(ek);
-    //     List<byte[]> pkList = addReturn.getDataPk();
-    //     List<Integer> path = addReturn.getPathList(); 
-    //     List<Integer> addCoPath = addReturn.getCoPathList(); 
-    //     int n = addReturn.getLeafsCount();
-    //     Tree tempTree = addReturn.getTree();
+        public c_BKAdd(byte t, Map<Integer, byte[]> pkstarMap, Map<Integer, byte[]> pk_lMap) {
+            this.t = t;
+            this.pkstarMap = pkstarMap;
+            this.pk_lMap = pk_lMap;
+        }
+    }
 
-    //     //  pk* ← (pkcpl)l∈[2,L]
-    //     List<byte[]> pkStarList = new ArrayList<>();
+    public BKAddResult add(TreeEK ek) throws Exception {
 
-    //     for (Tree.Node node : internalNodes) {
-    //         if (addCoPath.contains(node.getNodeIndex()) && node.isValidNode()) {
-    //             coPathPkList.add(node.getPk());
-    //         }
-    //     }
+        TreeAddEkReturn addReturn = Tree.T_add_Ek(ek);
+        Map<Integer, byte[]> pkMap = addReturn.getDataPk();
+        List<Integer> path = addReturn.getPathList(); 
+        List<Integer> coPath = addReturn.getCoPathList(); 
+        int n = addReturn.getLeafsCount();
+        Tree tempTree = addReturn.getTree();
 
-    //     // Generate (pkpL, skpL)
-    //     Nike.KeyPair leafKeyPair = Nike.gen();
-    //     List<byte[]> skList = new ArrayList<>();
-    //     List<byte[]> pkNewList = new ArrayList<>();
-    //     byte[] sk = leafKeyPair.getDk();
-    //     byte[] pk = leafKeyPair.getEk();
-    //     skList.add(sk);
-    //     pkNewList.add(pk);
+        // pk*
+        Map<Integer, byte[]> pkStarMap =  new HashMap<>();
 
-    //     SecureRandom secureRandom = new SecureRandom();
-    //     byte[] seed = new byte[32];
-    //     secureRandom.nextBytes(seed);
+        for (Integer pathNodeIndex : coPath) {
+            pkStarMap.put(pathNodeIndex, pkMap.get(pathNodeIndex));
+        }
 
-    //     // Step 26–30: From L down to 2
-    //     for (int l = path.size() - 1; l > 0; l--) {
-    //         Nike.KeyPair kp = Nike.gen(sPrime);
-    //         byte[] pk_l = kp.getEk();
-    //         byte[] sk_l = kp.getDk();
-    //         pkNewList.add(0, pk_l); // insert at front
-    //         skList.add(0, sk_l);    // insert at front
+        Nike.KeyPair leafKeyPair = Nike.gen();
+        byte[] sk = leafKeyPair.getDk();
+        byte[] pk = leafKeyPair.getEk();
 
-    //         byte[] k = Nike.key(sk_l, pkStarList.get(l - 1));
-    //         RandomOracle.RandomOracleResult roRes = RandomOracle.H(k, pk_l);
-    //         byte[] s = roRes.getS();
-    //         sPrime = roRes.getK(); // updated s′
+        Map<Integer, byte[]> pkNewMap = new HashMap<>();
+        Map<Integer, byte[]> skNewMap = new HashMap<>();
 
-    //         Nike.KeyPair kpPrev = Nike.gen(s);
-    //         byte[] pkPrev = kpPrev.getEk();
-    //         byte[] skPrev = kpPrev.getDk();
+        skNewMap.put(path.get(0), sk);
+        pkMap.put(path.get(0), pk);
 
-    //         pkNewList.set(0, pkPrev);
-    //         skList.set(0, skPrev);
-    //     }
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] sPrime = new byte[32];
+        secureRandom.nextBytes(sPrime);
 
-    //     // Step 31: Set updated encryption key
-    //     TreeEK newEk = this.tree.setNodes(pkList);
+        for (int l = 0; l < (path.size() - 1);  l++) {
+            Nike.KeyPair kp = Nike.gen(sPrime);
+            byte[] pk_l = kp.getEk();
+            byte[] sk_l = kp.getDk();
 
-    //     // Step 32: Set new path with secret keys
-    //     TreeDk newDk = this.tree.setPath(n, skList);
+            pkNewMap.put(path.get(l), pk_l);
 
-    //     // Step 33: Build ciphertext (A, pk*, pk′_2,...,pk′_L)
-    //     byte A = (byte) 'A';
-    //     List<byte[]> pkPrimeList = pkNewList.subList(1, pkNewList.size()); // l ∈ [2..L]
-    //     byte[] c = buildAddCiphertext(A, pkStarList, pkPrimeList);
+            byte[] k = Nike.key(sk_l, pkMap.get(coPath.get(l)));
 
-    //     return new BKAddResult(newEk, newDk, c);
-    // }
+            RandomOracle.RandomOracleResult roRes = RandomOracle.H(k, pk_l);
+            byte[] s = roRes.getS();
+            sPrime = roRes.getK(); // updated s′
+
+            Nike.KeyPair kpPrev = Nike.gen(s);
+            byte[] pkPrev = kpPrev.getEk();
+            byte[] skPrev = kpPrev.getDk();
+
+            pkMap.put(path.get(l+1), pkPrev);
+            skNewMap.put(path.get(l+1), skPrev);
+        }
+
+        TreeEK newEk = tempTree.setNodes(pkMap);
+
+        // here n is not the num of leaves but the added latest leaf index
+        TreeDk newDk = tempTree.setPath(n, skNewMap);
+
+        byte A = (byte) 'A';
+        c_BKAdd c = new c_BKAdd(A, pkStarMap, pkNewMap);
+
+        return new BKAddResult(newEk, newDk, c);
+    }
 
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {

@@ -67,8 +67,7 @@ public class TestTreeSetPath {
             Map<Integer, byte[]> skMapLeaf = new HashMap<>();
 
             for (Integer pathNodeIndex : pathList) {
-                int index = nodes.indexOf(pathNodeIndex);
-                skMapLeaf.put(index, skMap.get(index));
+                skMapLeaf.put(pathNodeIndex, skMap.get(pathNodeIndex));
             }
 
             dk = Tree1.setPath(i, skMapLeaf);
