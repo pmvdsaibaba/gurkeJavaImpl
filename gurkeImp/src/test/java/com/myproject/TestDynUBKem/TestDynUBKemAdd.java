@@ -55,7 +55,7 @@ public class TestDynUBKemAdd {
         UB_KEM.FinResult finResultAfterAdd = ubKem.fin(encResultAfterAdd.u, ad);
         UB_KEM.DecResult decResultAfterAdd = ubKem.dec(newDk, ad, encResultAfterAdd.c);
 
-        // assertArrayEquals(finResultAfterAdd.k, decResultAfterAdd.k, "Shared key mismatch after adding user");
+        assertArrayEquals(finResultAfterAdd.k, decResultAfterAdd.k, "Shared key mismatch after adding user");
 
         printTreeStateAfterAddEk(ek.getTree());
 
