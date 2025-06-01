@@ -9,6 +9,8 @@ import com.myproject.Tree.TreeGetPathReturn;
 import com.myproject.Tree.TreeAddEkReturn;
 import com.myproject.Tree.TreeGetNodesReturn;
 
+import java.security.SecureRandom;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -235,30 +237,34 @@ public class UB_KEM {
 
     // public BKAddResult add(TreeEK ek) throws Exception {
 
-    //     TreeAddEkReturn addReturn = this.tree.add(ek);
+    //     TreeAddEkReturn addReturn = Tree.add(ek);
     //     List<byte[]> pkList = addReturn.getDataPk();
     //     List<Integer> path = addReturn.getPathList(); 
     //     List<Integer> addCoPath = addReturn.getCoPathList(); 
-    //     int n = addReturn.getLeafIndex();
+    //     int n = addReturn.getLeafsCount();
+    //     Tree tempTree = addReturn.getTree();
 
-    //     // Step 23: pk* ← (pkcpl)l∈[2,L]
+    //     //  pk* ← (pkcpl)l∈[2,L]
     //     List<byte[]> pkStarList = new ArrayList<>();
-    //     for (int i = 1; i < addCoPath.size(); i++) { // starts at index 1 to get l ∈ [2, L]
-    //         int idx = addCoPath.get(i);
-    //         pkStarList.add(pkList.get(idx));
+
+    //     for (Tree.Node node : internalNodes) {
+    //         if (addCoPath.contains(node.getNodeIndex()) && node.isValidNode()) {
+    //             coPathPkList.add(node.getPk());
+    //         }
     //     }
 
-    //     // Step 24: Generate (pkpL, skpL)
-    //     Nike.KeyPair lastPair = Nike.gen();
+    //     // Generate (pkpL, skpL)
+    //     Nike.KeyPair leafKeyPair = Nike.gen();
     //     List<byte[]> skList = new ArrayList<>();
     //     List<byte[]> pkNewList = new ArrayList<>();
-    //     byte[] sk = lastPair.getDk();
-    //     byte[] pk = lastPair.getEk();
+    //     byte[] sk = leafKeyPair.getDk();
+    //     byte[] pk = leafKeyPair.getEk();
     //     skList.add(sk);
     //     pkNewList.add(pk);
 
-    //     // Step 25: s′ ←$ {0,1}^κ
-    //     byte[] sPrime = RandomOracle.random(); // You must implement this — random 256-bit value (32 bytes)
+    //     SecureRandom secureRandom = new SecureRandom();
+    //     byte[] seed = new byte[32];
+    //     secureRandom.nextBytes(seed);
 
     //     // Step 26–30: From L down to 2
     //     for (int l = path.size() - 1; l > 0; l--) {

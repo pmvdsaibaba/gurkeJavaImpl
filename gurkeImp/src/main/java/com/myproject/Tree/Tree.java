@@ -401,7 +401,8 @@ public class Tree {
             ek.getDataPk(), 
             ek.getTree().T_path(ek.getTree().leafIndexMax),
             ek.getTree().T_co_path(ek.getTree().leafIndexMax),
-            ek.getTree().numLeaves);
+            ek.getTree().numLeaves,
+            ek.getTree());
     }
 
     public static TreeAddDkReturn T_add_dk(TreeDk dk)
@@ -581,7 +582,8 @@ public class Tree {
             ek.getDataPk(), 
             ek.getTree().T_path(ek.getTree().leafIndexMax),
             ek.getTree().T_co_path(ek.getTree().leafIndexMax),
-            ek.getTree().numLeaves);
+            ek.getTree().numLeaves,
+            ek.getTree() );
     }
 
     public TreeAddDkReturn T_rem_Dk(TreeDk dk, int leaf)
