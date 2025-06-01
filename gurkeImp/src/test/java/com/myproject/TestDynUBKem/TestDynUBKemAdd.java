@@ -29,7 +29,6 @@ public class TestDynUBKemAdd {
         Map<Integer, byte[]> pkMap = ek.getDataPk();
         TreeDk dk = result.dkList.get(0);
 
-        printTreeStateAfterAddEk(ek.getTree());
 
         UB_KEM.BKEncResult encResult = ubKem.enc(ek);
 
@@ -39,7 +38,7 @@ public class TestDynUBKemAdd {
         UB_KEM.FinResult finResult = ubKem.fin(encResult.u, ad);
         UB_KEM.DecResult decResult = ubKem.dec(dk, ad, encResult.c);
 
-        printTreeStateAfterAddEk(ek.getTree());
+
 
         System.out.println("ubKem.dec and ubKem.fin succeeded. Shared key (k):");
         printByteArray(decResult.k);
@@ -49,7 +48,7 @@ public class TestDynUBKemAdd {
         TreeEK newEk = addResult.ek;
         TreeDk newDk = addResult.dk;
 
-        printTreeStateAfterAddEk(ek.getTree());
+
 
         UB_KEM.BKEncResult encResultAfterAdd = ubKem.enc(newEk);
         UB_KEM.FinResult finResultAfterAdd = ubKem.fin(encResultAfterAdd.u, ad);
@@ -96,13 +95,13 @@ public class TestDynUBKemAdd {
         for (int i = 0; i < tree.getNodesInternal().size(); i++) {
             Tree.Node node = tree.getNodesInternal().get(i);
             System.out.println("Node " + (i + 1) + ":");
-            // System.out.println("  nodeIndex: " + node.getNodeIndex());
-            // System.out.println("  level: " + node.getNodeLevel());
-            // System.out.println("  rootNode: " + node.getRootnode());
-            // System.out.println("  childLeftNode: " + node.getChildLeftnode());
-            // System.out.println("  childRightNode: " + node.getChildRightnode());
-            // System.out.println("  isLeaf: " + node.isLeaf());
-            // System.out.println("  leafIndex: " + node.getLeafIndex());
+            System.out.println("  nodeIndex: " + node.getNodeIndex());
+            System.out.println("  level: " + node.getNodeLevel());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  leafIndex: " + node.getLeafIndex());
             System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
             System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
             System.out.println();

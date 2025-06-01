@@ -132,8 +132,6 @@ public class UB_KEM {
         TreeEK ek = u.ek;
         byte[] sk = u.sk;
         byte[] c = u.c;
-        Tree ek_Tree = ek.getTree();
-
 
         TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek); 
         Map<Integer, byte[]> pkMap = getnodesreturn.getDataPk();
@@ -142,45 +140,32 @@ public class UB_KEM {
 
         byte[] kFinal = null;
 
-        // for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
-        for (int i = 0; i < ek_Tree.getNodesInternal().size(); i++) {
-            Tree.Node tempNode = ek_Tree.getNodesInternal().get(i);
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pkj = entry.getValue();
 
-            if (tempNode.isValidNode() == true )
+            byte[] kPrime = Nike.key(sk, pkj);
+
+            RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
+            byte[] s = hashOutput.getS();
+            byte[] kj = hashOutput.getK();
+
+            Nike.KeyPair newKp = Nike.gen(s);
+            byte[] newPk = newKp.getEk();
+
+            newPkMap.put(nodeId, newPk);
+
+            if ((kFinal == null) && ( nodeId == 1 )) 
             {
-               if (pkMap.containsKey(tempNode.getNodeIndex()))
-               {
-                    int nodeId = tempNode.getNodeIndex();
-                    byte[] pkj = pkMap.get(tempNode.getNodeIndex());
+                kFinal = kj;
 
-                    byte[] kPrime = Nike.key(sk, pkj);
-
-                    RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
-                    byte[] s = hashOutput.getS();
-                    byte[] kj = hashOutput.getK();
-
-                    Nike.KeyPair newKp = Nike.gen(s);
-                    byte[] newPk = newKp.getEk();
-
-                    newPkMap.put(nodeId, newPk);
-
-                    if (kFinal == null) {
-                        kFinal = kj;
-
-                        System.out.println("BK.fin SK:");
-                        printByteArray(sk);
-                        System.out.println("BK.fin PK:");
-                        printByteArray(pkj);
-                        System.out.println("BK.fin  k prime ");
-                        printByteArray(kPrime);
-                    }
-                }
-                else
-                {
-                    System.out.println("Dyn UB KEM Fin : pk for a node not exits");
-                }
+                // System.out.println("BK.fin SK:");
+                // printByteArray(sk);
+                // System.out.println("BK.fin PK:");
+                // printByteArray(pkj);
+                // System.out.println("BK.fin  k prime ");
+                // printByteArray(kPrime);
             }
-
         }
 
         TreeEK newEk = this.tree.setNodes(newPkMap);
@@ -225,16 +210,16 @@ public class UB_KEM {
 
             updatedSkMap.put(nodeId, newSk);
 
-            if ((kFinal == null) &&
-                ( nodeId == 1 )) {
+            if ((kFinal == null) && ( nodeId == 1 ))
+            {
                 kFinal = kl;
 
-                System.out.println("BK.dec SK:");
-                printByteArray(skl);
-                System.out.println("BK.dec PK:");
-                printByteArray(pk);
-                System.out.println("BK.dec  k prime ");
-                printByteArray(kPrime);
+                // System.out.println("BK.dec SK:");
+                // printByteArray(skl);
+                // System.out.println("BK.dec PK:");
+                // printByteArray(pk);
+                // System.out.println("BK.dec  k prime ");
+                // printByteArray(kPrime);
             }
 
             // kFinal = kl;
