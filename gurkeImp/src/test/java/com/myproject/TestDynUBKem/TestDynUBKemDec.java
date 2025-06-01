@@ -74,7 +74,7 @@ public class TestDynUBKemDec {
 
         UB_KEM.DecResult decResult = ubKem.dec(dk, ad, encResult.c);
 
-        // assertArrayEquals(decResult.k, finResult.k, "Shared keys should match");
+        assertArrayEquals(decResult.k, finResult.k, "Shared keys should match");
 
 
         System.out.println("ubKem.dec and ubKem.fin succeeded. Shared key (k):");

@@ -214,6 +214,6 @@ public class TestTreeAddEk {
         for (int i = 0; i < children.size(); i++) {
             printTreeRecursive(children.get(i), nodeMap, prefix + (isTail ? "    " : "│   "), i == children.size() - 1);
         }
-}
+    }
 
 }

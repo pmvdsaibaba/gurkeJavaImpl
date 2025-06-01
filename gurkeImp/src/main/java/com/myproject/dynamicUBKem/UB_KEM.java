@@ -159,12 +159,12 @@ public class UB_KEM {
             if (kFinal == null) {
                 kFinal = kj;
 
-                // System.out.println("BK.fin SK:");
-                // printByteArray(sk);
-                // System.out.println("BK.fin PK:");
-                // printByteArray(pkj);
-                // System.out.println("BK.fin  k prime ");
-                // printByteArray(kPrime);
+                System.out.println("BK.fin SK:");
+                printByteArray(sk);
+                System.out.println("BK.fin PK:");
+                printByteArray(pkj);
+                System.out.println("BK.fin  k prime ");
+                printByteArray(kPrime);
             }
         }
 

@@ -309,8 +309,8 @@ public class Tree {
 
         // Sort the node indexes to pick the leftmost (smallest index) leaf node with the lowest level
         Collections.sort(nodeIndexList);
-        System.out.print("leftmost (smallest index) leaf node: ");
-        System.out.println(nodeIndexList);
+        // System.out.print("leftmost (smallest index) leaf node: ");
+        // System.out.println(nodeIndexList);
 
         // Find the position of that node in the internal node list
         int nodeIndex = -1;
