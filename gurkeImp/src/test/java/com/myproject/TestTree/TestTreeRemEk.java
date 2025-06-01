@@ -98,11 +98,12 @@ public class TestTreeRemEk {
         printTreeStateAfterRemEk(Tree1, ek, 4);
         printTreeStateAfterRemEk(Tree1, ek, 3);
         printTreeStateAfterRemEk(Tree1, ek, 5);
+        printTreeStateAfterRemEk(Tree1, ek, 5);
 
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
-        printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
+        // printTreeStateAfterAddEk(Tree1, ek);
 
 
 
@@ -197,7 +198,7 @@ public class TestTreeRemEk {
 
 
     private void printTreeStateAfterAddEk(Tree tree, TreeEK ek) throws Exception {
-        TreeAddEkReturn addEkReturn = tree.T_add_Ek(ek);
+        TreeAddEkReturn addEkReturn = Tree.T_add_Ek(ek);
 
         List<Integer> pathList;
         List<Integer> copathList;

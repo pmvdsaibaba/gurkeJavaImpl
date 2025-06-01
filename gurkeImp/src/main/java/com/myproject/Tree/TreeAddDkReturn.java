@@ -6,6 +6,8 @@ import java.util.List;
 public class TreeAddDkReturn {
     private List<byte[]> dataSk;
     private int LeafIndex;
+
+    // this is unclear for now
     private int LeafIntersectionIndex;
 
     public TreeAddDkReturn(List<byte[]> dataSk, int LeafIndex, int LeafIntersectionIndex) {

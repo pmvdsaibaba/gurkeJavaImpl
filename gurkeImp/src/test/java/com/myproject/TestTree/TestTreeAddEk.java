@@ -120,7 +120,7 @@ public class TestTreeAddEk {
     }
 
     private void printTreeStateAfterAddEk(Tree tree, TreeEK ek) throws Exception {
-        TreeAddEkReturn addEkReturn = tree.T_add_Ek(ek);
+        TreeAddEkReturn addEkReturn = Tree.T_add_Ek(ek);
 
         List<Integer> pathList;
         List<Integer> copathList;
