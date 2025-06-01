@@ -15,6 +15,9 @@ import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 public class TestTreeSetPath {
 
@@ -36,19 +39,20 @@ public class TestTreeSetPath {
         printIntList(nodes);
 
 
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+        Map<Integer, byte[]> skMap = new HashMap<>();
 
-        List<byte[]> PkList = new ArrayList<>();
-        List<byte[]> skList = new ArrayList<>();
+
         Nike.KeyPair NikeGenKeyPair;
         
         for (int i = 1; i <= Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
-            PkList.add(nikeGenKeyPair.getEk());
-            skList.add(nikeGenKeyPair.getDk());
+            pkMap.put(i + 1, nikeGenKeyPair.getEk());
+            skMap.put(i + 1, nikeGenKeyPair.getDk());
         }
 
-        TreeEK ek = Tree1.setNodes(PkList);
-        List<byte[]> skListLeaf = new ArrayList<>();
+        TreeEK ek = Tree1.setNodes(pkMap);
+
         TreeDk dk;
 
         List<Integer> pathList = new ArrayList<>();
@@ -60,13 +64,15 @@ public class TestTreeSetPath {
             System.out.println("Path: ");
             printIntList(pathList);
 
-            for (int j = 0; j< pathList.size(); j++)
-            {
-                skListLeaf.add(skList.get((pathList.get(j)) - 1));
+            Map<Integer, byte[]> skMapLeaf = new HashMap<>();
+
+            for (Integer pathNodeIndex : pathList) {
+                int index = nodes.indexOf(pathNodeIndex);
+                skMapLeaf.put(index, skMap.get(index));
             }
 
-            dk = Tree1.setPath(i,skListLeaf);
-            skListLeaf.clear();
+            dk = Tree1.setPath(i, skMapLeaf);
+
             dkList.add(dk);
 
         }

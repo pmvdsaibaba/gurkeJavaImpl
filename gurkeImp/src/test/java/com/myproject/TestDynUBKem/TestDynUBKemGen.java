@@ -6,6 +6,7 @@ import com.myproject.Tree.TreeEK;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,13 +23,15 @@ public class TestDynUBKemGen {
 
         // Validate EK
         TreeEK ek = result.ek;
-        List<byte[]> pkList = ek.getDataPk();
+        Map<Integer, byte[]> pkMap = ek.getDataPk();
 
         assertNotNull(ek, "Encryption key (EK) should not be null");
         System.out.println("Encryption Key (EK) List:");
         // printByteArray(ek.getSerialized()); // Assuming you have a serialization method for TreeEK
 
-        for (byte[] pk : pkList) {
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pk = entry.getValue();
             printByteArray(pk);
         }
 
@@ -37,15 +40,18 @@ public class TestDynUBKemGen {
         assertNotNull(dkList, "Decryption key list should not be null");
         assertEquals(n, dkList.size(), "Should have exactly n decryption keys");
 
-        List<byte[]> skList;
+        Map<Integer, byte[]> skMap;
 
         for (int i = 0; i < dkList.size(); i++) {
             TreeDk dk = dkList.get(i);
-            skList = dk.getDataSk();
+            skMap = dk.getDataSk();
             assertNotNull(dk, "Decryption key should not be null for user " + (i + 1));
             System.out.println("Decapsulation Key (DK" + (i + 1) + ") List:");
             // printByteArray(dk.getSerialized()); // Assuming TreeDk has a getSerialized() method
-            for (byte[] sk : skList) {
+
+            for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+                int nodeId = entry.getKey();
+                byte[] sk = entry.getValue();
                 printByteArray(sk);
             }
         }

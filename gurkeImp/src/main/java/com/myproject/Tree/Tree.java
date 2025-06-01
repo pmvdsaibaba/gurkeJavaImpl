@@ -9,7 +9,7 @@ import com.myproject.Tree.TreeDk;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
-
+import java.util.Map;
 
 
 public class Tree {
@@ -243,35 +243,40 @@ public class Tree {
     }
 
     /* T.setnodes(τ, (pkj)j∈[N]) → ek */
-    public TreeEK setNodes(List<byte[]> pkList) {
+    public TreeEK setNodes(Map<Integer, byte[]> pkMap) {
 
-        if(pkList.size() == getNodesInternal().size() )
-        {
-            for (int i = 0; i < getNodesInternal().size(); i++) {
-                Tree.Node node = getNodesInternal().get(i);
-                node.setPk(pkList.get(i));
+        for (Node node : getNodesInternal()) {
+            int nodeIndex = node.getNodeIndex();
+            byte[] pk = pkMap.get(nodeIndex);
+
+            if (pk != null) {
+                node.setPk(pk);  // set the public key for the node
+            } else {
+                System.out.println("Warning: No PK found for node index " + nodeIndex);
             }
         }
-        return new TreeEK(this, pkList);
+
+        return new TreeEK(this, pkMap);
     }
 
     /* T.setpath(τ, i, (skpl )l∈[Li]) → dki */
-    public TreeDk setPath(int leaf, List<byte[]> skList) {
+    public TreeDk setPath(int leaf, Map<Integer, byte[]> skMap) {
         List<Integer> leafPath = T_path(leaf);
 
-        for (int i = 0; i < getNodesInternal().size(); i++) 
+        for (Node node : getNodesInternal()) 
         {
-            Tree.Node node = getNodesInternal().get(i);
+            int nodeIndex = node.getNodeIndex();
+
             for (int j = 0; j < leafPath.size(); j++)
             {
-                if(node.getNodeIndex() == leafPath.get(j) )
+                if(nodeIndex == leafPath.get(j) )
                 {
-                    node.setSk(skList.get(j));
+                    node.setSk(skMap.get(nodeIndex));
                 }
             }
         }
 
-        return new TreeDk(this, skList, leaf);
+        return new TreeDk(this, skMap, leaf);
     }
 
     private static void treeAddInternal(Tree tree){ 

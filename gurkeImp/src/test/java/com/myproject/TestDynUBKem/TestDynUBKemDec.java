@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 public class TestDynUBKemDec {
@@ -16,7 +17,7 @@ public class TestDynUBKemDec {
     @Test
     public void testUBKemDec() throws Exception {
 
-        int n = 5;  // Number of users / leaves
+        int n = 5;
 
         UB_KEM ubKem = new UB_KEM();
 
@@ -24,32 +25,38 @@ public class TestDynUBKemDec {
         UB_KEM.BKGenResult result = ubKem.gen(n);
 
         TreeEK ek = result.ek;
-        List<byte[]> pkList = ek.getDataPk();
+        Map<Integer, byte[]> pkMap = ek.getDataPk();
 
         assertNotNull(ek, "Encryption key (EK) should not be null");
-        // System.out.println("Encryption Key (EK) List:");
 
+        System.out.println("Encryption Key (EK) List:");
 
-        // for (byte[] pk : pkList) {
-        //     printByteArray(pk);
-        // }
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pk = entry.getValue();
+            printByteArray(pk);
+        }
+
 
         // Validate DKs
         List<TreeDk> dkList = result.dkList;
         assertNotNull(dkList, "Decryption key list should not be null");
         assertEquals(n, dkList.size(), "Should have exactly n decryption keys");
 
-        List<byte[]> skList;
+        Map<Integer, byte[]> skMap;
 
         for (int i = 0; i < dkList.size(); i++) {
             TreeDk dk = dkList.get(i);
-            skList = dk.getDataSk();
+            skMap = dk.getDataSk();
 
             assertNotNull(dk, "Decryption key should not be null for user " + (i + 1));
-            // System.out.println("Decapsulation Key (DK" + (i + 1) + ") List:");
-            // for (byte[] sk : skList) {
-            //     printByteArray(sk);
-            // }
+            System.out.println("Decapsulation Key (DK" + (i + 1) + ") List:");
+
+            for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+                int nodeId = entry.getKey();
+                byte[] sk = entry.getValue();
+                printByteArray(sk);
+            }
         }
 
 

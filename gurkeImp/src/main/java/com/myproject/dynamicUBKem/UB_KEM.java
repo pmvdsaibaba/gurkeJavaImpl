@@ -13,6 +13,9 @@ import java.security.SecureRandom;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 public class UB_KEM {
 
@@ -29,44 +32,42 @@ public class UB_KEM {
     }
 
     public BKGenResult gen(int n) throws Exception {
-        // Step 00
+
         Tree tree = Tree.init(n);
 
-        // Step 01
         List<Integer> nodeIndexes = tree.nodes();
 
-        // Step 02–03: Generate (pkj, skj) for all nodes
-        List<byte[]> pkList = new ArrayList<>();
-        List<byte[]> skList = new ArrayList<>();
-        for (int j = 0; j < nodeIndexes.size(); j++) {
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+        Map<Integer, byte[]> skMap = new HashMap<>();
+
+        for (int j = 0; j < nodeIndexes.size(); j++)
+        {
             Nike.KeyPair kp = Nike.gen();
-            pkList.add(kp.getEk());
-            skList.add(kp.getDk());
+
+            pkMap.put(j + 1, kp.getEk());
+            skMap.put(j + 1, kp.getDk());
         }
 
-        // Step 04: Set the pk's in the tree
-        TreeEK ek = tree.setNodes(pkList);
+        TreeEK ek = tree.setNodes(pkMap);
 
-        // Step 05–07: For each leaf i ∈ [1..n], get its path and set corresponding sks
         List<TreeDk> dkList = new ArrayList<>();
-        for (int i = 1; i <= n; i++) {
-            List<Integer> path = tree.T_path(i); // This returns node indexes in the path
 
-            // Collect secret keys for path nodes
-            List<byte[]> pathSkList = new ArrayList<>();
+        for (int i = 1; i <= n; i++)
+        {
+            List<Integer> path = tree.T_path(i);
+
+            Map<Integer, byte[]> pathSkMap = new HashMap<>();
+
             for (Integer pathNodeIndex : path) {
-                int index = nodeIndexes.indexOf(pathNodeIndex);
-                pathSkList.add(skList.get(index));
+                pathSkMap.put(pathNodeIndex, skMap.get(pathNodeIndex));
             }
 
-            // Set SKs in tree and collect the Dk object
-            TreeDk dk = tree.setPath(i, pathSkList);
+            TreeDk dk = tree.setPath(i, pathSkMap);
             dkList.add(dk);
         }
 
         this.tree = tree;
 
-        // Step 08: Return result
         return new BKGenResult(ek, dkList);
     }
 
@@ -134,17 +135,17 @@ public class UB_KEM {
 
 
         TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek); 
-        List<byte[]> pkList = getnodesreturn.getDataPk();
+        Map<Integer, byte[]> pkMap = getnodesreturn.getDataPk();
 
-        List<byte[]> newPkList = new ArrayList<>();
+        Map<Integer, byte[]> newPkMap = new HashMap<>();
 
         byte[] kFinal = null;
 
-        for (byte[] pkj : pkList) {
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pkj = entry.getValue();
 
             byte[] kPrime = Nike.key(sk, pkj);
-
-
 
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
             byte[] s = hashOutput.getS();
@@ -152,10 +153,11 @@ public class UB_KEM {
 
             Nike.KeyPair newKp = Nike.gen(s);
             byte[] newPk = newKp.getEk();
-            newPkList.add(newPk);
+
+            newPkMap.put(nodeId, newPk);
 
             if (kFinal == null) {
-                kFinal = kj; // Use k1 as the final key 
+                kFinal = kj;
 
                 // System.out.println("BK.fin SK:");
                 // printByteArray(sk);
@@ -166,7 +168,7 @@ public class UB_KEM {
             }
         }
 
-        TreeEK newEk = this.tree.setNodes(newPkList);
+        TreeEK newEk = this.tree.setNodes(newPkMap);
 
         return new FinResult(newEk, kFinal); // Step 21
     }
@@ -185,15 +187,18 @@ public class UB_KEM {
 
         TreeGetPathReturn pathResult = Tree.getPath(dk);
         int i = pathResult.getLeafIndex();
-        List<byte[]> skList = pathResult.getDataSk();
+        Map<Integer, byte[]> skMap = pathResult.getDataSk();
 
         byte[] pk = new byte[c.length - 1];
         System.arraycopy(c, 1, pk, 0, pk.length);
 
-        List<byte[]> updatedSkList = new ArrayList<>();
+        Map<Integer, byte[]> updatedSkMap = new HashMap<>();
         byte[] kFinal = null;
 
-        for (byte[] skl : skList) {
+        for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] skl = entry.getValue();
+
             byte[] kPrime = Nike.key(skl, pk);
 
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
@@ -202,10 +207,11 @@ public class UB_KEM {
 
             Nike.KeyPair newKp = Nike.gen(s);
             byte[] newSk = newKp.getDk();
-            updatedSkList.add(newSk);
+
+            updatedSkMap.put(nodeId, newSk);
 
             if (kFinal == null) {
-                kFinal = kl; // Use k1 as the final key
+                kFinal = kl;
 
                 // System.out.println("BK.dec SK:");
                 // printByteArray(skl);
@@ -218,7 +224,7 @@ public class UB_KEM {
             kFinal = kl;
         }
 
-        TreeDk newDk = pathResult.getTree().setPath(i, updatedSkList);
+        TreeDk newDk = pathResult.getTree().setPath(i, updatedSkMap);
 
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }

@@ -12,6 +12,8 @@ import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.util.List;
 
@@ -35,35 +37,55 @@ public class TestTreeGetNodes {
 
         System.out.println("Tree Nodes:");
 
-        List<byte[]> PkList = new ArrayList<>();
-        List<byte[]> skList = new ArrayList<>();
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+        Map<Integer, byte[]> skMap = new HashMap<>();
+
         Nike.KeyPair NikeGenKeyPair;
         
         for (int i = 0; i < Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
-            PkList.add(nikeGenKeyPair.getEk());
-            skList.add(nikeGenKeyPair.getDk());
+            pkMap.put(i + 1, nikeGenKeyPair.getEk());
+            skMap.put(i + 1, nikeGenKeyPair.getDk());
         }
 
-        System.out.println("PkList:");
-        for (byte[] ek : PkList) {
-            printByteArray(ek);
+        System.out.println("pkMap:");
+        // for (byte[] ek : PkList) {
+        //     printByteArray(ek);
+        // }
+
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pkj = entry.getValue();
+            printByteArray(pkj);
         }
 
-        System.out.println("skList:");
-        for (byte[] dk : skList) { 
-            printByteArray(dk);
+        System.out.println("skMap:");
+        // for (byte[] dk : skList) { 
+        //     printByteArray(dk);
+        // }
+
+        for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] skj = entry.getValue();
+            printByteArray(skj);
         }
 
-        TreeEK ek2 = Tree1.setNodes(PkList);
+
+        TreeEK ek2 = Tree1.setNodes(pkMap);
 
         TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek2);
-        List<byte[]> PkListGet = getnodesreturn.getDataPk();
+        Map<Integer, byte[]> PkMapGet = getnodesreturn.getDataPk();
 
 
         System.out.println("PkListGet:");
-        for (byte[] ek : PkListGet) {
-            printByteArray(ek);
+        // for (byte[] ek : PkListGet) {
+        //     printByteArray(ek);
+        // }
+
+        for (Map.Entry<Integer, byte[]> entry : PkMapGet.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pkj = entry.getValue();
+            printByteArray(pkj);
         }
 
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {

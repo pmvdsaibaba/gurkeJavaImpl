@@ -15,6 +15,8 @@ import java.util.Arrays;
 
 import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.util.List;
 
@@ -37,29 +39,35 @@ public class TestTreeGetPath {
         System.out.println("Nodes in the Tree ");
         printIntList(nodes);
 
-        List<byte[]> PkList = new ArrayList<>();
-        List<byte[]> skList = new ArrayList<>();
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+        Map<Integer, byte[]> skMap = new HashMap<>();
         Nike.KeyPair NikeGenKeyPair;
         
         for (int i = 1; i <= Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
-            PkList.add(nikeGenKeyPair.getEk());
-            skList.add(nikeGenKeyPair.getDk());
+            pkMap.put(i , nikeGenKeyPair.getEk());
+            skMap.put(i, nikeGenKeyPair.getDk());
         }
 
-        // System.out.println("PkList:");
-        // for (byte[] ek : PkList) {
-        //     printByteArray(ek);
-        // }
+        System.out.println("PkMap:");
 
-        // System.out.println("skList:");
-        // for (byte[] dk : skList) { 
-        //     printByteArray(dk);
-        // }
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pk = entry.getValue();
+            System.out.print("nodeId: " + (nodeId) + " : ");
 
-        TreeEK ek = Tree1.setNodes(PkList);
-        List<byte[]> skListLeaf = new ArrayList<>();
-        TreeDk dk = Tree1.setPath(1,skList);
+            printByteArray(pk);
+        }
+
+        System.out.println("skMap:");
+
+        for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] sk = entry.getValue();
+            printByteArray(sk);
+        }
+
+        TreeEK ek = Tree1.setNodes(pkMap);
 
         List<Integer> pathList = new ArrayList<>();
         List<Integer> copathList = new ArrayList<>();
@@ -74,29 +82,52 @@ public class TestTreeGetPath {
             System.out.println("co Path: ");
             printIntList(copathList);
 
-            for (int j = 0; j< pathList.size(); j++)
-            {
-                skListLeaf.add(skList.get((pathList.get(j)) - 1));
+            Map<Integer, byte[]> skMapLeaf = new HashMap<>();
+
+            for (Integer pathNodeIndex : pathList) {
+                skMapLeaf.put(pathNodeIndex, skMap.get(pathNodeIndex));
             }
-            dk = Tree1.setPath(i,new ArrayList<>(skListLeaf));
+
+            System.out.println("skMapLeaf contents:");
+
+            for (Map.Entry<Integer, byte[]> entry : skMapLeaf.entrySet()) {
+                System.out.println("Key: " + entry.getKey());
+                printByteArray(entry.getValue());
+
+            }
+
+            TreeDk dk = Tree1.setPath(i, skMapLeaf);
             dkList.add(dk);
-            skListLeaf.clear();
 
         }
 
-        TreeGetPathReturn dkGet = Tree.getPath(dkList.get(1));
+        for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
+            Tree.Node node = Tree1.getNodesInternal().get(i);
+            System.out.println("Node " + (i + 1) + ":");
+            System.out.println("  nodeIndex: " + node.getNodeIndex());
+            System.out.println("  level: " + node.getNodeLevel());
+            System.out.println("  rootNode: " + node.getRootnode());
+            System.out.println("  childLeftNode: " + node.getChildLeftnode());
+            System.out.println("  childRightNode: " + node.getChildRightnode());
+            System.out.println("  isLeaf: " + node.isLeaf());
+            System.out.println("  pk: " + (node.getPk() != null ? Arrays.toString(node.getPk()) : "null"));
+            System.out.println("  sk: " + (node.getSk() != null ? Arrays.toString(node.getSk()) : "null"));
+            System.out.println();
+            // printByteArray(node.getPk());
+        }
 
-        List<byte[]> dkGetSK = dkGet.getDataSk();
-        Integer dkGetLeaf = dkGet.getLeafIndex();
-
-        for (int j = 0; j< dkList.size(); j++){
-            dkGet = Tree.getPath(dkList.get(j));
-            dkGetSK = dkGet.getDataSk();
-            dkGetLeaf = dkGet.getLeafIndex();
+        for (int j = 0; j < dkList.size(); j++)
+        {
+            TreeGetPathReturn dkGet = Tree.getPath(dkList.get(j));
+            Map<Integer, byte[]> dkGetSK = dkGet.getDataSk();
+            Integer dkGetLeaf = dkGet.getLeafIndex();
 
             System.out.println("skListGetPath:");
-            for (byte[] dkprint : dkGetSK) { 
-                printByteArray(dkprint);
+
+            for (Map.Entry<Integer, byte[]> entry : dkGetSK.entrySet()) {
+                int nodeId = entry.getKey();
+                byte[] dk = entry.getValue();
+                printByteArray(dk);
             }
             System.out.print("Leaf is: ");
             System.out.println(dkGetLeaf);

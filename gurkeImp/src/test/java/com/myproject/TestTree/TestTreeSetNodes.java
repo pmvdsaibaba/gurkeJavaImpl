@@ -13,6 +13,8 @@ import java.security.NoSuchProviderException;
 import java.security.InvalidAlgorithmParameterException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class TestTreeSetNodes {
 
@@ -32,27 +34,18 @@ public class TestTreeSetNodes {
         System.out.println("Nodes in the Tree ");
         printIntList(nodes);
 
-        List<byte[]> PkList = new ArrayList<>();
-        List<byte[]> skList = new ArrayList<>();
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+        Map<Integer, byte[]> skMap = new HashMap<>();
+
         Nike.KeyPair NikeGenKeyPair;
         
         for (int i = 0; i < Treesize; i++) {
             Nike.KeyPair nikeGenKeyPair = Nike.gen();
-            PkList.add(nikeGenKeyPair.getEk());
-            skList.add(nikeGenKeyPair.getDk());
+            pkMap.put(i + 1, nikeGenKeyPair.getEk());
+            skMap.put(i + 1, nikeGenKeyPair.getDk());
         }
 
-        System.out.println("PkList:");
-        for (byte[] ek : PkList) {
-            printByteArray(ek);
-        }
-
-        System.out.println("skList:");
-        for (byte[] dk : skList) { 
-            printByteArray(dk);
-        }
-
-        TreeEK ek = Tree1.setNodes(PkList);
+        TreeEK ek = Tree1.setNodes(pkMap);
 
 
         for (int i = 0; i < Tree1.getNodesInternal().size(); i++) {
