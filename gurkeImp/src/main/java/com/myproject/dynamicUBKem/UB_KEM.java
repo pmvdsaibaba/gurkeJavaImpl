@@ -195,6 +195,9 @@ public class UB_KEM {
         Map<Integer, byte[]> updatedSkMap = new HashMap<>();
         byte[] kFinal = null;
 
+
+        // In tree add and rmv. these pk and sk map should be updated.
+        // to do: may be get the tree with valid nodes.
         for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
             int nodeId = entry.getKey();
             byte[] skl = entry.getValue();
@@ -401,6 +404,73 @@ public class UB_KEM {
         return new BKRemoveResult(newEk, c);
     }
 
+    public class BKForkResult {
+        public TreeEK ek1;
+        public TreeEK ek2;
+        public c_BKFork c;
+
+        public BKForkResult(TreeEK ek1, TreeEK ek2, c_BKFork c) {
+            this.ek1 = ek1;
+            this.ek2 = ek2;
+            this.c = c;
+        }
+    }
+
+    public class c_BKFork {
+        public byte t;
+        public byte[] pk;
+
+        public c_BKFork(byte t, byte[] pk) {
+            this.t = t;
+            this.pk = pk;
+        }
+    }
+
+    public BKForkResult fork(TreeEK ek) throws Exception
+    {
+        Nike.KeyPair forkKp = Nike.gen();
+        byte[] pkFork = forkKp.getEk();
+        byte[] skFork = forkKp.getDk();
+
+        byte F = (byte) 'F';
+        byte[] c = prependByte(F, pkFork);
+
+        TreeGetNodesReturn getnodesreturn = Tree.getNodes(ek);
+        Map<Integer, byte[]> pkMap = getnodesreturn.getDataPk();
+        Tree Tree1 = getnodesreturn.getTree();
+
+
+        Map<Integer, byte[]> pk1Map = new HashMap<>();
+        Map<Integer, byte[]> pk2Map = new HashMap<>();
+
+        // In tree add and rmv. these pk and sk map should be updated.
+        // to do: may be get the tree with valid nodes.
+        for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
+            int nodeId = entry.getKey();
+            byte[] pkj = entry.getValue();
+
+            byte[] k = Nike.key(skFork, pkj);
+
+            // H(k, c, 1)
+            RandomOracle.RandomOracleResult ro1 = RandomOracle.H(c, k, new byte[]{1});
+            byte[] s1j = ro1.getS();
+
+            // H(k, c, 2)
+            RandomOracle.RandomOracleResult ro2 = RandomOracle.H(c, k, new byte[]{2});
+            byte[] s2j = ro2.getS();
+
+            Nike.KeyPair kp1j = Nike.gen(s1j);
+            Nike.KeyPair kp2j = Nike.gen(s2j);
+
+            pk1Map.put(nodeId, kp1j.getEk());
+            pk2Map.put(nodeId, kp2j.getEk());
+        }
+
+        TreeEK ek1 = Tree1.setNodes(pk1Map);
+        TreeEK ek2 = Tree1.setNodes(pk2Map);
+
+        return new BKForkResult(ek1, ek2, new c_BKFork(F, pkFork));
+    }
 
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
