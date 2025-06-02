@@ -316,6 +316,92 @@ public class UB_KEM {
         return new BKAddResult(newEk, newDk, c);
     }
 
+    public class BKRemoveResult {
+        public TreeEK ek;
+        public c_BKRemove c;
+
+        public BKRemoveResult(TreeEK ek, c_BKRemove c) {
+            this.ek = ek;
+            this.c = c;
+        }
+    }
+
+    public class c_BKRemove {
+        public byte t;
+        public int i;
+        public Map<Integer, byte[]> pkStarMap;
+        public byte[] pkCircle;
+        public Map<Integer, byte[]> pkPrimeMap;
+
+        public c_BKRemove(byte t, int i, Map<Integer, byte[]> pkStarMap, byte[] pkCircle, Map<Integer, byte[]> pkPrimeMap) {
+            this.t = t;
+            this.i = i;
+            this.pkStarMap = pkStarMap;
+            this.pkCircle = pkCircle;
+            this.pkPrimeMap = pkPrimeMap;
+        }
+    }
+
+    public BKRemoveResult rmv(TreeEK ek, int i) throws Exception
+    {
+        TreeAddEkReturn remReturn = Tree.T_rem_Ek(ek, i);
+
+        Map<Integer, byte[]> pkMap = remReturn.getDataPk();
+        List<Integer> path = remReturn.getPathList();
+        List<Integer> coPath = remReturn.getCoPathList();     // (cpl)
+        Tree tempTree = remReturn.getTree();
+
+        Map<Integer, byte[]> pkStarMap = new HashMap<>();
+
+        for (Integer coPathNode : coPath) {
+            pkStarMap.put(coPathNode, pkMap.get(coPathNode));
+        }
+
+        Nike.KeyPair kpCircle = Nike.gen();
+        byte[] pkCircle = kpCircle.getEk();
+        byte[] skCircle = kpCircle.getDk();
+
+        byte[] pkpL = pkMap.get(path.get(0));
+        byte[] k = Nike.key(skCircle, pkpL);
+
+        RandomOracle.RandomOracleResult ro1 = RandomOracle.H(k, pkCircle);
+        byte[] s = ro1.getS();
+        byte[] sPrime = ro1.getK();
+
+        Nike.KeyPair kpPL = Nike.gen(s);
+        byte[] newPkpL = kpPL.getEk();
+        pkMap.put(path.get(0), newPkpL);
+
+        Map<Integer, byte[]> pkPrimeMap = new HashMap<>();
+
+        for (int l = 0; l < (path.size() - 1);  l++) 
+        {
+            Nike.KeyPair kpPrimeL = Nike.gen(sPrime);
+            byte[] pkPrimeL = kpPrimeL.getEk();
+            byte[] skPrimeL = kpPrimeL.getDk();
+            pkPrimeMap.put(path.get(l), pkPrimeL);
+
+            byte[] pkCoPath = pkMap.get(coPath.get(l));
+            k = Nike.key(skPrimeL, pkCoPath);
+
+            RandomOracle.RandomOracleResult ro2 = RandomOracle.H(k, pkPrimeL);
+            s = ro2.getS();
+            sPrime = ro2.getK();
+
+            Nike.KeyPair kpParent = Nike.gen(s);
+            byte[] pkParent = kpParent.getEk();
+            pkMap.put(path.get(l + 1), pkParent);
+        }
+
+        TreeEK newEk = tempTree.setNodes(pkMap);
+
+        byte R = (byte) 'R';
+        c_BKRemove c = new c_BKRemove(R, i, pkStarMap, pkCircle, pkPrimeMap);
+
+        return new BKRemoveResult(newEk, c);
+    }
+
+
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
         StringBuilder sb = new StringBuilder();

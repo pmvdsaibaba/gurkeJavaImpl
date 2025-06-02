@@ -579,7 +579,7 @@ public class Tree {
     }
 
 
-    public TreeAddEkReturn T_rem_Ek(TreeEK ek, int leaf)
+    public static TreeAddEkReturn T_rem_Ek(TreeEK ek, int leaf)
     {
         treeRemInternal(ek.getTree(), leaf);
 
