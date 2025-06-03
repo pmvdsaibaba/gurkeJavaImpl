@@ -3,6 +3,7 @@ package com.myproject.dynamicUBKem;
 import com.myproject.Tree.Tree;
 import com.myproject.Tree.TreeDk;
 import com.myproject.Tree.TreeEK;
+import com.myproject.Tree.TreeAddDkReturn;
 import com.myproject.Nike.Nike;
 import com.myproject.RandomOracle.RandomOracle;
 import com.myproject.Tree.TreeGetPathReturn;
@@ -471,6 +472,145 @@ public class UB_KEM {
 
         return new BKForkResult(ek1, ek2, new c_BKFork(F, pkFork));
     }
+
+    public class BKProcResult {
+        public TreeDk dk1;
+        public TreeDk dk2;
+
+        public BKProcResult(TreeDk dk1, TreeDk dk2) {
+            this.dk1 = dk1;
+            this.dk2 = dk2;
+        }
+    }
+
+    public BKProcResult proc(TreeDk dk, Object c) throws Exception
+    {
+        byte t;
+        Object cPrime;
+
+        if (c instanceof c_BKFork)
+        {
+            c_BKFork fork = (c_BKFork) c;
+            t = fork.t;
+            cPrime = fork.pk;
+
+            TreeGetPathReturn pathResult = Tree.getPath(dk);
+            int i = pathResult.getLeafIndex();
+            Map<Integer, byte[]> skMap = pathResult.getDataSk();
+
+            Map<Integer, byte[]> sk1Map = new HashMap<>();
+            Map<Integer, byte[]> sk2Map = new HashMap<>();
+
+            for (Map.Entry<Integer, byte[]> entry : skMap.entrySet())
+            {
+                int nodeId = entry.getKey();
+                byte[] skl = entry.getValue();
+
+                byte[] k = Nike.key(skl, (byte[]) cPrime);
+
+                byte[] cRaw = prependByte(t, (byte[]) cPrime);
+                byte[] tag1 = new byte[]{1};
+                byte[] tag2 = new byte[]{2};
+
+                byte[] s1l = RandomOracle.H(cRaw, k, tag1).getS();
+                byte[] s2l = RandomOracle.H(cRaw, k, tag2).getS();
+
+                byte[] sk1l = Nike.gen(s1l).getDk();
+                byte[] sk2l = Nike.gen(s2l).getDk();
+
+                sk1Map.put(nodeId, sk1l);
+                sk2Map.put(nodeId, sk2l);
+            }
+
+            TreeDk dk1 = pathResult.getTree().setPath(i, sk1Map);
+            TreeDk dk2 = pathResult.getTree().setPath(i, sk2Map);
+            return new BKProcResult(dk1, dk2);
+        } 
+        else if (c instanceof c_BKAdd || c instanceof c_BKRemove)
+        {
+            TreeDk newDk;
+            Tree tree;
+            int i;
+            Map<Integer, byte[]> skMap;
+            int lStar;
+
+            if (c instanceof c_BKAdd)
+            {
+                c_BKAdd add = (c_BKAdd) c;
+                t = add.t;
+                cPrime = new Object[]{add.pk_lMap, add.pkstarMap};
+
+                TreeAddDkReturn addDk = Tree.T_add_dk(dk);
+                tree = addDk.getTree();
+                i = addDk.getLeafIndex();
+                skMap = addDk.getDataSk();
+                lStar = addDk.getLeafIntersectionIndex();
+            }
+            else
+            {
+                c_BKRemove rem = (c_BKRemove) c;
+                t = rem.t;
+                cPrime = new Object[]{rem.i, rem.pkStarMap, rem.pkCircle, rem.pkPrimeMap};
+
+                TreeAddDkReturn remDk = Tree.T_rem_Dk(dk, rem.i);
+                tree = remDk.getTree();
+                i = remDk.getLeafIndex();
+                skMap = remDk.getDataSk();
+                lStar = remDk.getLeafIntersectionIndex();
+            }
+
+            // Get path length
+            List<Integer> path = tree.T_path(i);
+            int L = path.size();
+
+            byte[] pkR, skL;
+            if (t == 'R')
+            {
+                c_BKRemove rem = (c_BKRemove) c;
+                if (lStar == L - 1) 
+                {
+                    pkR = rem.pkCircle;
+                    skL = skMap.get(path.get(L - 1));
+                }
+                else
+                {
+                    pkR = rem.pkPrimeMap.get(path.get(lStar + 1));
+                    skL = skMap.get(path.get(lStar + 1));
+                }
+            }
+            else
+            {
+                c_BKAdd add = (c_BKAdd) c;
+                pkR = add.pk_lMap.get(path.get(lStar));
+                skL = skMap.get(path.get(lStar));
+            }
+
+            byte[] k = Nike.key(skL, pkR);
+            RandomOracle.RandomOracleResult ro = RandomOracle.H(k, pkR);
+            byte[] s = ro.getS();
+            byte[] sPrime = ro.getK();
+
+            skMap.put(path.get(lStar), Nike.gen(s).getDk());
+
+            for (int l = lStar; l >= 1; l--) {
+                Nike.KeyPair kp = Nike.gen(sPrime);
+                byte[] sk_l = kp.getDk();
+                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path.get(l)) : ((c_BKAdd) c).pkstarMap.get(path.get(l));
+                k = Nike.key(sk_l, pkR);
+                ro = RandomOracle.H(k, kp.getEk());
+                s = ro.getS();
+                sPrime = ro.getK();
+
+                skMap.put(path.get(l - 1), Nike.gen(s).getDk());
+            }
+
+            newDk = tree.setPath(i, skMap);
+            return new BKProcResult(newDk, null);
+        }
+
+        throw new IllegalArgumentException("Unsupported ciphertext type");
+    }
+
 
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {

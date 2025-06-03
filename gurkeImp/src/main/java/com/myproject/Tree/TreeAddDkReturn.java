@@ -11,15 +11,18 @@ public class TreeAddDkReturn {
 
     // this is unclear for now
     private int LeafIntersectionIndex;
+    private Tree Tree;
 
-    public TreeAddDkReturn(Map<Integer, byte[]> dataSk, int LeafIndex, int LeafIntersectionIndex) {
+    public TreeAddDkReturn(Map<Integer, byte[]> dataSk, int LeafIndex, int LeafIntersectionIndex, Tree Tree) {
         this.dataSk = dataSk;
         this.LeafIndex = LeafIndex;
         this.LeafIntersectionIndex = LeafIntersectionIndex;
+        this.Tree = Tree;
     }
 
-    public Map<Integer, byte[]> getAddDataSk() { return dataSk; }
+    public Map<Integer, byte[]> getDataSk() { return dataSk; }
     public int getLeafIndex() { return LeafIndex; }
     public int getLeafIntersectionIndex() { return LeafIntersectionIndex; }
 
+    public Tree getTree() { return Tree; }
 }

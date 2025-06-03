@@ -416,7 +416,8 @@ public class Tree {
         return new TreeAddDkReturn(
             dk.getDataSk(), 
             dk.getTree().TAddnode2Index, 
-            dk.getTree().TAddnode1Index);
+            dk.getTree().TAddnode1Index,
+            dk.getTree());
     }
 
     private static void treeRemInternal(Tree tree, int leaf){
@@ -591,14 +592,15 @@ public class Tree {
             ek.getTree() );
     }
 
-    public TreeAddDkReturn T_rem_Dk(TreeDk dk, int leaf)
+    public static TreeAddDkReturn T_rem_Dk(TreeDk dk, int leaf)
     {
         treeRemInternal(dk.getTree(), leaf);
 
         return new TreeAddDkReturn(
             dk.getDataSk(), 
             dk.getTree().TAddnode2Index, 
-            dk.getTree().TAddnode1Index);
+            dk.getTree().TAddnode1Index,
+            dk.getTree());
     }
 
     public List<Integer> T_path( int Leaf_i) {
