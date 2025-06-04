@@ -38,7 +38,7 @@ public class TestDynUBKemAdd {
         UB_KEM.FinResult finResult = ubKem.fin(encResult.u, ad);
         UB_KEM.DecResult decResult = ubKem.dec(dk, ad, encResult.c);
 
-
+        printTreeStateAfterAddEk(ek.getTree());
 
         System.out.println("ubKem.dec and ubKem.fin succeeded. Shared key (k):");
         printByteArray(decResult.k);

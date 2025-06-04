@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 import java.util.Map;
+import java.util.*;
 
 
 public class Tree {
@@ -402,6 +403,9 @@ public class Tree {
     {
         treeAddInternal(ek.getTree());
 
+        // dk.getDataSk().put(dk.getTree().TAddnode2Index, new byte[0]);
+        // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
+
         return new TreeAddEkReturn(
             ek.getDataPk(), 
             ek.getTree().T_path(ek.getTree().leafIndexMax),
@@ -412,11 +416,43 @@ public class Tree {
 
     public static TreeAddDkReturn T_add_dk(TreeDk dk)
     {
+
+        List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
+
+
         treeAddInternal(dk.getTree());
+
+        /////////////////////////////////////////////////////////////////
+        // To find the intersection
+
+        // check if TAddnode2Index is leaf node or added node
+        List<Integer> set1 = dk.getTree().T_path(dk.getTree().TAddnode2Index);
+
+        int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);
+
+        if (IntersectionNode != -1) {
+            // do nothing
+        } else {
+            System.out.println("Error: No common node found.");
+        }
+
+
+        //////////////////////////////////////////////////////////////////
+        // wrong assumption if new nodes to be added
+
+        // dk.getDataSk().put(dk.getTree().TAddnode2Index, new byte[0]);
+        // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
+
+
+        //////////////////////////////////////////////////////////////////
+        // Finding the leaf in input node.
+
+        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
+
         return new TreeAddDkReturn(
-            dk.getDataSk(), 
-            dk.getTree().TAddnode2Index, 
-            dk.getTree().TAddnode1Index,
+            dk.getDataSk(),
+            leafNodeIndex,
+            IntersectionNode,
             dk.getTree());
     }
 
@@ -586,9 +622,9 @@ public class Tree {
 
         return new TreeAddEkReturn(
             ek.getDataPk(), 
-            ek.getTree().T_path(ek.getTree().leafIndexMax),
-            ek.getTree().T_co_path(ek.getTree().leafIndexMax),
-            ek.getTree().numLeaves,
+            ek.getTree().T_path(ek.getTree().leafIndexMax),  // check this: seems something wrong
+            ek.getTree().T_co_path(ek.getTree().leafIndexMax), // check this: seems something wrong
+            ek.getTree().numLeaves, // check this: seems something wrong
             ek.getTree() );
     }
 
@@ -596,10 +632,30 @@ public class Tree {
     {
         treeRemInternal(dk.getTree(), leaf);
 
+        /////////////////////////////////////////////////////////////////
+        // To find the intersection
+
+        List<Integer> set1 = dk.getTree().T_path(leaf);
+        List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
+
+        int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);
+
+        if (IntersectionNode != -1) {
+            // do nothing
+        } else {
+            System.out.println("Error: No common node found.");
+        }
+
+
+        //////////////////////////////////////////////////////////////////
+        // Finding the leaf in input node.
+
+        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
+
         return new TreeAddDkReturn(
             dk.getDataSk(), 
-            dk.getTree().TAddnode2Index, 
-            dk.getTree().TAddnode1Index,
+            leafNodeIndex,
+            IntersectionNode,
             dk.getTree());
     }
 
@@ -668,6 +724,46 @@ public class Tree {
         }
 
         return copath;
+    }
+
+    // set 1 should be proper like the path order.
+    // set 2 can be just indexes
+    public static int findFirstCommonNodeInOrder(List<Integer> set1, List<Integer> set2) {
+
+        Set<Integer> set2Lookup = new HashSet<>(set2);
+
+        // Iterate over set1 (which is in leaf to root order)
+        for (int node : set1) {
+            if (set2Lookup.contains(node)) {
+                return node; // Return the first node in set1 that is also in set2
+            }
+        }
+
+        // If no common node found
+        return -1;
+    }
+
+    // public static void main(String[] args) {
+    //     List<Integer> set1 = Arrays.asList(13, 7, 2, 3, 4, 1);
+    //     List<Integer> set2 = Arrays.asList(3,2,17,10);
+
+    //     Integer result = findFirstCommonNodeInOrder(set1, set2);
+
+    //     if (result != null) {
+    //         System.out.println("First common node in set1 order: " + result);
+    //     } else {
+    //         System.out.println("No common node found.");
+    //     }
+    // }
+
+    public static int findLeafIndexFromSet(List<Integer> nodeIndexes, Tree tree)
+    {
+        for (Node node : tree.getNodesInternal()) {
+            if (nodeIndexes.contains(node.getNodeIndex()) && node.isLeaf() && node.isValidNode()) {
+                return node.getLeafIndex();
+            }
+        }
+        return -1; // not found
     }
 
 }
