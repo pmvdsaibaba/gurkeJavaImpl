@@ -2,6 +2,13 @@ package com.myproject.d_SSMR;
 
 import com.myproject.dynamicUBKem.UB_KEM;
 import com.myproject.dynamicUBKem.UB_KEM.BKGenResult;
+import com.myproject.dynamicUBKem.UB_KEM.c_BKAdd;
+import com.myproject.dynamicUBKem.UB_KEM.c_BKRemove;
+
+import com.myproject.dynamicUBKem.UB_KEM.BKEncResult;
+import com.myproject.dynamicUBKem.UB_KEM.EncOutput;
+import com.myproject.dynamicUBKem.UB_KEM.FinResult;
+
 
 import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeDk;
@@ -11,6 +18,11 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+
+import java.util.Map;
+import java.util.HashMap;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class d_SSMR {
 
@@ -58,9 +70,8 @@ public class d_SSMR {
 
     public static InitResult procInit(int nR) throws Exception
     {
-        UB_KEM ubKem = new UB_KEM();
 
-        BKGenResult bkGenResult = ubKem.gen(nR);
+        BKGenResult bkGenResult = UB_KEM.gen(nR);
         TreeEK ek = bkGenResult.ek;
         List<TreeDk> dkList = bkGenResult.dkList;
 
@@ -87,5 +98,160 @@ public class d_SSMR {
 
         return new InitResult(senderState, receiverStates);
     }
+
+
+    public static class Ciphertext {
+        public byte[] cPrime;
+        public Object cM;
+        public byte[] svkPrime;
+        public byte[] signature;
+
+        public Ciphertext(byte[] cPrime, Object cM, byte[] svkPrime, byte[] signature) {
+            this.cPrime = cPrime;
+            this.cM = cM;
+            this.svkPrime = svkPrime;
+            this.signature = signature;
+        }
+    }
+
+    public static class Kid {
+        public byte[] id;
+        public Set<Integer> memR;
+
+        public Kid(byte[] id, Set<Integer> memR) {
+            this.id = id;
+            this.memR = new HashSet<>(memR);
+        }
+    }
+
+    public static class EncapsResult {
+        public senderState updatedState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public EncapsResult(senderState updatedState, Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+    private static EncapsResult encaps(senderState st, TreeEK ek, byte[] ad, Object cM) throws Exception
+    {
+
+        Set<Integer> memR = st.memR;
+        TreeEK ekPrime = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+
+
+        BKEncResult encResult = UB_KEM.enc(ek);
+        EncOutput u = encResult.u;
+        byte[] cPrime = encResult.c;
+
+        SignatureScheme.KeyPair newSigKeys = SignatureScheme.gen();
+        byte[] svkPrime = newSigKeys.getVk();
+        byte[] sskPrime = newSigKeys.getSk();
+
+        byte[] messageToSign = concatAll(tr, ad, cPrime, serializeObject(cM), svkPrime);
+        byte[] sigma = SignatureScheme.sgn(ssk, messageToSign);
+
+        Ciphertext cR = new Ciphertext(cPrime, cM, svkPrime, sigma);
+
+        byte[] finInput = concatAll(tr, ad, serializeCiphertext(cR));
+        FinResult finResult = UB_KEM.fin(u, finInput);
+        TreeEK newEk = finResult.ek;
+        byte[] k = finResult.k;
+
+        Kid kid = new Kid(k, memR); // Using k as id for simplicity
+
+        // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, tr);
+        senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, k);
+
+        return new EncapsResult(newState, cR, k, kid);
+    }
+
+    private static byte[] serializeCiphertext(Ciphertext c) {
+        return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
+    }
+
+    private static byte[] serializeObject(Object obj) {
+        if (obj == null) {
+            return new byte[0];
+        }
+        else if (obj instanceof c_BKAdd)
+        {
+            c_BKAdd c = (c_BKAdd) obj;
+
+            return concatAll(
+                new byte[]{c.t},
+                concatenateByteArrays(c.pkstarMap),
+                concatenateByteArrays(c.pk_lMap)
+            );
+        }
+        else if (obj instanceof c_BKRemove)
+        {
+            c_BKRemove c = (c_BKRemove) obj;
+
+            return concatAll(
+                new byte[]{c.t},
+                intToByteArray(c.i),
+                concatenateByteArrays(c.pkStarMap),
+                c.pkCircle,
+                concatenateByteArrays(c.pkPrimeMap)
+            );
+        }
+        // not sure what to return
+        return obj.toString().getBytes();
+    }
+
+    public static byte[] concatenateByteArrays(Map<Integer, byte[]> byteMap)
+    {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
+        {
+            for (byte[] byteArray : byteMap.values()) {
+                outputStream.write(byteArray);
+            }
+            return outputStream.toByteArray();
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Error concatenating byte arrays", e);
+        }
+    }
+
+    private static byte[] concatAll(byte[]... arrays)
+    {
+        int totalLength = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                totalLength += array.length;
+            }
+        }
+
+        byte[] result = new byte[totalLength];
+        int currentIndex = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                System.arraycopy(array, 0, result, currentIndex, array.length);
+                currentIndex += array.length;
+            }
+        }
+        return result;
+    }
+
+    public static byte[] intToByteArray(int value)
+    {
+        return new byte[] {
+            (byte)(value >>> 24),
+            (byte)(value >>> 16),
+            (byte)(value >>> 8),
+            (byte)(value)
+        };
+    }
+
 
 }

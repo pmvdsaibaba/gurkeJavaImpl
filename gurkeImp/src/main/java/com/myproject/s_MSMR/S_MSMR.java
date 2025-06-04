@@ -174,7 +174,8 @@ public class S_MSMR {
         byte[] newEk = finResult.getEk();
         byte[] k = finResult.getK();
 
-        Kid kid = new Kid(finResult.getEk(), i, nS, nR); // Assuming ek = id
+        // Kid kid = new Kid(finResult.getEk(), i, nS, nR); // Assuming ek = id
+        Kid kid = new Kid(finResult.getK(), i, nS, nR); // Assuming k = id
 
         SenderState updatedSt = new SenderState(i, nS, nR, newEk, sskPrime);
 

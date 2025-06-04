@@ -20,9 +20,8 @@ import java.util.HashMap;
 
 public class UB_KEM {
 
-    Tree tree;
 
-    public class BKGenResult {
+    public static class BKGenResult {
         public TreeEK ek;
         public List<TreeDk> dkList;
 
@@ -32,7 +31,7 @@ public class UB_KEM {
         }
     }
 
-    public BKGenResult gen(int n) throws Exception {
+    public static BKGenResult gen(int n) throws Exception {
 
         Tree tree = Tree.init(n);
 
@@ -67,13 +66,12 @@ public class UB_KEM {
             dkList.add(dk);
         }
 
-        this.tree = tree;
 
         return new BKGenResult(ek, dkList);
     }
 
 
-    public class BKEncResult {
+    public static class BKEncResult {
         public EncOutput u;
         public byte[] c;
 
@@ -83,7 +81,7 @@ public class UB_KEM {
         }
     }
 
-    public class EncOutput {
+    public static class EncOutput {
         public TreeEK ek;
         public byte[] sk;
         public byte[] c;
@@ -95,7 +93,7 @@ public class UB_KEM {
         }
     }
 
-    public BKEncResult enc(TreeEK ek) throws Exception {
+    public static  BKEncResult enc(TreeEK ek) throws Exception {
 
         byte E = (byte) 'E';  // 69
 
@@ -112,14 +110,14 @@ public class UB_KEM {
         return new BKEncResult(u, c);
     }
 
-    public byte[] prependByte(byte prefix, byte[] original) {
+    public static byte[] prependByte(byte prefix, byte[] original) {
         byte[] result = new byte[original.length + 1];
         result[0] = prefix; // Set F at the beginning
         System.arraycopy(original, 0, result, 1, original.length);
         return result;
     }
 
-    public class FinResult {
+    public static class FinResult {
         public TreeEK ek;
         public byte[] k; // Final derived key
 
@@ -129,7 +127,7 @@ public class UB_KEM {
         }
     }
 
-    public FinResult fin(EncOutput u, byte[] ad) throws Exception {
+    public static FinResult fin(EncOutput u, byte[] ad) throws Exception {
         TreeEK ek = u.ek;
         byte[] sk = u.sk;
         byte[] c = u.c;
@@ -169,12 +167,12 @@ public class UB_KEM {
             }
         }
 
-        TreeEK newEk = this.tree.setNodes(newPkMap);
+        TreeEK newEk = getnodesreturn.getTree().setNodes(newPkMap);
 
-        return new FinResult(newEk, kFinal); // Step 21
+        return new FinResult(newEk, kFinal);
     }
 
-    public class DecResult {
+    public static class DecResult {
         public TreeDk dk;
         public byte[] k;
 
@@ -184,7 +182,7 @@ public class UB_KEM {
         }
     }
 
-    public DecResult dec(TreeDk dk, byte[] ad, byte[] c) throws Exception {
+    public static DecResult dec(TreeDk dk, byte[] ad, byte[] c) throws Exception {
 
         TreeGetPathReturn pathResult = Tree.getPath(dk);
         int i = pathResult.getLeafIndex();
@@ -234,7 +232,7 @@ public class UB_KEM {
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
 
-    public class BKAddResult {
+    public static class BKAddResult {
         public TreeEK ek;
         public TreeDk dk;
         public c_BKAdd c;
@@ -246,7 +244,7 @@ public class UB_KEM {
         }
     }
 
-    public class c_BKAdd {
+    public static class c_BKAdd {
         public byte t;
         public Map<Integer, byte[]> pkstarMap;
         public Map<Integer, byte[]> pk_lMap;
@@ -258,7 +256,7 @@ public class UB_KEM {
         }
     }
 
-    public BKAddResult add(TreeEK ek) throws Exception {
+    public static BKAddResult add(TreeEK ek) throws Exception {
 
         TreeAddEkReturn addReturn = Tree.T_add_Ek(ek);
         Map<Integer, byte[]> pkMap = addReturn.getDataPk();
@@ -320,7 +318,7 @@ public class UB_KEM {
         return new BKAddResult(newEk, newDk, c);
     }
 
-    public class BKRemoveResult {
+    public static class BKRemoveResult {
         public TreeEK ek;
         public c_BKRemove c;
 
@@ -330,7 +328,7 @@ public class UB_KEM {
         }
     }
 
-    public class c_BKRemove {
+    public static class c_BKRemove {
         public byte t;
         public int i;
         public Map<Integer, byte[]> pkStarMap;
@@ -346,7 +344,7 @@ public class UB_KEM {
         }
     }
 
-    public BKRemoveResult rmv(TreeEK ek, int i) throws Exception
+    public static BKRemoveResult rmv(TreeEK ek, int i) throws Exception
     {
         TreeAddEkReturn remReturn = Tree.T_rem_Ek(ek, i);
 
@@ -405,7 +403,7 @@ public class UB_KEM {
         return new BKRemoveResult(newEk, c);
     }
 
-    public class BKForkResult {
+    public static class BKForkResult {
         public TreeEK ek1;
         public TreeEK ek2;
         public c_BKFork c;
@@ -417,7 +415,7 @@ public class UB_KEM {
         }
     }
 
-    public class c_BKFork {
+    public static class c_BKFork {
         public byte t;
         public byte[] pk;
 
@@ -427,7 +425,7 @@ public class UB_KEM {
         }
     }
 
-    public BKForkResult fork(TreeEK ek) throws Exception
+    public static BKForkResult fork(TreeEK ek) throws Exception
     {
         Nike.KeyPair forkKp = Nike.gen();
         byte[] pkFork = forkKp.getEk();
@@ -474,7 +472,7 @@ public class UB_KEM {
         return new BKForkResult(ek1, ek2, new c_BKFork(F, pkFork));
     }
 
-    public class BKProcResult {
+    public static class BKProcResult {
         public TreeDk dk1;
         public TreeDk dk2;
 
@@ -484,7 +482,7 @@ public class UB_KEM {
         }
     }
 
-    public BKProcResult proc(TreeDk dk, Object c) throws Exception
+    public static BKProcResult proc(TreeDk dk, Object c) throws Exception
     {
         byte t;
         Object cPrime;
@@ -620,7 +618,7 @@ public class UB_KEM {
 
 
     // Utility to print byte arrays
-    private void printByteArray(byte[] bytes) {
+    private static void printByteArray(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(String.format("%02X", b));
