@@ -445,7 +445,8 @@ public class UB_KEM {
         Map<Integer, byte[]> pk2Map = new HashMap<>();
 
         // In tree add and rmv. these pk and sk map should be updated.
-        // to do: may be get the tree with valid nodes.
+        // to do: may be get the tree with valid nodes. 
+        // update: this seems ok for now
         for (Map.Entry<Integer, byte[]> entry : pkMap.entrySet()) {
             int nodeId = entry.getKey();
             byte[] pkj = entry.getValue();
@@ -487,6 +488,10 @@ public class UB_KEM {
     {
         byte t;
         Object cPrime;
+
+        // List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
+        // int leafNodeIndex = Tree.findLeafIndexFromSet(set2, dk.getTree());
+        // List<Integer> dkPath = dk.getTree().T_path(leafNodeIndex);
 
         if (c instanceof c_BKFork)
         {
@@ -561,28 +566,29 @@ public class UB_KEM {
 
             // Get path length
             List<Integer> path = tree.T_path(i);
-            int L = path.size();
+            int position = path.indexOf(lStar);
 
             byte[] pkR, skL;
             if (t == 'R')
             {
                 c_BKRemove rem = (c_BKRemove) c;
-                if (lStar == L - 1) 
+                if (lStar == path.get(0)) 
                 {
                     pkR = rem.pkCircle;
-                    skL = skMap.get(path.get(L - 1));
+                    skL = skMap.get(path.get(0));
                 }
                 else
                 {
-                    pkR = rem.pkPrimeMap.get(path.get(lStar + 1));
-                    skL = skMap.get(path.get(lStar + 1));
+                    pkR = rem.pkPrimeMap.get(path.get(position - 1));
+                    skL = skMap.get(path.get(position - 1));
                 }
             }
             else
             {
+
                 c_BKAdd add = (c_BKAdd) c;
-                pkR = add.pk_lMap.get(path.get(lStar));
-                skL = skMap.get(path.get(lStar));
+                pkR = add.pk_lMap.get(path.get(position - 1));
+                skL = skMap.get(path.get(position - 1));
             }
 
             byte[] k = Nike.key(skL, pkR);
@@ -592,16 +598,17 @@ public class UB_KEM {
 
             skMap.put(path.get(lStar), Nike.gen(s).getDk());
 
-            for (int l = lStar; l >= 1; l--) {
+
+            for (int jj = position; jj < ((path.size())-1) ; jj++) {
                 Nike.KeyPair kp = Nike.gen(sPrime);
                 byte[] sk_l = kp.getDk();
-                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path.get(l)) : ((c_BKAdd) c).pkstarMap.get(path.get(l));
+                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path.get(jj)) : ((c_BKAdd) c).pkstarMap.get(path.get(jj));
                 k = Nike.key(sk_l, pkR);
                 ro = RandomOracle.H(k, kp.getEk());
                 s = ro.getS();
                 sPrime = ro.getK();
 
-                skMap.put(path.get(l - 1), Nike.gen(s).getDk());
+                skMap.put(path.get(jj - 1), Nike.gen(s).getDk());
             }
 
             newDk = tree.setPath(i, skMap);
