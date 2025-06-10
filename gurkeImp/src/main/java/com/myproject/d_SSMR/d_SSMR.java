@@ -166,7 +166,7 @@ public class d_SSMR {
         TreeEK newEk = finResult.ek;
         byte[] k = finResult.k;
 
-        Kid kid = new Kid(k, memR); // Using k as id for simplicity
+        Kid kid = new Kid(k, memR); // Using k as id
 
         // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, tr);
         senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, k);
