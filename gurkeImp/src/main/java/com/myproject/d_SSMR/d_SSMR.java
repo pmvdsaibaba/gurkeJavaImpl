@@ -68,6 +68,8 @@ public class d_SSMR {
     }
 
 
+////////////////////////////////////////////77
+// init
     public static InitResult procInit(int nR) throws Exception
     {
 
@@ -138,6 +140,9 @@ public class d_SSMR {
         }
     }
 
+
+////////////////////////////////////////////77
+// encaps
     private static EncapsResult encaps(senderState st, TreeEK ek, byte[] ad, Object cM) throws Exception
     {
 
@@ -173,6 +178,32 @@ public class d_SSMR {
 
         return new EncapsResult(newState, cR, k, kid);
     }
+
+
+    public static class SendResult {
+        public senderState updatedState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public SendResult(senderState updatedState, Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+////////////////////////////////////////////77
+// snd
+    public static SendResult procSnd(senderState st, byte[] ad) throws Exception {
+
+        EncapsResult encapsResult = encaps(st, st.ek, ad, null);
+        
+        return new SendResult(encapsResult.updatedState, encapsResult.ciphertext, 
+                             encapsResult.key, encapsResult.kid);
+    }
+
 
     private static byte[] serializeCiphertext(Ciphertext c) {
         return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
