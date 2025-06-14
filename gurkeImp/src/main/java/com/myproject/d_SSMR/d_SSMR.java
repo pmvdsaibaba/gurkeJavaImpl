@@ -315,6 +315,48 @@ public class d_SSMR {
     }
 
 
+
+    public static class RemoveResult
+    {
+        public senderState updatedState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public RemoveResult(senderState updatedState, Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+////////////////////////////////////////////77
+// rmv
+    public static RemoveResult procRmv(senderState st, byte[] ad, int uid) throws Exception
+    {
+        Set<Integer> memR = new HashSet<>(st.memR);
+        TreeEK ek = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+
+        memR.remove(uid);
+        senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+
+        UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(ek, uid);
+        TreeEK newEk = removeResult.ek;
+        Object cM = removeResult.c;
+
+        /////// in paper this is not done here
+        // updatedState = new senderState(memR, newEk, ssk, svk, tr);
+
+        EncapsResult encapsResult = encaps(updatedState, newEk, ad, cM);
+
+        return new RemoveResult(encapsResult.updatedState, encapsResult.ciphertext, 
+                               encapsResult.key, encapsResult.kid);
+    }
+
     private static byte[] serializeCiphertext(Ciphertext c) {
         return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
     }
