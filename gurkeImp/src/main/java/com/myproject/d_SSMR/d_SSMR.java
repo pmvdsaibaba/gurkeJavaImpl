@@ -205,6 +205,66 @@ public class d_SSMR {
     }
 
 
+    public static class ReceiveFailure {
+        public ReceiverState state;
+
+        public ReceiveFailure(ReceiverState state) {
+            this.state = state;
+        }
+    }
+
+////////////////////////////////////////////77
+// rcv
+    public static Object procRcv(ReceiverState st, byte[] ad, Ciphertext c) throws Exception
+    {
+
+        byte[] cPrime = c.cPrime;
+        Object cM = c.cM;
+        byte[] svkPrime = c.svkPrime;
+        byte[] signature = c.signature;
+
+        Set<Integer> memR = st.memR;
+        TreeDk dk = st.dk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+
+        byte[] messageToVerify = concatAll(tr, ad, cPrime, serializeObject(cM), svkPrime);
+        if (!SignatureScheme.vfy(svk, messageToVerify, signature)) {
+            return new ReceiveFailure(st);
+        }
+
+        if ((cM == null || (cM instanceof byte[] && ((byte[]) cM).length == 0)) )
+        {
+            UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
+            dk = procResult.dk1;
+        }
+
+        byte[] fullMessage = concatAll(tr, ad, serializeCiphertext(c));
+        UB_KEM.DecResult decResult = UB_KEM.dec(dk, fullMessage, cPrime);
+        TreeDk newDk = decResult.dk;
+        byte[] k = decResult.k;
+
+        Kid kid = new Kid(k, memR); // Using k as id, ask paul
+        tr = k;
+
+        ReceiverState newState = new ReceiverState(memR, newDk, svkPrime, tr);
+
+        return new ReceiveResult(newState, k, kid);
+    }
+
+    public static class ReceiveResult
+    {
+        public ReceiverState updatedState;
+        public byte[] key;
+        public Kid kid;
+
+        public ReceiveResult(ReceiverState updatedState, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
     private static byte[] serializeCiphertext(Ciphertext c) {
         return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
     }
