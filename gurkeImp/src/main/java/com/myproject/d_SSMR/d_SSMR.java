@@ -265,6 +265,56 @@ public class d_SSMR {
         }
     }
 
+
+
+    public static class AddResult {
+        public senderState updatedsenderState;
+        public ReceiverState newReceiverState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public AddResult(senderState updatedsenderState, ReceiverState newReceiverState, 
+                        Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedsenderState = updatedsenderState;
+            this.newReceiverState = newReceiverState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+////////////////////////////////////////////77
+// add
+    public static AddResult procAdd(senderState st, byte[] ad, int uid) throws Exception
+    {
+        Set<Integer> memR = new HashSet<>(st.memR);
+        TreeEK ek = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+
+        //todo: what is uid is already present
+        memR.add(uid);
+        senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+
+        UB_KEM.BKAddResult addResult = UB_KEM.add(ek);
+        TreeEK newEk = addResult.ek;
+        TreeDk newDk = addResult.dk;
+        Object cM = addResult.c;
+
+        ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr);
+
+        /////// in paper this is not done here
+        // updatedState = new senderState(memR, newEk, ssk, svk, tr);
+
+        EncapsResult encapsResult = encaps(updatedState, newEk, ad, cM);
+
+        return new AddResult(encapsResult.updatedState, newReceiverState, 
+                           encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
+    }
+
+
     private static byte[] serializeCiphertext(Ciphertext c) {
         return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
     }
