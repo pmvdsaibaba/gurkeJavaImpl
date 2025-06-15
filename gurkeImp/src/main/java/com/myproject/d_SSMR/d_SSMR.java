@@ -174,9 +174,14 @@ public class d_SSMR {
         Kid kid = new Kid(k, memR); // Using k as id
 
         // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, tr);
-        senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, k);
+        // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, k);
+        st.memR = memR;
+        st.ek = newEk;
+        st.ssk = sskPrime;
+        st.svk = svkPrime;
+        st.tr = k;
 
-        return new EncapsResult(newState, cR, k, kid);
+        return new EncapsResult(st, cR, k, kid);
     }
 
 
@@ -223,6 +228,8 @@ public class d_SSMR {
         byte[] svkPrime = c.svkPrime;
         byte[] signature = c.signature;
 
+        // System.out.println("Type of cM: " + cM.getClass().getName());
+
         Set<Integer> memR = st.memR;
         TreeDk dk = st.dk;
         byte[] svk = st.svk;
@@ -233,7 +240,7 @@ public class d_SSMR {
             return new ReceiveFailure(st);
         }
 
-        if ((cM == null || (cM instanceof byte[] && ((byte[]) cM).length == 0)) )
+        if (cM != null && (!(cM instanceof byte[]) || ((byte[]) cM).length != 0))
         {
             UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
             dk = procResult.dk1;
@@ -247,9 +254,14 @@ public class d_SSMR {
         Kid kid = new Kid(k, memR); // Using k as id, ask paul
         tr = k;
 
-        ReceiverState newState = new ReceiverState(memR, newDk, svkPrime, tr);
+        // ReceiverState newState = new ReceiverState(memR, newDk, svkPrime, tr);
+        st.memR = memR;
+        st.dk = newDk;
+        st.svk = svkPrime;
+        st.tr = tr;
 
-        return new ReceiveResult(newState, k, kid);
+        return new ReceiveResult(st, k, kid);
+        // return new ReceiveResult(newState, k, kid);
     }
 
     public static class ReceiveResult
@@ -294,9 +306,15 @@ public class d_SSMR {
         byte[] svk = st.svk;
         byte[] tr = st.tr;
 
-        //todo: what is uid is already present
+        //todo: what if uid is already present
         memR.add(uid);
-        senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+
+        // senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+        st.memR = memR;
+        st.ek = ek;
+        st.ssk = ssk;
+        st.svk = svk;
+        st.tr = tr;
 
         UB_KEM.BKAddResult addResult = UB_KEM.add(ek);
         TreeEK newEk = addResult.ek;
@@ -308,7 +326,7 @@ public class d_SSMR {
         /////// in paper this is not done here
         // updatedState = new senderState(memR, newEk, ssk, svk, tr);
 
-        EncapsResult encapsResult = encaps(updatedState, newEk, ad, cM);
+        EncapsResult encapsResult = encaps(st, newEk, ad, cM);
 
         return new AddResult(encapsResult.updatedState, newReceiverState, 
                            encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
@@ -342,7 +360,12 @@ public class d_SSMR {
         byte[] tr = st.tr;
 
         memR.remove(uid);
-        senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+        // senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
+        st.memR = memR;
+        st.ek = ek;
+        st.ssk = ssk;
+        st.svk = svk;
+        st.tr = tr;
 
         UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(ek, uid);
         TreeEK newEk = removeResult.ek;
@@ -351,7 +374,7 @@ public class d_SSMR {
         /////// in paper this is not done here
         // updatedState = new senderState(memR, newEk, ssk, svk, tr);
 
-        EncapsResult encapsResult = encaps(updatedState, newEk, ad, cM);
+        EncapsResult encapsResult = encaps(st, newEk, ad, cM);
 
         return new RemoveResult(encapsResult.updatedState, encapsResult.ciphertext, 
                                encapsResult.key, encapsResult.kid);
@@ -361,12 +384,15 @@ public class d_SSMR {
         return concatAll(c.cPrime, serializeObject(c.cM), c.svkPrime, c.signature);
     }
 
-    private static byte[] serializeObject(Object obj) {
+    private static byte[] serializeObject(Object obj)
+    {
         if (obj == null) {
             return new byte[0];
         }
         else if (obj instanceof c_BKAdd)
         {
+            // System.out.println("Serializing object of type: " + obj.getClass().getName());
+            // System.out.println("Processing c_BKAdd");
             c_BKAdd c = (c_BKAdd) obj;
 
             return concatAll(
@@ -377,6 +403,8 @@ public class d_SSMR {
         }
         else if (obj instanceof c_BKRemove)
         {
+            // System.out.println("Serializing object of type: " + obj.getClass().getName());
+            // System.out.println("Processing c_BKRemove");
             c_BKRemove c = (c_BKRemove) obj;
 
             return concatAll(
@@ -387,8 +415,15 @@ public class d_SSMR {
                 concatenateByteArrays(c.pkPrimeMap)
             );
         }
+        else if (obj instanceof byte[])
+        {
+            return new byte[0]; 
+        }
         // not sure what to return
-        return obj.toString().getBytes();
+        // return obj.toString().getBytes();
+        System.out.println("WARNING: Falling back to toString() for type: " + obj.getClass().getName());
+        // return new byte[0];
+        throw new IllegalArgumentException("Unsupported ciphertext type: " + obj.getClass().getName());
     }
 
     public static byte[] concatenateByteArrays(Map<Integer, byte[]> byteMap)

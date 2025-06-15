@@ -562,31 +562,61 @@ public class UB_KEM {
                 lStar = remDk.getLeafIntersectionIndex();
             }
 
+
+
+            
             // Get path length
-            List<Integer> path = tree.T_path(i);
-            int position = path.indexOf(lStar);
+            // List<Integer> path = tree.T_path(i);
+            // int position = path.indexOf(lStar);
+
+            List<Integer> path_Pk;
+            List<Integer> path_Sk;
+            int position;
+            int position_InSk;
 
             byte[] pkR, skL;
             if (t == 'R')
             {
                 c_BKRemove rem = (c_BKRemove) c;
-                if (lStar == path.get(0)) 
+                
+                List<Integer> set2 = new ArrayList<>(rem.pkPrimeMap.keySet());
+                int leafNodeIndex = Tree.findLeafIndexFromSet(set2, tree);
+                path_Pk = tree.T_path(leafNodeIndex);
+                position = path_Pk.indexOf(lStar);
+
+                List<Integer> set3 = new ArrayList<>(skMap.keySet());
+                int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
+                path_Sk = tree.T_path(leafNodeIndex_sk);
+                position_InSk = path_Sk.indexOf(lStar);
+
+
+                if (lStar == path_Sk.get(0)) 
                 {
                     pkR = rem.pkCircle;
-                    skL = skMap.get(path.get(0));
+                    skL = skMap.get(path_Sk.get(0));
                 }
                 else
                 {
-                    pkR = rem.pkPrimeMap.get(path.get(position - 1));
-                    skL = skMap.get(path.get(position - 1));
+                    pkR = rem.pkPrimeMap.get(path_Pk.get(position - 1));
+                    skL = skMap.get(path_Sk.get(position_InSk - 1));
                 }
             }
             else
             {
 
                 c_BKAdd add = (c_BKAdd) c;
-                pkR = add.pk_lMap.get(path.get(position - 1));
-                skL = skMap.get(path.get(position - 1));
+                List<Integer> set2 = new ArrayList<>(add.pk_lMap.keySet());
+                int leafNodeIndex = Tree.findLeafIndexFromSet(set2, tree);
+                path_Pk = tree.T_path(leafNodeIndex);
+                position = path_Pk.indexOf(lStar);
+
+                List<Integer> set3 = new ArrayList<>(skMap.keySet());
+                int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
+                path_Sk = tree.T_path(leafNodeIndex_sk);
+                position_InSk = path_Sk.indexOf(lStar);
+
+                pkR = add.pk_lMap.get(path_Pk.get(position - 1));
+                skL = skMap.get(path_Sk.get(position_InSk - 1));
             }
 
             byte[] k = Nike.key(skL, pkR);
@@ -594,19 +624,19 @@ public class UB_KEM {
             byte[] s = ro.getS();
             byte[] sPrime = ro.getK();
 
-            skMap.put(path.get(lStar), Nike.gen(s).getDk());
+            skMap.put(path_Sk.get(lStar), Nike.gen(s).getDk());
 
 
-            for (int jj = position; jj < ((path.size())-1) ; jj++) {
+            for (int jj = position_InSk; jj < ((path_Sk.size())-1) ; jj++) {
                 Nike.KeyPair kp = Nike.gen(sPrime);
                 byte[] sk_l = kp.getDk();
-                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path.get(jj)) : ((c_BKAdd) c).pkstarMap.get(path.get(jj));
+                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path_Sk.get(jj)) : ((c_BKAdd) c).pkstarMap.get(path_Sk.get(jj));
                 k = Nike.key(sk_l, pkR);
                 ro = RandomOracle.H(k, kp.getEk());
                 s = ro.getS();
                 sPrime = ro.getK();
 
-                skMap.put(path.get(jj - 1), Nike.gen(s).getDk());
+                skMap.put(path_Sk.get(jj - 1), Nike.gen(s).getDk());
             }
 
             newDk = tree.setPath(i, skMap);

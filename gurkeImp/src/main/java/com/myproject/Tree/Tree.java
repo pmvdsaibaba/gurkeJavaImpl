@@ -32,6 +32,7 @@ public class Tree {
     // variables used in T.Add dk
     private int TAddnode1Index;
     private int TAddnode2Index;
+    private int TAddnode2Index_leaf;
 
     // variables used in T.Rem dk
     private int TRemnode1Index;
@@ -392,6 +393,8 @@ public class Tree {
 
         tree.TAddnode1Index = node1.getNodeIndex();
         tree.TAddnode2Index = node2.getNodeIndex();
+        tree.TAddnode2Index_leaf = node2.getLeafIndex();
+
 
         tree.nodeIndexes.add(tree.TAddnode1Index);
         tree.nodeIndexes.add(tree.TAddnode2Index);
@@ -426,14 +429,14 @@ public class Tree {
         // To find the intersection
 
         // check if TAddnode2Index is leaf node or added node
-        List<Integer> set1 = dk.getTree().T_path(dk.getTree().TAddnode2Index);
+        List<Integer> set1 = dk.getTree().T_path(dk.getTree().TAddnode2Index_leaf);
 
         int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);
 
         if (IntersectionNode != -1) {
             // do nothing
         } else {
-            System.out.println("Error: No common node found.");
+            System.out.println("Error T_add_dk: No common node found.");
         }
 
 
@@ -643,7 +646,7 @@ public class Tree {
         if (IntersectionNode != -1) {
             // do nothing
         } else {
-            System.out.println("Error: No common node found.");
+            System.out.println("Error T_rem_Dk: No common node found.");
         }
 
 
