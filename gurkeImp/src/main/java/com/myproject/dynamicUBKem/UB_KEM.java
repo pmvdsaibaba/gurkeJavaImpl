@@ -627,7 +627,8 @@ public class UB_KEM {
             skMap.put(path_Sk.get(lStar), Nike.gen(s).getDk());
 
 
-            for (int jj = position_InSk; jj < ((path_Sk.size())-1) ; jj++) {
+            for (int jj = position_InSk; jj < ((path_Sk.size())-1) ; jj++)
+            {
                 Nike.KeyPair kp = Nike.gen(sPrime);
                 byte[] sk_l = kp.getDk();
                 pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path_Sk.get(jj)) : ((c_BKAdd) c).pkstarMap.get(path_Sk.get(jj));
