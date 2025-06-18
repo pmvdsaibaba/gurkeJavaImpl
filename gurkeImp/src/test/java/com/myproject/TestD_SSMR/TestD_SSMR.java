@@ -66,7 +66,7 @@ public class TestD_SSMR {
         // Step 1: Initialize
         InitResult initResult = d_SSMR.procInit(nR);
         senderState senderState = initResult.senderState;
-        ReceiverState receiverState = initResult.receiverStates.get(3);
+        ReceiverState receiverState = initResult.receiverStates.get(0);
 
         // Step 2: Generate Associated Data (AD)
         byte[] ad = new byte[16];
@@ -102,24 +102,88 @@ public class TestD_SSMR {
         senderState = sndResult.updatedState;
         receiverState = rcvResult.updatedState;
 
-        // Second round
-        SendResult sndResult2 = d_SSMR.procSnd(senderState, ad);
-        Object rcvOutput2 = d_SSMR.procRcv(receiverState, ad, sndResult2.ciphertext);
+
+        ////////////////////////////////////////////
+        ////// Test with other receivers as well
+
+        ReceiverState receiverState2 = initResult.receiverStates.get(2);
+        ReceiverState receiverState3 = initResult.receiverStates.get(3);
+        ReceiverState receiverState4 = initResult.receiverStates.get(4);
+
+
+        Object rcv2Output = d_SSMR.procRcv(receiverState2, ad, sndResult.ciphertext);
+        Object rcv3Output = d_SSMR.procRcv(receiverState3, ad, sndResult.ciphertext);
+        Object rcv4Output = d_SSMR.procRcv(receiverState4, ad, sndResult.ciphertext);
         
+        assertTrue(rcv2Output instanceof ReceiveResult, "receiver 2 should also succeed");
+        assertTrue(rcv3Output instanceof ReceiveResult, "receiver 3 should also succeed");
+        assertTrue(rcv4Output instanceof ReceiveResult, "receiver 4 should also succeed");
+        ReceiveResult rcv2Result = (ReceiveResult) rcv2Output;
+        ReceiveResult rcv3Result = (ReceiveResult) rcv3Output;
+        ReceiveResult rcv4Result = (ReceiveResult) rcv4Output;
+        
+        assertArrayEquals(sndResult.key, rcv2Result.key, "receiver 2 should match");
+        assertArrayEquals(sndResult.key, rcv3Result.key, "receiver 3 should match");
+        assertArrayEquals(sndResult.key, rcv4Result.key, "receiver 4 should match");
+        
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcv2Result.key);
+        System.out.println("receiver key 3 (k):");
+        printByteArray(rcv3Result.key);
+        System.out.println("receiver key 4 (k):");
+        printByteArray(rcv4Result.key);
+
+
+        ////////////////////////////////////////////
+        // Second send
+        
+        // second time send
+        SendResult sndResult2 = d_SSMR.procSnd(senderState, ad);
+
+        Object rcvOutput2 = d_SSMR.procRcv(receiverState, ad, sndResult2.ciphertext);
+
         assertTrue(rcvOutput2 instanceof ReceiveResult, "Second receive should also succeed");
         ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
-        
+
         assertArrayEquals(sndResult2.key, rcvResult2.key, "Second round keys should match");
         
         System.out.println("Second round test passed. Shared key (k):");
         printByteArray(rcvResult2.key);
 
-        // senderState = sndResult2.updatedState;
-        // sndResult2 = d_SSMR.procSnd(senderState, ad);
+        
 
-        // receiverState = initResult.receiverStates.get(1);
-        // rcvOutput2 = d_SSMR.procRcv(receiverState, ad, sndResult2.ciphertext);
-        // printByteArray(((ReceiveResult)rcvOutput2).key);
+        ////////////////////////////////////////////
+        // Test with other receivers as well
+
+        receiverState2 = rcv2Result.updatedState;
+        receiverState3 = rcv3Result.updatedState;
+        receiverState4 = rcv4Result.updatedState;
+
+        Object rcv2Output2 = d_SSMR.procRcv(receiverState2, ad, sndResult2.ciphertext);
+        Object rcv3Output2 = d_SSMR.procRcv(receiverState3, ad, sndResult2.ciphertext);
+        Object rcv4Output2 = d_SSMR.procRcv(receiverState4, ad, sndResult2.ciphertext);
+
+        assertTrue(rcv2Output2 instanceof ReceiveResult, "receiver 2 should also succeed");
+        assertTrue(rcv3Output2 instanceof ReceiveResult, "receiver 3 should also succeed");
+        assertTrue(rcv4Output2 instanceof ReceiveResult, "receiver 4 should also succeed");
+        ReceiveResult rcv2Result2 = (ReceiveResult) rcv2Output2;
+        ReceiveResult rcv3Result2 = (ReceiveResult) rcv3Output2;
+        ReceiveResult rcv4Result2 = (ReceiveResult) rcv4Output2;
+
+        assertArrayEquals(sndResult2.key, rcv2Result2.key, "receiver 2 should match");
+        assertArrayEquals(sndResult2.key, rcv3Result2.key, "receiver 3 should match");
+        assertArrayEquals(sndResult2.key, rcv4Result2.key, "receiver 4 should match");
+        
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcv2Result2.key);
+        System.out.println("receiver key 3 (k):");
+        printByteArray(rcv3Result2.key);
+        System.out.println("receiver key 4 (k):");
+        printByteArray(rcv4Result2.key);
+
+
+        System.out.println("snd second time and all receiver has same key: test passed successfully");
+
     }
 
     // @Test
