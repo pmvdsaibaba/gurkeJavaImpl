@@ -331,22 +331,20 @@ public class d_SSMR {
         //todo: what if uid is already present
         memR.add(uid);
 
-        // senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
-        st.memR = memR;
-        st.ek = ek;
-        st.ssk = ssk;
-        st.svk = svk;
-        st.tr = tr;
-
         UB_KEM.BKAddResult addResult = UB_KEM.add(ek);
+
         TreeEK newEk = addResult.ek;
         TreeDk newDk = addResult.dk;
         Object cM = addResult.c;
 
-        ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr);
+        /////// in paper this is not done here. But Clarified with Paul
+        st.memR = memR;
+        st.ek = newEk;
+        st.ssk = ssk;
+        st.svk = svk;
+        st.tr = tr;
 
-        /////// in paper this is not done here
-        // updatedState = new senderState(memR, newEk, ssk, svk, tr);
+        ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr);
 
         EncapsResult encapsResult = encaps(st, newEk, ad, cM);
 
@@ -382,19 +380,18 @@ public class d_SSMR {
         byte[] tr = st.tr;
 
         memR.remove(uid);
-        // senderState updatedState = new senderState(memR, ek, ssk, svk, tr);
-        st.memR = memR;
-        st.ek = ek;
-        st.ssk = ssk;
-        st.svk = svk;
-        st.tr = tr;
 
         UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(ek, uid);
+
         TreeEK newEk = removeResult.ek;
         Object cM = removeResult.c;
 
-        /////// in paper this is not done here
-        // updatedState = new senderState(memR, newEk, ssk, svk, tr);
+        /////// in paper this is not done here. But Clarified with Paul
+        st.memR = memR;
+        st.ek = newEk;
+        st.ssk = ssk;
+        st.svk = svk;
+        st.tr = tr;
 
         EncapsResult encapsResult = encaps(st, newEk, ad, cM);
 

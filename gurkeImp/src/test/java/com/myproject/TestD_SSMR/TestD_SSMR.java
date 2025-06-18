@@ -146,11 +146,10 @@ public class TestD_SSMR {
         ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
 
         assertArrayEquals(sndResult2.key, rcvResult2.key, "Second round keys should match");
-        
+
         System.out.println("Second round test passed. Shared key (k):");
         printByteArray(rcvResult2.key);
 
-        
 
         ////////////////////////////////////////////
         // Test with other receivers as well
@@ -228,8 +227,8 @@ public class TestD_SSMR {
     //     ReceiverState existingReceiver = initResult.receiverStates.get(2);
     //     ReceiverState newAddedReceiverSt = addResult.newReceiverState;
 
-    //     printTreeState(existingReceiver.dk.getTree());
-    //     printTreeState(newAddedReceiverSt.dk.getTree());
+    //     // printTreeState(existingReceiver.dk.getTree());
+    //     // printTreeState(newAddedReceiverSt.dk.getTree());
 
     //     System.out.println("Existing receiver's memR: " + existingReceiver.memR);
 
