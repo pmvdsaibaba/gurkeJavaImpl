@@ -24,6 +24,11 @@ import java.util.HashMap;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+
+import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
+import org.bouncycastle.crypto.params.HKDFParameters;
+import org.bouncycastle.crypto.digests.SHA512Digest;
+
 public class d_SSMR {
 
     public static class senderState
@@ -169,9 +174,18 @@ public class d_SSMR {
         byte[] finInput = concatAll(tr, ad, serializeCiphertext(cR));
         FinResult finResult = UB_KEM.fin(u, finInput);
         TreeEK newEk = finResult.ek;
-        byte[] k = finResult.k;
 
-        Kid kid = new Kid(k, memR); // Using k as id
+        byte[] kdf_k = "kdf_k".getBytes();
+        byte[] kdf_id = "kdf_id".getBytes();
+        byte[] kdf_tr = "kdf_tr".getBytes();
+
+        // byte[] k = finResult.k;
+
+        byte[] k = deriveKey(finResult.k, kdf_k);
+        byte[] id = deriveKey(finResult.k, kdf_id);
+        tr = deriveKey(finResult.k, kdf_tr);
+
+        Kid kid = new Kid(id, memR); // Using k as id
 
         // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, tr);
         // senderState newState = new senderState(memR, newEk, sskPrime, svkPrime, k);
@@ -179,7 +193,7 @@ public class d_SSMR {
         st.ek = newEk;
         st.ssk = sskPrime;
         st.svk = svkPrime;
-        st.tr = k;
+        st.tr = tr;
 
         return new EncapsResult(st, cR, k, kid);
     }
@@ -249,10 +263,18 @@ public class d_SSMR {
         byte[] fullMessage = concatAll(tr, ad, serializeCiphertext(c));
         UB_KEM.DecResult decResult = UB_KEM.dec(dk, fullMessage, cPrime);
         TreeDk newDk = decResult.dk;
-        byte[] k = decResult.k;
 
-        Kid kid = new Kid(k, memR); // Using k as id, ask paul
-        tr = k;
+        // byte[] k = decResult.k;
+
+        byte[] kdf_k = "kdf_k".getBytes();
+        byte[] kdf_id = "kdf_id".getBytes();
+        byte[] kdf_tr = "kdf_tr".getBytes();
+
+        byte[] k = deriveKey(decResult.k, kdf_k);
+        byte[] id = deriveKey(decResult.k, kdf_id);
+        tr = deriveKey(decResult.k, kdf_tr);
+
+        Kid kid = new Kid(id, memR);
 
         // ReceiverState newState = new ReceiverState(memR, newDk, svkPrime, tr);
         st.memR = memR;
@@ -471,5 +493,16 @@ public class d_SSMR {
         };
     }
 
+    private static byte[] deriveKey(byte[] masterKey, byte[] info)
+    {
+        byte[] salt = new byte[] {0x01, 0x02, 0x03, 0x04};
+        HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA512Digest());
+        HKDFParameters params = new HKDFParameters(masterKey, salt, info);
+        hkdf.init(params);
+
+        byte[] derivedKey = new byte[64]; // 64 bytes = 512-bit key
+        hkdf.generateBytes(derivedKey, 0, derivedKey.length);
+        return derivedKey;
+    }
 
 }
