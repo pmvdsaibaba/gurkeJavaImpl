@@ -158,6 +158,8 @@ public class d_SSMR {
         byte[] tr = st.tr;
 
 
+        // May be bug. Discuss with Paul.
+        // BKEncResult encResult = UB_KEM.enc(ekPrime);
         BKEncResult encResult = UB_KEM.enc(ek);
         EncOutput u = encResult.u;
         byte[] cPrime = encResult.c;
@@ -339,7 +341,7 @@ public class d_SSMR {
 
         /////// in paper this is not done here. But Clarified with Paul
         st.memR = memR;
-        st.ek = newEk;
+        st.ek = ek;
         st.ssk = ssk;
         st.svk = svk;
         st.tr = tr;
@@ -388,7 +390,7 @@ public class d_SSMR {
 
         /////// in paper this is not done here. But Clarified with Paul
         st.memR = memR;
-        st.ek = newEk;
+        st.ek = ek;
         st.ssk = ssk;
         st.svk = svk;
         st.tr = tr;

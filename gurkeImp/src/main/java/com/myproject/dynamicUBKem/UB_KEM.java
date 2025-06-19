@@ -11,7 +11,9 @@ import com.myproject.Tree.TreeAddEkReturn;
 import com.myproject.Tree.TreeGetNodesReturn;
 
 import java.security.SecureRandom;
+import org.bouncycastle.crypto.prng.FixedSecureRandom;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -259,7 +261,15 @@ public class UB_KEM {
     public static BKAddResult add(TreeEK ek) throws Exception {
 
         TreeAddEkReturn addReturn = Tree.T_add_Ek(ek);
-        Map<Integer, byte[]> pkMap = addReturn.getDataPk();
+        // Map<Integer, byte[]> pkMap = addReturn.getDataPk();
+
+        Map<Integer, byte[]> originalMap = addReturn.getDataPk();
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+
+        for (Map.Entry<Integer, byte[]> entry : originalMap.entrySet()) {
+            pkMap.put(entry.getKey(), Arrays.copyOf(entry.getValue(), entry.getValue().length));
+        }
+
         List<Integer> path = addReturn.getPathList(); 
         List<Integer> coPath = addReturn.getCoPathList(); 
         int n = addReturn.getLeafsCount();
@@ -282,9 +292,15 @@ public class UB_KEM {
         skNewMap.put(path.get(0), sk);
         pkMap.put(path.get(0), pk);
 
-        SecureRandom secureRandom = new SecureRandom();
+        byte[] seed = new byte[32]; // 256-bit seed
+        Arrays.fill(seed, (byte) 0xAC); // Fill with 0xEF
+
+        FixedSecureRandom secureRandom = new FixedSecureRandom(seed); 
+        // SecureRandom secureRandom = new SecureRandom();
         byte[] sPrime = new byte[32];
         secureRandom.nextBytes(sPrime);
+
+
 
         for (int l = 0; l < (path.size() - 1);  l++) {
             Nike.KeyPair kp = Nike.gen(sPrime);
@@ -348,7 +364,15 @@ public class UB_KEM {
     {
         TreeAddEkReturn remReturn = Tree.T_rem_Ek(ek, i);
 
-        Map<Integer, byte[]> pkMap = remReturn.getDataPk();
+        // Map<Integer, byte[]> pkMap = remReturn.getDataPk();
+
+        Map<Integer, byte[]> originalMap = remReturn.getDataPk();
+        Map<Integer, byte[]> pkMap = new HashMap<>();
+
+        for (Map.Entry<Integer, byte[]> entry : originalMap.entrySet()) {
+            pkMap.put(entry.getKey(), Arrays.copyOf(entry.getValue(), entry.getValue().length));
+        }
+
         List<Integer> path = remReturn.getPathList();
         List<Integer> coPath = remReturn.getCoPathList();     // (cpl)
         Tree tempTree = remReturn.getTree();
