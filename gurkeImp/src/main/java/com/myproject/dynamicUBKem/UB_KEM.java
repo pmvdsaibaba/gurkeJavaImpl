@@ -33,6 +33,9 @@ public class UB_KEM {
         }
     }
 
+
+
+
     public static BKGenResult gen(int n) throws Exception {
 
         Tree tree = Tree.init(n);
@@ -595,6 +598,7 @@ public class UB_KEM {
 
             List<Integer> path_Pk;
             List<Integer> path_Sk;
+            List<Integer> co_path_Sk;
             int position;
             int position_InSk;
 
@@ -611,6 +615,7 @@ public class UB_KEM {
                 List<Integer> set3 = new ArrayList<>(skMap.keySet());
                 int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
                 path_Sk = tree.T_path(leafNodeIndex_sk);
+                co_path_Sk = tree.T_co_path(leafNodeIndex_sk);
                 position_InSk = path_Sk.indexOf(lStar);
 
 
@@ -623,6 +628,8 @@ public class UB_KEM {
                 {
                     pkR = rem.pkPrimeMap.get(path_Pk.get(position - 1));
                     skL = skMap.get(path_Sk.get(position_InSk - 1));
+                    // pkR = rem.pkPrimeMap.get(path_Pk.get(position + 1));
+                    // skL = skMap.get(path_Sk.get(position_InSk + 1));
                 }
             }
             else
@@ -637,10 +644,13 @@ public class UB_KEM {
                 List<Integer> set3 = new ArrayList<>(skMap.keySet());
                 int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
                 path_Sk = tree.T_path(leafNodeIndex_sk);
+                co_path_Sk = tree.T_co_path(leafNodeIndex_sk);
                 position_InSk = path_Sk.indexOf(lStar);
 
                 pkR = add.pk_lMap.get(path_Pk.get(position - 1));
                 skL = skMap.get(path_Sk.get(position_InSk - 1));
+                // pkR = add.pk_lMap.get(path_Pk.get(position + 1));
+                // skL = skMap.get(path_Sk.get(position_InSk + 1));
             }
 
             byte[] k = Nike.key(skL, pkR);
@@ -648,20 +658,21 @@ public class UB_KEM {
             byte[] s = ro.getS();
             byte[] sPrime = ro.getK();
 
-            skMap.put(path_Sk.get(lStar), Nike.gen(s).getDk());
+            skMap.put(path_Sk.get(position_InSk), Nike.gen(s).getDk());
 
 
             for (int jj = position_InSk; jj < ((path_Sk.size())-1) ; jj++)
             {
                 Nike.KeyPair kp = Nike.gen(sPrime);
                 byte[] sk_l = kp.getDk();
-                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(path_Sk.get(jj)) : ((c_BKAdd) c).pkstarMap.get(path_Sk.get(jj));
+                pkR = (t == 'R') ? ((c_BKRemove) c).pkStarMap.get(co_path_Sk.get(jj)) : ((c_BKAdd) c).pkstarMap.get(co_path_Sk.get(jj));
                 k = Nike.key(sk_l, pkR);
                 ro = RandomOracle.H(k, kp.getEk());
                 s = ro.getS();
                 sPrime = ro.getK();
 
-                skMap.put(path_Sk.get(jj - 1), Nike.gen(s).getDk());
+                // skMap.put(path_Sk.get(jj - 1), Nike.gen(s).getDk());
+                skMap.put(path_Sk.get(jj + 1), Nike.gen(s).getDk());
             }
 
             newDk = tree.setPath(i, skMap);

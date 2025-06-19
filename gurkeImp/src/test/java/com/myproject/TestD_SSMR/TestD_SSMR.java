@@ -24,227 +24,244 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestD_SSMR {
 
-    // @Test
-    // public void testProcInit() throws Exception {
-    //     int nR = 5;
+    @Test
+    public void testProcInit() throws Exception {
+        int nR = 5;
+System.out.println(" ");
+System.out.println(" ");
+System.out.println("**********************************************");
+System.out.println("* D_SSMR Init Test ");
+System.out.println("**********************************************");
 
-    //     // Step 1: Initialize
-    //     InitResult initResult = d_SSMR.procInit(nR);
+
+        // Step 1: Initialize
+        InitResult initResult = d_SSMR.procInit(nR);
         
-    //     assertNotNull(initResult.senderState);
-    //     assertNotNull(initResult.receiverStates);
-    //     assertEquals(nR, initResult.receiverStates.size());
+        assertNotNull(initResult.senderState);
+        assertNotNull(initResult.receiverStates);
+        assertEquals(nR, initResult.receiverStates.size());
         
-    //     // Verify sender state
-    //     senderState senderState = initResult.senderState;
-    //     assertEquals(nR, senderState.memR.size());
-    //     assertNotNull(senderState.ek);
-    //     assertNotNull(senderState.ssk);
-    //     assertNotNull(senderState.svk);
-    //     assertEquals(0, senderState.tr.length); // Should be empty initially
+        // Verify sender state
+        senderState senderState = initResult.senderState;
+        assertEquals(nR, senderState.memR.size());
+        assertNotNull(senderState.ek);
+        assertNotNull(senderState.ssk);
+        assertNotNull(senderState.svk);
+        assertEquals(0, senderState.tr.length); // Should be empty initially
         
-    //     // Verify receiver states
-    //     for (int i = 0; i < nR; i++)
-    //     {
-    //         ReceiverState receiverState = initResult.receiverStates.get(i);
-    //         assertEquals(nR, receiverState.memR.size());
-    //         assertNotNull(receiverState.dk);
-    //         assertNotNull(receiverState.svk);
-    //         assertEquals(0, receiverState.tr.length); // Should be empty initially
+        // Verify receiver states
+        for (int i = 0; i < nR; i++)
+        {
+            ReceiverState receiverState = initResult.receiverStates.get(i);
+            assertEquals(nR, receiverState.memR.size());
+            assertNotNull(receiverState.dk);
+            assertNotNull(receiverState.svk);
+            assertEquals(0, receiverState.tr.length); // Should be empty initially
             
-    //         // All receivers should have the same svk as sender initially
-    //         assertArrayEquals(senderState.svk, receiverState.svk);
-    //     }
+            // All receivers should have the same svk as sender initially
+            assertArrayEquals(senderState.svk, receiverState.svk);
+        }
 
-    //     System.out.println("procInit test passed successfully");
-    // }
+        System.out.println("procInit test passed successfully");
 
-    // @Test
-    // public void testProcSndAndRcv() throws Exception {
-    //     int nR = 10;
+    }
 
-    //     // Step 1: Initialize
-    //     InitResult initResult = d_SSMR.procInit(nR);
-    //     senderState senderState = initResult.senderState;
-    //     ReceiverState receiverState = initResult.receiverStates.get(0);
+    @Test
+    public void testProcSndAndRcv() throws Exception {
+        int nR = 10;
 
-    //     // Step 2: Generate Associated Data (AD)
-    //     byte[] ad = new byte[16];
-    //     new Random().nextBytes(ad);
+System.out.println(" ");
+System.out.println(" ");
+System.out.println("**********************************************");
+System.out.println("* D_SSMR Snd Rcv Test ");
+System.out.println("**********************************************");
+        // Step 1: Initialize
+        InitResult initResult = d_SSMR.procInit(nR);
+        senderState senderState = initResult.senderState;
+        ReceiverState receiverState = initResult.receiverStates.get(0);
 
-    //     // Step 3: Execute procSnd
-    //     SendResult sndResult = d_SSMR.procSnd(senderState, ad);
-    //     assertNotNull(sndResult.ciphertext);
-    //     assertNotNull(sndResult.key);
-    //     assertNotNull(sndResult.kid);
-    //     assertNotNull(sndResult.updatedState);
+        // Step 2: Generate Associated Data (AD)
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
 
-    //     System.out.println("Serializing object of type: " + sndResult.ciphertext.getClass().getName());
-    //     // Step 4: Execute procRcv with the resulting ciphertext
-    //     Object rcvOutput = d_SSMR.procRcv(receiverState, ad, sndResult.ciphertext);
+        // Step 3: Execute procSnd
+        SendResult sndResult = d_SSMR.procSnd(senderState, ad);
+        assertNotNull(sndResult.ciphertext);
+        assertNotNull(sndResult.key);
+        assertNotNull(sndResult.kid);
+        assertNotNull(sndResult.updatedState);
+
+        System.out.println("Serializing object of type: " + sndResult.ciphertext.getClass().getName());
+        // Step 4: Execute procRcv with the resulting ciphertext
+        Object rcvOutput = d_SSMR.procRcv(receiverState, ad, sndResult.ciphertext);
         
-    //     // Verify it's a successful receive (not a failure)
-    //     assertFalse(rcvOutput instanceof ReceiveFailure, "Receive should not fail");
-    //     assertTrue(rcvOutput instanceof ReceiveResult, "Should be a successful receive");
+        // Verify it's a successful receive (not a failure)
+        assertFalse(rcvOutput instanceof ReceiveFailure, "Receive should not fail");
+        assertTrue(rcvOutput instanceof ReceiveResult, "Should be a successful receive");
         
-    //     ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
 
-    //     // Step 5: Validate output
-    //     assertNotNull(rcvResult.key);
-    //     assertArrayEquals(sndResult.key, rcvResult.key, "Shared keys should match");
-    //     assertArrayEquals(sndResult.kid.id, rcvResult.kid.id, "Kid IDs should match");
-    //     assertEquals(sndResult.kid.memR.size(), rcvResult.kid.memR.size(), "memR sizes should match");
+        // Step 5: Validate output
+        assertNotNull(rcvResult.key);
+        assertArrayEquals(sndResult.key, rcvResult.key, "Shared keys should match");
+        assertArrayEquals(sndResult.kid.id, rcvResult.kid.id, "Kid IDs should match");
+        assertEquals(sndResult.kid.memR.size(), rcvResult.kid.memR.size(), "memR sizes should match");
 
-    //     System.out.println("procSnd and procRcv test passed. Shared key (k):");
-    //     printByteArray(rcvResult.key);
+        System.out.println("procSnd and procRcv test passed. Shared key (k):");
+        printByteArray(rcvResult.key);
 
-    //     // Test multiple send/receive cycles with updated states
-    //     senderState = sndResult.updatedState;
-    //     receiverState = rcvResult.updatedState;
-
-
-    //     ////////////////////////////////////////////
-    //     ////// Test with other receivers as well
-
-    //     ReceiverState receiverState2 = initResult.receiverStates.get(2);
-    //     ReceiverState receiverState3 = initResult.receiverStates.get(3);
-    //     ReceiverState receiverState4 = initResult.receiverStates.get(4);
+        // Test multiple send/receive cycles with updated states
+        senderState = sndResult.updatedState;
+        receiverState = rcvResult.updatedState;
 
 
-    //     Object rcv2Output = d_SSMR.procRcv(receiverState2, ad, sndResult.ciphertext);
-    //     Object rcv3Output = d_SSMR.procRcv(receiverState3, ad, sndResult.ciphertext);
-    //     Object rcv4Output = d_SSMR.procRcv(receiverState4, ad, sndResult.ciphertext);
+        ////////////////////////////////////////////
+        ////// Test with other receivers as well
+
+        ReceiverState receiverState2 = initResult.receiverStates.get(2);
+        ReceiverState receiverState3 = initResult.receiverStates.get(3);
+        ReceiverState receiverState4 = initResult.receiverStates.get(4);
+
+
+        Object rcv2Output = d_SSMR.procRcv(receiverState2, ad, sndResult.ciphertext);
+        Object rcv3Output = d_SSMR.procRcv(receiverState3, ad, sndResult.ciphertext);
+        Object rcv4Output = d_SSMR.procRcv(receiverState4, ad, sndResult.ciphertext);
         
-    //     assertTrue(rcv2Output instanceof ReceiveResult, "receiver 2 should also succeed");
-    //     assertTrue(rcv3Output instanceof ReceiveResult, "receiver 3 should also succeed");
-    //     assertTrue(rcv4Output instanceof ReceiveResult, "receiver 4 should also succeed");
-    //     ReceiveResult rcv2Result = (ReceiveResult) rcv2Output;
-    //     ReceiveResult rcv3Result = (ReceiveResult) rcv3Output;
-    //     ReceiveResult rcv4Result = (ReceiveResult) rcv4Output;
+        assertTrue(rcv2Output instanceof ReceiveResult, "receiver 2 should also succeed");
+        assertTrue(rcv3Output instanceof ReceiveResult, "receiver 3 should also succeed");
+        assertTrue(rcv4Output instanceof ReceiveResult, "receiver 4 should also succeed");
+        ReceiveResult rcv2Result = (ReceiveResult) rcv2Output;
+        ReceiveResult rcv3Result = (ReceiveResult) rcv3Output;
+        ReceiveResult rcv4Result = (ReceiveResult) rcv4Output;
         
-    //     assertArrayEquals(sndResult.key, rcv2Result.key, "receiver 2 should match");
-    //     assertArrayEquals(sndResult.key, rcv3Result.key, "receiver 3 should match");
-    //     assertArrayEquals(sndResult.key, rcv4Result.key, "receiver 4 should match");
+        assertArrayEquals(sndResult.key, rcv2Result.key, "receiver 2 should match");
+        assertArrayEquals(sndResult.key, rcv3Result.key, "receiver 3 should match");
+        assertArrayEquals(sndResult.key, rcv4Result.key, "receiver 4 should match");
         
-    //     System.out.println("receiver key 2 (k):");
-    //     printByteArray(rcv2Result.key);
-    //     System.out.println("receiver key 3 (k):");
-    //     printByteArray(rcv3Result.key);
-    //     System.out.println("receiver key 4 (k):");
-    //     printByteArray(rcv4Result.key);
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcv2Result.key);
+        System.out.println("receiver key 3 (k):");
+        printByteArray(rcv3Result.key);
+        System.out.println("receiver key 4 (k):");
+        printByteArray(rcv4Result.key);
 
 
-    //     ////////////////////////////////////////////
-    //     // Second send
+        ////////////////////////////////////////////
+        // Second send
         
-    //     // second time send
-    //     SendResult sndResult2 = d_SSMR.procSnd(senderState, ad);
+        // second time send
+        SendResult sndResult2 = d_SSMR.procSnd(senderState, ad);
 
-    //     Object rcvOutput2 = d_SSMR.procRcv(receiverState, ad, sndResult2.ciphertext);
+        Object rcvOutput2 = d_SSMR.procRcv(receiverState, ad, sndResult2.ciphertext);
 
-    //     assertTrue(rcvOutput2 instanceof ReceiveResult, "Second receive should also succeed");
-    //     ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
+        assertTrue(rcvOutput2 instanceof ReceiveResult, "Second receive should also succeed");
+        ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
 
-    //     assertArrayEquals(sndResult2.key, rcvResult2.key, "Second round keys should match");
+        assertArrayEquals(sndResult2.key, rcvResult2.key, "Second round keys should match");
 
-    //     System.out.println("Second round test passed. Shared key (k):");
-    //     printByteArray(rcvResult2.key);
+        System.out.println("Second round test passed. Shared key (k):");
+        printByteArray(rcvResult2.key);
 
 
-    //     ////////////////////////////////////////////
-    //     // Test with other receivers as well
+        ////////////////////////////////////////////
+        // Test with other receivers as well
 
-    //     receiverState2 = rcv2Result.updatedState;
-    //     receiverState3 = rcv3Result.updatedState;
-    //     receiverState4 = rcv4Result.updatedState;
+        receiverState2 = rcv2Result.updatedState;
+        receiverState3 = rcv3Result.updatedState;
+        receiverState4 = rcv4Result.updatedState;
 
-    //     Object rcv2Output2 = d_SSMR.procRcv(receiverState2, ad, sndResult2.ciphertext);
-    //     Object rcv3Output2 = d_SSMR.procRcv(receiverState3, ad, sndResult2.ciphertext);
-    //     Object rcv4Output2 = d_SSMR.procRcv(receiverState4, ad, sndResult2.ciphertext);
+        Object rcv2Output2 = d_SSMR.procRcv(receiverState2, ad, sndResult2.ciphertext);
+        Object rcv3Output2 = d_SSMR.procRcv(receiverState3, ad, sndResult2.ciphertext);
+        Object rcv4Output2 = d_SSMR.procRcv(receiverState4, ad, sndResult2.ciphertext);
 
-    //     assertTrue(rcv2Output2 instanceof ReceiveResult, "receiver 2 should also succeed");
-    //     assertTrue(rcv3Output2 instanceof ReceiveResult, "receiver 3 should also succeed");
-    //     assertTrue(rcv4Output2 instanceof ReceiveResult, "receiver 4 should also succeed");
-    //     ReceiveResult rcv2Result2 = (ReceiveResult) rcv2Output2;
-    //     ReceiveResult rcv3Result2 = (ReceiveResult) rcv3Output2;
-    //     ReceiveResult rcv4Result2 = (ReceiveResult) rcv4Output2;
+        assertTrue(rcv2Output2 instanceof ReceiveResult, "receiver 2 should also succeed");
+        assertTrue(rcv3Output2 instanceof ReceiveResult, "receiver 3 should also succeed");
+        assertTrue(rcv4Output2 instanceof ReceiveResult, "receiver 4 should also succeed");
+        ReceiveResult rcv2Result2 = (ReceiveResult) rcv2Output2;
+        ReceiveResult rcv3Result2 = (ReceiveResult) rcv3Output2;
+        ReceiveResult rcv4Result2 = (ReceiveResult) rcv4Output2;
 
-    //     assertArrayEquals(sndResult2.key, rcv2Result2.key, "receiver 2 should match");
-    //     assertArrayEquals(sndResult2.key, rcv3Result2.key, "receiver 3 should match");
-    //     assertArrayEquals(sndResult2.key, rcv4Result2.key, "receiver 4 should match");
+        assertArrayEquals(sndResult2.key, rcv2Result2.key, "receiver 2 should match");
+        assertArrayEquals(sndResult2.key, rcv3Result2.key, "receiver 3 should match");
+        assertArrayEquals(sndResult2.key, rcv4Result2.key, "receiver 4 should match");
         
-    //     System.out.println("receiver key 2 (k):");
-    //     printByteArray(rcv2Result2.key);
-    //     System.out.println("receiver key 3 (k):");
-    //     printByteArray(rcv3Result2.key);
-    //     System.out.println("receiver key 4 (k):");
-    //     printByteArray(rcv4Result2.key);
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcv2Result2.key);
+        System.out.println("receiver key 3 (k):");
+        printByteArray(rcv3Result2.key);
+        System.out.println("receiver key 4 (k):");
+        printByteArray(rcv4Result2.key);
 
 
-    //     System.out.println("snd second time and all receiver has same key: test passed successfully");
+        System.out.println("snd second time and all receiver has same key: test passed successfully");
 
-    // }
+    }
 
-    // @Test
-    // public void testProcAdd() throws Exception {
-    //     int nR = 10;
-    //     int newUid = 13;
+    @Test
+    public void testProcAdd() throws Exception {
+        int nR = 10;
+        int newUid = 13;
 
-    //     // Step 1: Initialize
-    //     InitResult initResult = d_SSMR.procInit(nR);
-    //     senderState senderState = initResult.senderState;
+System.out.println(" ");
+System.out.println(" ");
+System.out.println("**********************************************");
+System.out.println("* D_SSMR Add Test ");
+System.out.println("**********************************************");
 
-    //     byte[] ad = new byte[16];
-    //     new Random().nextBytes(ad);
+        // Step 1: Initialize
+        InitResult initResult = d_SSMR.procInit(nR);
+        senderState senderState = initResult.senderState;
 
-    //     // Step 2: Add a new receiver
-    //     AddResult addResult = d_SSMR.procAdd(senderState, ad, newUid);
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
+
+        // Step 2: Add a new receiver
+        AddResult addResult = d_SSMR.procAdd(senderState, ad, newUid);
         
-    //     assertNotNull(addResult.updatedsenderState);
-    //     assertNotNull(addResult.newReceiverState);
-    //     assertNotNull(addResult.ciphertext);
-    //     assertNotNull(addResult.key);
-    //     assertNotNull(addResult.kid);
+        assertNotNull(addResult.updatedsenderState);
+        assertNotNull(addResult.newReceiverState);
+        assertNotNull(addResult.ciphertext);
+        assertNotNull(addResult.key);
+        assertNotNull(addResult.kid);
 
-    //     // Verify the sender state was updated with new member
-    //     assertTrue(addResult.updatedsenderState.memR.contains(newUid), 
-    //               "New UID should be in sender's memR");
-    //     assertEquals(nR + 1, addResult.updatedsenderState.memR.size(), 
-    //                 "memR should have one more member");
+        // Verify the sender state was updated with new member
+        assertTrue(addResult.updatedsenderState.memR.contains(newUid), 
+                  "New UID should be in sender's memR");
+        assertEquals(nR + 1, addResult.updatedsenderState.memR.size(), 
+                    "memR should have one more member");
 
-    //     // Verify the new receiver state
-    //     assertTrue(addResult.newReceiverState.memR.contains(newUid), 
-    //               "New UID should be in new receiver's memR");
-    //     assertEquals(nR + 1, addResult.newReceiverState.memR.size(), 
-    //                 "New receiver's memR should have correct size");
+        // Verify the new receiver state
+        assertTrue(addResult.newReceiverState.memR.contains(newUid), 
+                  "New UID should be in new receiver's memR");
+        assertEquals(nR + 1, addResult.newReceiverState.memR.size(), 
+                    "New receiver's memR should have correct size");
 
-    //     System.out.println("procAdd test passed. Add operation key:");
-    //     printByteArray(addResult.key);
+        System.out.println("procAdd test passed. Add operation key:");
+        printByteArray(addResult.key);
 
 
 
-    //     // Test that existing receivers can still receive after add operation
-    //     ReceiverState existingReceiver = initResult.receiverStates.get(8);
-    //     ReceiverState newAddedReceiverSt = addResult.newReceiverState;
+        // Test that existing receivers can still receive after add operation
+        ReceiverState existingReceiver = initResult.receiverStates.get(0);
+        ReceiverState newAddedReceiverSt = addResult.newReceiverState;
 
-    //     // printTreeState(existingReceiver.dk.getTree());
-    //     // printTreeState(newAddedReceiverSt.dk.getTree());
+        // printTreeState(existingReceiver.dk.getTree());
+        // printTreeState(newAddedReceiverSt.dk.getTree());
 
-    //     System.out.println("Existing receiver's memR: " + existingReceiver.memR);
+        System.out.println("Existing receiver's memR: " + existingReceiver.memR);
 
-    //     Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult.ciphertext);
+        Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult.ciphertext);
         
-    //     assertTrue(rcvOutput instanceof ReceiveResult, "Existing receiver should be able to process add ciphertext");
-    //     ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
-    //     assertArrayEquals(addResult.key, rcvResult.key, "Keys should match for existing receiver");
+        assertTrue(rcvOutput instanceof ReceiveResult, "Existing receiver should be able to process add ciphertext");
+        ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        assertArrayEquals(addResult.key, rcvResult.key, "Keys should match for existing receiver");
 
 
 
 
-    //     /////////////////////////////////////////////
-
-    //     AddResult addResult2 = d_SSMR.procAdd(addResult.updatedsenderState, ad, 15);
-    // }
+        /////////////////////////////////////////////
+        AddResult addResult2 = d_SSMR.procAdd(addResult.updatedsenderState, ad, 15);
+    }
 
 
 

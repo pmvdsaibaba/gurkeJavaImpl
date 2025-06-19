@@ -33,6 +33,7 @@ public class Tree {
     private int TAddnode1Index;
     private int TAddnode2Index;
     private int TAddnode2Index_leaf;
+    private int TAddnode1Index_leaf;
 
     // variables used in T.Rem dk
     private int TRemnode1Index;
@@ -155,6 +156,49 @@ public class Tree {
         public void setIsValidNode(boolean isValidNode) { this.isValidNode = isValidNode;  }
     }
 
+
+    public Tree deepCopy() {
+        Tree copy = new Tree();
+        copy.numLeaves = this.numLeaves;
+        copy.treeSize = this.treeSize;
+        copy.nodeIndexMax = this.nodeIndexMax;
+        copy.leafIndexMax = this.leafIndexMax;
+        copy.TAddnode1Index = this.TAddnode1Index;
+        copy.TAddnode2Index = this.TAddnode2Index;
+        copy.TAddnode2Index_leaf = this.TAddnode2Index_leaf;
+        copy.TAddnode1Index_leaf = this.TAddnode1Index_leaf;
+        copy.TRemnode1Index = this.TRemnode1Index;
+        copy.TRemnode2Index = this.TRemnode2Index;
+
+        // Deep copy nodeIndexes and leafIndexes
+        copy.nodeIndexes = new ArrayList<>(this.nodeIndexes);
+        copy.leafIndexes = new ArrayList<>(this.leafIndexes);
+
+        // Deep copy internalNode list
+        copy.internalNode = new ArrayList<>();
+        for (Node node : this.internalNode) {
+            copy.internalNode.add(deepCopyNode(node));
+        }
+
+        return copy;
+    }
+
+    private static Node deepCopyNode(Node node) {
+        return new Node.Builder()
+            .setNodeIndex(node.getNodeIndex())
+            .setRootnode(node.getRootnode())
+            .setChildLeftnode(node.getChildLeftnode())
+            .setChildRightnode(node.getChildRightnode())
+            .setNodeLevel(node.getNodeLevel())
+            .setLeafIndex(node.getLeafIndex())
+            .setPk(node.getPk() != null ? Arrays.copyOf(node.getPk(), node.getPk().length) : null)
+            .setSk(node.getSk() != null ? Arrays.copyOf(node.getSk(), node.getSk().length) : null)
+            .setIsLeaf(node.isLeaf())
+            .setIsValidNode(node.isValidNode())
+            .build();
+    }
+
+
     public void addNode(Node node) {
         internalNode.add(node);
     }
@@ -245,40 +289,34 @@ public class Tree {
     }
 
     /* T.setnodes(τ, (pkj)j∈[N]) → ek */
-    public TreeEK setNodes(Map<Integer, byte[]> pkMap) {
+    public TreeEK setNodes(Map<Integer, byte[]> pkMap)
+    {
+        Tree treeCopy = this.deepCopy();
 
-        for (Node node : getNodesInternal()) {
+        for (Node node : treeCopy.getNodesInternal()) {
             int nodeIndex = node.getNodeIndex();
             byte[] pk = pkMap.get(nodeIndex);
-
             if (pk != null) {
-                node.setPk(pk);  // set the public key for the node
-            } else {
-                System.out.println("Warning: No PK found for node index " + nodeIndex);
+                node.setPk(pk);
             }
         }
-
-        return new TreeEK(this, pkMap);
+        return new TreeEK(treeCopy, pkMap);
     }
 
     /* T.setpath(τ, i, (skpl )l∈[Li]) → dki */
-    public TreeDk setPath(int leaf, Map<Integer, byte[]> skMap) {
-        List<Integer> leafPath = T_path(leaf);
+    public TreeDk setPath(int leaf, Map<Integer, byte[]> skMap)
+    {
+        Tree treeCopy = this.deepCopy();
 
-        for (Node node : getNodesInternal()) 
-        {
-            int nodeIndex = node.getNodeIndex();
+        List<Integer> leafPath = treeCopy.T_path(leaf);
 
-            for (int j = 0; j < leafPath.size(); j++)
-            {
-                if(nodeIndex == leafPath.get(j) )
-                {
-                    node.setSk(skMap.get(nodeIndex));
-                }
+        for (Node node : treeCopy.getNodesInternal()) {
+            if (leafPath.contains(node.getNodeIndex())) {
+                node.setSk(skMap.get(node.getNodeIndex()));
             }
         }
 
-        return new TreeDk(this, skMap, leaf);
+        return new TreeDk(treeCopy, skMap, leaf);
     }
 
     private static void treeAddInternal(Tree tree){ 
@@ -394,6 +432,7 @@ public class Tree {
         tree.TAddnode1Index = node1.getNodeIndex();
         tree.TAddnode2Index = node2.getNodeIndex();
         tree.TAddnode2Index_leaf = node2.getLeafIndex();
+        tree.TAddnode1Index_leaf = node1.getLeafIndex();
 
 
         tree.nodeIndexes.add(tree.TAddnode1Index);
@@ -420,18 +459,28 @@ public class Tree {
     public static TreeAddDkReturn T_add_dk(TreeDk dk)
     {
 
-        List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
-
-
         treeAddInternal(dk.getTree());
+
+        List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
 
         /////////////////////////////////////////////////////////////////
         // To find the intersection
 
+
+        // List<Integer> set2 = dk.getTree().T_path(dk.getTree().TAddnode1Index_leaf);
+
+        //////////////////////////////////////////////////////////////////
+        // Finding the leaf in input node.
+        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
+
+
+        List<Integer> set3 = dk.getTree().T_path(leafNodeIndex);
+
+
         // check if TAddnode2Index is leaf node or added node
         List<Integer> set1 = dk.getTree().T_path(dk.getTree().TAddnode2Index_leaf);
 
-        int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);
+        int IntersectionNode = findFirstCommonNodeInOrder(set1, set3);
 
         if (IntersectionNode != -1) {
             // do nothing
@@ -447,10 +496,7 @@ public class Tree {
         // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
 
 
-        //////////////////////////////////////////////////////////////////
-        // Finding the leaf in input node.
 
-        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
 
         return new TreeAddDkReturn(
             dk.getDataSk(),
