@@ -341,7 +341,8 @@ public class d_SSMR {
 
         /////// in paper this is not done here. But Clarified with Paul
         st.memR = memR;
-        st.ek = ek;
+        // st.ek = ek;
+        st.ek = newEk;
         st.ssk = ssk;
         st.svk = svk;
         st.tr = tr;
@@ -390,7 +391,8 @@ public class d_SSMR {
 
         /////// in paper this is not done here. But Clarified with Paul
         st.memR = memR;
-        st.ek = ek;
+        st.ek = newEk;
+        // st.ek = ek;
         st.ssk = ssk;
         st.svk = svk;
         st.tr = tr;

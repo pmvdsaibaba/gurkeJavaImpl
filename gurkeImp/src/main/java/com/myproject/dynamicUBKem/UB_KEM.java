@@ -298,8 +298,8 @@ public class UB_KEM {
         byte[] seed = new byte[32]; // 256-bit seed
         Arrays.fill(seed, (byte) 0xAC); // Fill with 0xEF
 
-        FixedSecureRandom secureRandom = new FixedSecureRandom(seed); 
-        // SecureRandom secureRandom = new SecureRandom();
+        // FixedSecureRandom secureRandom = new FixedSecureRandom(seed); 
+        SecureRandom secureRandom = new SecureRandom();
         byte[] sPrime = new byte[32];
         secureRandom.nextBytes(sPrime);
 

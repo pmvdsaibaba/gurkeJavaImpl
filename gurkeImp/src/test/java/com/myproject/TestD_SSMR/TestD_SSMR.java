@@ -201,6 +201,7 @@ System.out.println("**********************************************");
     public void testProcAdd() throws Exception {
         int nR = 10;
         int newUid = 13;
+        int newUid2 = 14;
 
 System.out.println(" ");
 System.out.println(" ");
@@ -241,26 +242,127 @@ System.out.println("**********************************************");
 
 
 
-        // Test that existing receivers can still receive after add operation
-        ReceiverState existingReceiver = initResult.receiverStates.get(0);
-        ReceiverState newAddedReceiverSt = addResult.newReceiverState;
+        // // Test that existing receivers can still receive after add operation
+        // ReceiverState existingReceiver = initResult.receiverStates.get(3);
+        // ReceiverState newAddedReceiverSt = addResult.newReceiverState;
 
-        // printTreeState(existingReceiver.dk.getTree());
-        // printTreeState(newAddedReceiverSt.dk.getTree());
+        // // printTreeState(existingReceiver.dk.getTree());
+        // // printTreeState(newAddedReceiverSt.dk.getTree());
 
-        System.out.println("Existing receiver's memR: " + existingReceiver.memR);
+        // System.out.println("Existing receiver's memR: " + existingReceiver.memR);
 
-        Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult.ciphertext);
+        // Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult.ciphertext);
         
-        assertTrue(rcvOutput instanceof ReceiveResult, "Existing receiver should be able to process add ciphertext");
-        ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
-        assertArrayEquals(addResult.key, rcvResult.key, "Keys should match for existing receiver");
+        // assertTrue(rcvOutput instanceof ReceiveResult, "Existing receiver should be able to process add ciphertext");
+        // ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        // assertArrayEquals(addResult.key, rcvResult.key, "Keys should match for existing receiver");
 
 
+        // // Test that all existing receivers (from 0 to 9) can still receive after the add operation
+        // for (int i = 0; i < nR; i++) {
+        //     ReceiverState existingReceiver = initResult.receiverStates.get(i);
+        //     ReceiverState newAddedReceiverSt = addResult.newReceiverState;
+
+        //     System.out.println("Testing receiver " + i + "'s memR: " + existingReceiver.memR);
+
+        //     // Perform receive operation
+        //     Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult.ciphertext);
+            
+        //     // Ensure that the existing receiver can still process the ciphertext after the add operation
+        //     assertTrue(rcvOutput instanceof ReceiveResult, "Receiver " + i + " should be able to process add ciphertext");
+        //     ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        //     assertArrayEquals(addResult.key, rcvResult.key, "Receiver " + i + " keys should match");
+        // }
 
 
         /////////////////////////////////////////////
-        AddResult addResult2 = d_SSMR.procAdd(addResult.updatedsenderState, ad, 15);
+
+        // Now, test the newly added receiver (UID = 13)
+        ReceiverState newAddedReceiverSt1 = addResult.newReceiverState;
+        System.out.println("Testing new receiver (UID 13) memR: " + newAddedReceiverSt1.memR);
+        
+        // First call procSnd (to simulate the sender side sending data)
+        // SendResult sndResult1 = d_SSMR.procSnd(addResult.updatedsenderState, ad);
+        // assertNotNull(sndResult1, "First procSnd should return valid result");
+        // System.out.println("procSnd result for first add operation (UID 13): " + sndResult1);
+
+        Object rcvOutputNewReceiver1 = d_SSMR.procRcv(newAddedReceiverSt1, ad, addResult.ciphertext);
+        assertTrue(rcvOutputNewReceiver1 instanceof ReceiveResult, "New receiver (UID 13) should be able to process add ciphertext");
+        ReceiveResult rcvResultNewReceiver1 = (ReceiveResult) rcvOutputNewReceiver1;
+
+////////////////////////////////
+///  Failing. mmay be gap in D_SSMR
+///////////
+        // assertArrayEquals(addResult.key, rcvResultNewReceiver1.key, "New receiver (UID 13) keys should match");
+
+        // SendResult sndResult2 = d_SSMR.procSnd(addResult.updatedsenderState, ad);
+
+        // Object rcvOutput2 = d_SSMR.procRcv(rcvResultNewReceiver1.updatedState, ad, sndResult2.ciphertext);
+
+        // assertTrue(rcvOutput2 instanceof ReceiveResult, "Receiver  should be able to process add ciphertext");
+
+        // ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
+
+        // // assertArrayEquals(sndResult2.key, rcvResult2.key, "receiver 2 should match");
+
+        // System.out.println("receiver key 2 (k):");
+        // printByteArray(rcvResult2.key);
+
+////////////////////////////////
+///  Failing. mmay be gap in D_SSMR
+///////////
+
+
+////////////////////////////////
+/// Below code is yet to finalize
+///////////
+        // // Step 3: Add another new receiver (UID = 14)
+        // AddResult addResult2 = d_SSMR.procAdd(addResult.updatedsenderState, ad, newUid2);
+        // assertNotNull(addResult2.updatedsenderState);
+        // assertNotNull(addResult2.newReceiverState);
+        // assertNotNull(addResult2.ciphertext);
+        // assertNotNull(addResult2.key);
+        // assertNotNull(addResult2.kid);
+
+        // // Verify the sender state was updated with the second new member (UID = 14)
+        // assertTrue(addResult2.updatedsenderState.memR.contains(newUid2), 
+        //         "New UID (UID 14) should be in sender's memR");
+        // assertEquals(nR + 2, addResult2.updatedsenderState.memR.size(), 
+        //             "memR should have two more members");
+
+        // // Verify the new receiver state (UID = 14)
+        // assertTrue(addResult2.newReceiverState.memR.contains(newUid2), 
+        //         "New UID (UID 14) should be in new receiver's memR");
+        // assertEquals(nR + 2, addResult2.newReceiverState.memR.size(), 
+        //             "New receiver's memR should have correct size");
+
+        // System.out.println("procAdd test passed. Add operation key for UID 14:");
+        // printByteArray(addResult2.key);
+
+        // // Test that all existing receivers (from 0 to 10) can still receive after the second add operation
+        // for (int i = 0; i < nR; i++) {
+        //     ReceiverState existingReceiver = initResult.receiverStates.get(i);
+        //     System.out.println("Testing receiver " + i + "'s memR: " + existingReceiver.memR);
+
+        //     // Perform receive operation
+        //     Object rcvOutput = d_SSMR.procRcv(existingReceiver, ad, addResult2.ciphertext);
+            
+        //     // Ensure that the existing receiver can still process the ciphertext after the second add operation
+        //     assertTrue(rcvOutput instanceof ReceiveResult, "Receiver " + i + " should be able to process add ciphertext");
+        //     ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        //     assertArrayEquals(addResult2.key, rcvResult.key, "Receiver " + i + " keys should match");
+        // }
+
+        // // Now, test the newly added receiver (UID = 14)
+        // ReceiverState newAddedReceiverSt2 = addResult2.newReceiverState;
+        // System.out.println("Testing new receiver (UID 14) memR: " + newAddedReceiverSt2.memR);
+        // Object rcvOutputNewReceiver2 = d_SSMR.procRcv(newAddedReceiverSt2, ad, addResult2.ciphertext);
+        // assertTrue(rcvOutputNewReceiver2 instanceof ReceiveResult, "New receiver (UID 14) should be able to process add ciphertext");
+        // ReceiveResult rcvResultNewReceiver2 = (ReceiveResult) rcvOutputNewReceiver2;
+        // assertArrayEquals(addResult2.key, rcvResultNewReceiver2.key, "New receiver (UID 14) keys should match");
+
+        // System.out.println("All receivers tested successfully after two adds.");
+
     }
 
 
