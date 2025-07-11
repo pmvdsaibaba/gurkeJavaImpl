@@ -293,20 +293,20 @@ System.out.println("**********************************************");
 ////////////////////////////////
 ///  Failing. mmay be gap in D_SSMR
 ///////////
-        // assertArrayEquals(addResult.key, rcvResultNewReceiver1.key, "New receiver (UID 13) keys should match");
+        assertArrayEquals(addResult.key, rcvResultNewReceiver1.key, "New receiver (UID 13) keys should match");
 
-        // SendResult sndResult2 = d_SSMR.procSnd(addResult.updatedsenderState, ad);
+        SendResult sndResult2 = d_SSMR.procSnd(addResult.updatedsenderState, ad);
 
-        // Object rcvOutput2 = d_SSMR.procRcv(rcvResultNewReceiver1.updatedState, ad, sndResult2.ciphertext);
+        Object rcvOutput2 = d_SSMR.procRcv(rcvResultNewReceiver1.updatedState, ad, sndResult2.ciphertext);
 
-        // assertTrue(rcvOutput2 instanceof ReceiveResult, "Receiver  should be able to process add ciphertext");
+        assertTrue(rcvOutput2 instanceof ReceiveResult, "Receiver  should be able to process add ciphertext");
 
-        // ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
+        ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
 
-        // // assertArrayEquals(sndResult2.key, rcvResult2.key, "receiver 2 should match");
+        // assertArrayEquals(sndResult2.key, rcvResult2.key, "receiver 2 should match");
 
-        // System.out.println("receiver key 2 (k):");
-        // printByteArray(rcvResult2.key);
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcvResult2.key);
 
 ////////////////////////////////
 ///  Failing. mmay be gap in D_SSMR

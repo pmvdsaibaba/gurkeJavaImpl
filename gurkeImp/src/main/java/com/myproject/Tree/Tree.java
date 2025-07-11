@@ -702,8 +702,8 @@ public class Tree {
 //****************************************************
 // Bug:
 // 
-//  If Intersection node is root node then this the node is not getting removed. 
-// May be needs fix
+// If Intersection node is root node then this node removing is not working
+// Yet to fix this.
 // 
 //  
 // ************************************************************/

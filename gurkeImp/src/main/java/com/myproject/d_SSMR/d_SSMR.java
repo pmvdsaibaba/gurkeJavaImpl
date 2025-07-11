@@ -53,12 +53,15 @@ public class d_SSMR {
         public TreeDk dk;
         public byte[] svk;
         public byte[] tr;
+        boolean isNewAddRcvr;
 
-        public ReceiverState(Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {
+        public ReceiverState(Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr, boolean isNewAddRcvr) {
+        // public ReceiverState(Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {
             this.memR = new HashSet<>(memR);
             this.dk = dk;
             this.svk = svk;
             this.tr = tr;
+            this.isNewAddRcvr = isNewAddRcvr;
         }
     }
 
@@ -88,6 +91,7 @@ public class d_SSMR {
 
         // ε (empty byte array)
         byte[] tr = new byte[0];
+        boolean isNewAddRcvr = false;
 
         // HashSet is a collection that does not allow duplicate elements and does not guarantee order
         Set<Integer> memR = new HashSet<>();
@@ -99,7 +103,8 @@ public class d_SSMR {
 
         List<ReceiverState> receiverStates = new ArrayList<>();
         for (int j = 0; j < nR; j++) {
-            ReceiverState receiverState = new ReceiverState(memR, dkList.get(j), svk, tr);
+            ReceiverState receiverState = new ReceiverState(memR, dkList.get(j), svk, tr, isNewAddRcvr);
+            // ReceiverState receiverState = new ReceiverState(memR, dkList.get(j), svk, tr);
             receiverStates.add(receiverState);
         }
 
@@ -250,16 +255,25 @@ public class d_SSMR {
         TreeDk dk = st.dk;
         byte[] svk = st.svk;
         byte[] tr = st.tr;
+        boolean isNewAddRcvr = st.isNewAddRcvr;
 
         byte[] messageToVerify = concatAll(tr, ad, cPrime, serializeObject(cM), svkPrime);
         if (!SignatureScheme.vfy(svk, messageToVerify, signature)) {
             return new ReceiveFailure(st);
         }
 
+        // if ((cM != null && (!(cM instanceof byte[]) || ((byte[]) cM).length != 0)) || (isNewAddRcvr == true))
         if (cM != null && (!(cM instanceof byte[]) || ((byte[]) cM).length != 0))
         {
-            UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
-            dk = procResult.dk1;
+            if (isNewAddRcvr == true)
+            {
+                isNewAddRcvr = false;
+            }
+            else
+            {
+                UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
+                dk = procResult.dk1;
+            }
         }
 
         byte[] fullMessage = concatAll(tr, ad, serializeCiphertext(c));
@@ -283,6 +297,7 @@ public class d_SSMR {
         st.dk = newDk;
         st.svk = svkPrime;
         st.tr = tr;
+        st.isNewAddRcvr = isNewAddRcvr;
 
         return new ReceiveResult(st, k, kid);
         // return new ReceiveResult(newState, k, kid);
@@ -347,7 +362,13 @@ public class d_SSMR {
         st.svk = svk;
         st.tr = tr;
 
-        ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr);
+        // byte[] tr1 = new byte[0];
+        // st.tr = tr1;
+
+        boolean isNewAddRcvr = true;
+
+        ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr, isNewAddRcvr);
+        // ReceiverState newReceiverState = new ReceiverState(memR, newDk, svk, tr);
 
         EncapsResult encapsResult = encaps(st, newEk, ad, cM);
 
