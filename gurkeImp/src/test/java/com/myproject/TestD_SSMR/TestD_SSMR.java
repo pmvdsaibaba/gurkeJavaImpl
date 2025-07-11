@@ -342,10 +342,8 @@ System.out.println("**********************************************");
         assertNotNull(rmvResult.kid);
 
         // Verify the sender state was updated (member removed)
-        assertFalse(rmvResult.updatedState.memR.contains(uidToRemove), 
-                   "Removed UID should not be in sender's memR");
-        assertEquals(nR - 1, rmvResult.updatedState.memR.size(), 
-                    "memR should have one less member");
+        assertFalse(rmvResult.updatedState.memR.contains(uidToRemove), "Removed UID should not be in sender's memR");
+        assertEquals(nR - 1, rmvResult.updatedState.memR.size(), "memR should have one less member");
 
         System.out.println("procRmv test passed. Remove operation key:");
         printByteArray(rmvResult.key);
@@ -358,6 +356,19 @@ System.out.println("**********************************************");
         assertTrue(rcvOutput instanceof ReceiveResult, "Remaining receiver should be able to process remove ciphertext");
         ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
         assertArrayEquals(rmvResult.key, rcvResult.key, "Keys should match for remaining receiver");
+
+        // Test the second time send and rcv after remove is done
+        SendResult sndResult2 = d_SSMR.procSnd(rmvResult.updatedState, ad);
+        Object rcvOutput2 = d_SSMR.procRcv(rcvResult.updatedState, ad, sndResult2.ciphertext);
+
+        assertTrue(rcvOutput2 instanceof ReceiveResult, "Receiver  should be able to process add ciphertext");
+
+        ReceiveResult rcvResult2 = (ReceiveResult) rcvOutput2;
+
+        assertArrayEquals(sndResult2.key, rcvResult2.key, "receiver 2 should match");
+
+        System.out.println("receiver key 2 (k):");
+        printByteArray(rcvResult2.key);
     }
 
 
