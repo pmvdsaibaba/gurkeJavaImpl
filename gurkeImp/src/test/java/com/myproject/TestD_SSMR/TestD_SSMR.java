@@ -371,6 +371,35 @@ System.out.println("**********************************************");
         printByteArray(rcvResult2.key);
     }
 
+    @Test
+    public void testInvalidSignature() throws Exception {
+        int nR = 2;
+
+        InitResult initResult = d_SSMR.procInit(nR);
+        senderState senderState = initResult.senderState;
+        ReceiverState receiverState = initResult.receiverStates.get(0);
+
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
+
+        SendResult sndResult = d_SSMR.procSnd(senderState, ad);
+        
+        // // Corrupt the signature
+        // Ciphertext corruptedCiphertext = new Ciphertext(
+        //     sndResult.ciphertext.cPrime,
+        //     sndResult.ciphertext.cM,
+        //     sndResult.ciphertext.svkPrime,
+        //     new byte[]{0, 1, 2, 3} // Invalid signature
+        // );
+
+        // Object rcvOutput = d_SSMR.procRcv(receiverState, ad, corruptedCiphertext);
+        
+        // assertTrue(rcvOutput instanceof ReceiveFailure, "Should fail with invalid signature");
+        // System.out.println("Invalid signature test passed - correctly rejected");
+    }
+
+
+
 
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {

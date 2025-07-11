@@ -504,8 +504,6 @@ public class Tree {
         // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
 
 
-
-
         return new TreeAddDkReturn(
             dk.getDataSk(),
             leafNodeIndex,
@@ -693,7 +691,7 @@ public class Tree {
             ek.getDataPk(), 
             ek.getTree().T_path(ek.getTree().TRem_AffectedLeaf),
             ek.getTree().T_co_path(ek.getTree().TRem_AffectedLeaf),
-            ek.getTree().numLeaves, // check this: seems something wrong
+            ek.getTree().numLeaves, // check this: seems something wrong: this is not needed for remove
             ek.getTree() );
     }
 
