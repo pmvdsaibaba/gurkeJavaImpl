@@ -318,6 +318,7 @@ System.out.println("**********************************************");
 ///////////
         // // Step 3: Add another new receiver (UID = 14)
         // AddResult addResult2 = d_SSMR.procAdd(addResult.updatedsenderState, ad, newUid2);
+        
         // assertNotNull(addResult2.updatedsenderState);
         // assertNotNull(addResult2.newReceiverState);
         // assertNotNull(addResult2.ciphertext);
@@ -365,7 +366,44 @@ System.out.println("**********************************************");
 
     }
 
+    @Test
+    public void testProcRmv() throws Exception {
+        int nR = 10;
+        int uidToRemove = 3; // Remove user with ID 3
 
+        // Step 1: Initialize
+        InitResult initResult = d_SSMR.procInit(nR);
+        senderState senderState = initResult.senderState;
+
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
+
+        // Step 2: Remove a receiver
+        RemoveResult rmvResult = d_SSMR.procRmv(senderState, ad, uidToRemove);
+        
+        assertNotNull(rmvResult.updatedState);
+        assertNotNull(rmvResult.ciphertext);
+        assertNotNull(rmvResult.key);
+        assertNotNull(rmvResult.kid);
+
+        // Verify the sender state was updated (member removed)
+        assertFalse(rmvResult.updatedState.memR.contains(uidToRemove), 
+                   "Removed UID should not be in sender's memR");
+        assertEquals(nR - 1, rmvResult.updatedState.memR.size(), 
+                    "memR should have one less member");
+
+        System.out.println("procRmv test passed. Remove operation key:");
+        printByteArray(rmvResult.key);
+
+        // Test that remaining receivers can still receive after remove operation
+        // Use a receiver that wasn't removed (e.g., receiver 0, which corresponds to uid 1)
+        ReceiverState remainingReceiver = initResult.receiverStates.get(0);
+        Object rcvOutput = d_SSMR.procRcv(remainingReceiver, ad, rmvResult.ciphertext);
+        
+        assertTrue(rcvOutput instanceof ReceiveResult, "Remaining receiver should be able to process remove ciphertext");
+        ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        assertArrayEquals(rmvResult.key, rcvResult.key, "Keys should match for remaining receiver");
+    }
 
 
     // Utility to print byte arrays

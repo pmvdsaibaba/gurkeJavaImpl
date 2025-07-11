@@ -88,22 +88,12 @@ public class TestTreeRemEk {
         }
         printTreeDiagram(Tree1);
 
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
 
-
-        printTreeStateAfterRemEk(Tree1, ek, 4);
-        printTreeStateAfterRemEk(Tree1, ek, 3);
-        printTreeStateAfterRemEk(Tree1, ek, 5);
-        printTreeStateAfterRemEk(Tree1, ek, 5);
-
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
-        // printTreeStateAfterAddEk(Tree1, ek);
+        TreeAddEkReturn addEkReturn = printTreeStateAfterRemEk(Tree1, ek, 4);
+        addEkReturn = printTreeStateAfterRemEk(addEkReturn.getTree(), ek, 3);
+        addEkReturn = printTreeStateAfterRemEk(addEkReturn.getTree(), ek, 5);
+        addEkReturn = printTreeStateAfterRemEk(addEkReturn.getTree(), ek, 6);
+        addEkReturn = printTreeStateAfterRemEk(addEkReturn.getTree(), ek, 6);
 
 
 
@@ -133,8 +123,10 @@ public class TestTreeRemEk {
 
 
 
-    private void printTreeStateAfterRemEk(Tree tree, TreeEK ek, int leaf) throws Exception {
-        TreeAddEkReturn addEkReturn = tree.T_rem_Ek(ek, leaf);
+    private TreeAddEkReturn printTreeStateAfterRemEk(Tree tree1, TreeEK ek, int leaf) throws Exception {
+        TreeAddEkReturn addEkReturn = tree1.T_rem_Ek(ek, leaf);
+
+        Tree tree = addEkReturn.getTree();
 
         List<Integer> pathList;
         List<Integer> copathList;
@@ -194,6 +186,8 @@ public class TestTreeRemEk {
         System.out.println();
 
         printTreeDiagram(tree);
+
+        return addEkReturn;
     }
 
 

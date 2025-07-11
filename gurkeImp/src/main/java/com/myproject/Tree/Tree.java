@@ -38,6 +38,11 @@ public class Tree {
     // variables used in T.Rem dk
     private int TRemnode1Index;
     private int TRemnode2Index;
+    private int TRemnode2Index_leaf;
+    private int TRemnode1Index_leaf;
+    private int TRem_AffectedLeaf;
+
+ 
 
     public static class Node {
         private int nodeIndex;
@@ -167,8 +172,11 @@ public class Tree {
         copy.TAddnode2Index = this.TAddnode2Index;
         copy.TAddnode2Index_leaf = this.TAddnode2Index_leaf;
         copy.TAddnode1Index_leaf = this.TAddnode1Index_leaf;
+        copy.TRemnode2Index_leaf = this.TRemnode2Index_leaf;
+        copy.TRemnode1Index_leaf = this.TRemnode1Index_leaf;
         copy.TRemnode1Index = this.TRemnode1Index;
         copy.TRemnode2Index = this.TRemnode2Index;
+        copy.TRem_AffectedLeaf = this.TRem_AffectedLeaf;
 
         // Deep copy nodeIndexes and leafIndexes
         copy.nodeIndexes = new ArrayList<>(this.nodeIndexes);
@@ -513,6 +521,18 @@ public class Tree {
         Tree.Node tempNode;
 
         List<Integer> pathList = tree.T_path(leaf);
+        List<Integer> coPathList = tree.T_co_path(leaf);
+
+        // tree.TRem_AffectedLeaf = coPathList.get(0);
+        tree.TRem_AffectedLeaf = -1;
+        int affectedLeaf_nodeIndex = coPathList.get(0);
+
+        for (Node node : tree.getNodesInternal()) {
+            if (node.getNodeIndex() == affectedLeaf_nodeIndex) {
+                tree.TRem_AffectedLeaf = node.getLeafIndex();
+                break;
+            }
+        }
 
         if(pathList.size() > 2)
         {
@@ -671,15 +691,22 @@ public class Tree {
 
         return new TreeAddEkReturn(
             ek.getDataPk(), 
-            ek.getTree().T_path(ek.getTree().leafIndexMax),  // check this: seems something wrong
-            ek.getTree().T_co_path(ek.getTree().leafIndexMax), // check this: seems something wrong
+            ek.getTree().T_path(ek.getTree().TRem_AffectedLeaf),
+            ek.getTree().T_co_path(ek.getTree().TRem_AffectedLeaf),
             ek.getTree().numLeaves, // check this: seems something wrong
             ek.getTree() );
     }
 
     public static TreeAddDkReturn T_rem_Dk(TreeDk dk, int leaf)
     {
-        treeRemInternal(dk.getTree(), leaf);
+//****************************************************
+// Bug:
+// 
+//  If Intersection node is root node then this the node is not getting removed. 
+// May be needs fix
+// 
+//  
+// ************************************************************/
 
         /////////////////////////////////////////////////////////////////
         // To find the intersection
@@ -687,7 +714,12 @@ public class Tree {
         List<Integer> set1 = dk.getTree().T_path(leaf);
         List<Integer> set2 = new ArrayList<>(dk.getDataSk().keySet());
 
+        // int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
+        // List<Integer> set3 = dk.getTree().T_path(leafNodeIndex);
+
         int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);
+
+        treeRemInternal(dk.getTree(), leaf);
 
         if (IntersectionNode != -1) {
             // do nothing
