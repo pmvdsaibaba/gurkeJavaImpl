@@ -356,8 +356,9 @@ public class d_MSMR {
 
                 // // c2 = H(k, c1) ⊕ (dk, tr, diff)
                 // Todo: check if the xor is truncating the hash if sizes are different
+                // Todo: check if the serializeObject should be also for diff
                 byte[] hash = RandomOracle.Hash2(k, c1);
-                byte[] dkTrDiff = concatAll(serializeTreeDk(dk), st.tr, serializeObject(queuedOp.diff));
+                byte[] dkTrDiff = concatAll(serializeTreeDk(dk), st.tr, serializeObject_Diff(queuedOp.diff));
                 byte[] c2 = xor(hash, dkTrDiff);
                 
                 cP = new Object[]{c1, c2}; // (c1, c2)
@@ -508,6 +509,46 @@ public class d_MSMR {
         // return new byte[0];
         throw new IllegalArgumentException("Unsupported ciphertext type: " + obj.getClass().getName());
     }
+    
+    private static byte[] serializeObject_Diff(Object obj)
+    {
+        /* May be there are more object types to cover */
+        if (obj == null)
+        {
+            return new byte[0];
+        }
+        else if (obj instanceof Diff)
+        {
+            // System.out.println("Serializing object of type: " + obj.getClass().getName());
+            Diff d = (Diff) obj;
+
+            return concatAll(
+                concatenateIntSet(d.senderAdd),
+                concatenateIntSet(d.senderRemove),
+                concatenateIntSet(d.receiverAdd),
+                concatenateIntSet(d.receiverRemove)
+            );
+        }
+        else if (obj instanceof byte[])
+        {
+            // should not occur here, as this is a diff serialization
+            System.out.println("Serializing byte[] object, returning empty array");
+            return new byte[0]; 
+        }
+
+        System.out.println("WARNING: Falling back to toString() for type: " + obj.getClass().getName());
+        throw new IllegalArgumentException("Unsupported ciphertext type: " + obj.getClass().getName());
+    }
+
+    private static byte[] concatenateIntSet(Set<Integer> set)
+    {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        for (Integer value : set) {
+            byte[] bytes = intToByteArray(value);
+            outputStream.write(bytes, 0, bytes.length);
+        }
+        return outputStream.toByteArray();
+    }
 
     private static byte[] serializeTreeDk(TreeDk dk)
     {
@@ -523,8 +564,44 @@ public class d_MSMR {
     }
 
     private static byte[] serializeQueue(Queue<QueuedCiphertext> cq) {
-        // Serialize queue of ciphertexts
-        return new byte[0]; // Placeholder
+        if (cq == null || cq.isEmpty()) {
+            return new byte[0];
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        for (QueuedCiphertext qc : cq) {
+            byte[] opBytes = new byte[]{(byte) qc.op.ordinal()};
+            byte[] tBytes = new byte[]{(byte) qc.t.ordinal()};
+            byte[] uidBytes = intToByteArray(qc.uid);
+            byte[] cMBytes = serializeObject(qc.cM);
+            byte[] cPBytes;
+            if (qc.cP instanceof byte[]) {
+                cPBytes = (byte[]) qc.cP;
+            } else if (qc.cP != null) {
+                // If cP is an Object[] (e.g., {c1, c2}), concatenate its byte[] elements
+                if (qc.cP instanceof Object[]) {
+                    Object[] arr = (Object[]) qc.cP;
+                    ByteArrayOutputStream cPStream = new ByteArrayOutputStream();
+                    for (Object o : arr) {
+                        if (o instanceof byte[]) {
+                            byte[] b = (byte[]) o;
+                            cPStream.write(b, 0, b.length);
+                        }
+                    }
+                    cPBytes = cPStream.toByteArray();
+                } else {
+                    cPBytes = serializeObject(qc.cP);
+                }
+            } else {
+                cPBytes = new byte[0];
+            }
+            byte[] serialized = concatAll(opBytes, tBytes, uidBytes, cMBytes, cPBytes);
+            try {
+                outputStream.write(serialized);
+            } catch (Exception e) {
+                throw new RuntimeException("Error serializing QueuedCiphertext", e);
+            }
+        }
+        return outputStream.toByteArray();
     }
 
     private static byte[] serializeToOperation(ToOperation to) {
