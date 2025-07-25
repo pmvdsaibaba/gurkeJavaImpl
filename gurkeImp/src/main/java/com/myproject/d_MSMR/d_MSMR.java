@@ -4,11 +4,16 @@ import com.myproject.dynamicUBKem.UB_KEM;
 import com.myproject.dynamicUBKem.UB_KEM.BKGenResult;
 import com.myproject.dynamicUBKem.UB_KEM.c_BKAdd;
 import com.myproject.dynamicUBKem.UB_KEM.c_BKRemove;
+import com.myproject.dynamicUBKem.UB_KEM.c_BKFork;
 
 import com.myproject.dynamicUBKem.UB_KEM.BKEncResult;
 import com.myproject.dynamicUBKem.UB_KEM.EncOutput;
 import com.myproject.dynamicUBKem.UB_KEM.FinResult;
 
+import com.myproject.standardKEM.KEM.*;
+import com.myproject.standardKEM.KEM;
+
+import com.myproject.RandomOracle.RandomOracle;
 
 import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeDk;
@@ -51,9 +56,10 @@ public class d_MSMR {
         public TargetType t;
         public int uid;
         public Object diff;
-        public TreeEK ekuidR;
+        // public TreeEK ekuidR;
+        public byte[] ekuidR;
 
-        public QueuedOperation(OpType op, TargetType t, int uid, Object diff, TreeEK ekuidR) {
+        public QueuedOperation(OpType op, TargetType t, int uid, Object diff, byte[] ekuidR) {
             this.op = op;
             this.t = t;
             this.uid = uid;
@@ -112,8 +118,9 @@ public class d_MSMR {
             this.receiverStates = receiverStates;
         }
     }
-
+////////////////////////////////////////////////////
     // Proc init(nS, nR)
+////////////////////////////////////////////////////
     public static InitResult procInit(int nS, int nR) throws Exception {
         List<SenderState> senderStates = new ArrayList<>();
         List<ReceiverState> receiverStates = new ArrayList<>();
@@ -174,6 +181,417 @@ public class d_MSMR {
         return new InitResult(senderStates, receiverStates);
     }
 
+    public static class ToOperation {
+        public OpType op;
+        public TargetType target;
+        public int uid;
+
+        public ToOperation(OpType op, TargetType target, int uid) {
+            this.op = op;
+            this.target = target;
+            this.uid = uid;
+        }
+
+        public static ToOperation empty() {
+            return new ToOperation(null, null, -1);
+        }
+
+        public boolean isEmpty() {
+            return op == null && target == null && uid == -1;
+        }
+    }
+
+    public static class Kid {
+        public byte[] id;
+        public int i;
+        public Set<Integer> memS;
+        public Set<Integer> memR;
+
+        public Kid(byte[] id, int i, Set<Integer> memS, Set<Integer> memR) {
+            this.id = id;
+            this.i = i;
+            this.memS = new HashSet<>(memS);
+            this.memR = new HashSet<>(memR);
+        }
+    }
+
+    public static class EncapsResult {
+        public SenderState updatedState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public EncapsResult(SenderState updatedState, Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+    public static class Ciphertext {
+        public int i;
+        public byte[] cPrime;
+        public Object cM;
+        public Queue<QueuedCiphertext> cq;
+        public byte[] svkStar;
+        public byte[] svkPrime;
+        public ToOperation to;
+        public byte[] signature;
+
+        public Ciphertext(int i, byte[] cPrime, Object cM, Queue<QueuedCiphertext> cq,
+                         byte[] svkStar, byte[] svkPrime, ToOperation to, byte[] signature) {
+            this.i = i;
+            this.cPrime = cPrime;
+            this.cM = cM;
+            this.cq = new LinkedList<>(cq);
+            this.svkStar = svkStar;
+            this.svkPrime = svkPrime;
+            this.to = to;
+            this.signature = signature;
+        }
+    }
+
+    public static class QueuedCiphertext {
+        public OpType op;
+        public TargetType t;
+        public int uid;
+        public Object cM;
+        public Object cP;
+
+        public QueuedCiphertext(OpType op, TargetType t, int uid, Object cM, Object cP) {
+            this.op = op;
+            this.t = t;
+            this.uid = uid;
+            this.cM = cM;
+            this.cP = cP;
+        }
+    }
+//////////////////////////////////////////////////////////
+    // Helper Proc encaps(st, ek, ad, cM, cq, svk*, to)
+//////////////////////////////////////////////////////////
+    private static EncapsResult encaps(SenderState st, TreeEK ek, byte[] ad, Object cM, 
+                                      Queue<QueuedCiphertext> cq, byte[] svkStar, ToOperation to) throws Exception
+    {
+        BKEncResult encResult = UB_KEM.enc(ek);
+        EncOutput u = encResult.u;
+        byte[] cPrime = encResult.c;
+
+        SignatureScheme.KeyPair newSigKeys = SignatureScheme.gen();
+        byte[] svkPrime = newSigKeys.getVk();
+        byte[] sskPrime = newSigKeys.getSk();
+
+        // Create message to sign
+        byte[] messageToSign = concatAll(st.tr, ad, intToByteArray(st.i), cPrime, 
+                                        serializeObject(cM), serializeQueue(cq), 
+                                        svkStar, svkPrime, serializeToOperation(to));
+        
+        byte[] sigma = SignatureScheme.sgn(st.ssk, messageToSign);
+
+        Ciphertext cR = new Ciphertext(st.i, cPrime, cM, cq, svkStar, svkPrime, to, sigma);
+
+        byte[] finInput = concatAll(st.tr, ad, serializeCiphertext(cR));
+        FinResult finResult = UB_KEM.fin(u, finInput);
+        TreeEK newEk = finResult.ek;
+
+        // Derive keys
+        byte[] kdf_k = "kdf_k".getBytes();
+        byte[] kdf_id = "kdf_id".getBytes();
+        byte[] kdf_tr = "kdf_tr".getBytes();
+
+        byte[] k = deriveKey(finResult.k, kdf_k);
+        byte[] id = deriveKey(finResult.k, kdf_id);
+        byte[] tr = deriveKey(finResult.k, kdf_tr);
+
+        Kid kid = new Kid(id, st.i, st.memS, st.memR);
+
+        // sender removal
+        Set<Integer> memS = new HashSet<>(st.memS);
+        if (to.target == TargetType.SENDER && to.op == OpType.REMOVE) {
+            memS.remove(to.uid);
+        }
+
+        SenderState updatedState = new SenderState(st.i, memS, st.memR, newEk, sskPrime, svkPrime, tr, st.ops);
+        
+        return new EncapsResult(updatedState, cR, k, kid);
+    }
+
+    public static class EnqOpsResult {
+        public SenderState updatedState;
+        public Queue<QueuedCiphertext> cq;
+
+        public EnqOpsResult(SenderState updatedState, Queue<QueuedCiphertext> cq) {
+            this.updatedState = updatedState;
+            this.cq = cq;
+        }
+    }
+
+//////////////////////////////////////////////////////////
+    // Helper Proc enq-ops(st, mem'S, mem'R)
+////////////////////////////////////////////////////////////
+    private static EnqOpsResult enqOps(SenderState st, Set<Integer> memSPrime, Set<Integer> memRPrime) throws Exception {
+        Queue<QueuedCiphertext> cq = new LinkedList<>();
+        
+        while (!st.ops.isEmpty())
+        {
+            /*  Retrieves the next operation to process from the st.ops queue.
+                The poll() method is used to retrieve and remove the head (first element) of the queue. If the queue is empty, it returns null. This is a non-blocking operation. */
+            QueuedOperation queuedOp = st.ops.poll();
+            Object cM = null;
+            Object cP = null;
+
+            if (queuedOp.t == TargetType.RECEIVER && queuedOp.op == OpType.ADD) {
+                // Receiver add
+                UB_KEM.BKAddResult addResult = UB_KEM.add(st.ek);
+
+                // todo: if new state is needed or check if updating old state is ok.
+                st.ek = addResult.ek;
+                TreeDk dk = addResult.dk;
+                cM = addResult.c;
+
+                // Encrypt BK dk to receiver
+                EncapsulationResult kemEncResult = KEM.enc(queuedOp.ekuidR);
+                byte[] c1 = kemEncResult.c;
+                byte[] k = kemEncResult.k;
+
+                // // c2 = H(k, c1) ⊕ (dk, tr, diff)
+                // Todo: check if the xor is truncating the hash if sizes are different
+                byte[] hash = RandomOracle.Hash2(k, c1);
+                byte[] dkTrDiff = concatAll(serializeTreeDk(dk), st.tr, serializeObject(queuedOp.diff));
+                byte[] c2 = xor(hash, dkTrDiff);
+                
+                cP = new Object[]{c1, c2}; // (c1, c2)
+            } else if (queuedOp.t == TargetType.RECEIVER && queuedOp.op == OpType.REMOVE) {
+                // Receiver remove
+                UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(st.ek, queuedOp.uid);
+                st.ek = removeResult.ek;
+                cM = removeResult.c;
+                cP = null;
+            }
+
+            QueuedCiphertext qc = new QueuedCiphertext(queuedOp.op, queuedOp.t, queuedOp.uid, cM, cP);
+
+            /* Adds the queued ciphertext to the queue cq. */
+            cq.offer(qc);
+        }
+
+        SenderState updatedState = new SenderState(st.i, memSPrime, memRPrime, st.ek, st.ssk, st.svk, st.tr, st.ops);
+        return new EnqOpsResult(updatedState, cq);
+    }
+
+
+    public static class Diff {
+        public Set<Integer> senderAdd;
+        public Set<Integer> senderRemove;
+        public Set<Integer> receiverAdd;
+        public Set<Integer> receiverRemove;
+
+        public Diff(Set<Integer> senderAdd, Set<Integer> senderRemove, 
+                    Set<Integer> receiverAdd, Set<Integer> receiverRemove) {
+            this.senderAdd = new HashSet<>(senderAdd);
+            this.senderRemove = new HashSet<>(senderRemove);
+            this.receiverAdd = new HashSet<>(receiverAdd);
+            this.receiverRemove = new HashSet<>(receiverRemove);
+        }
+    }
+
+    public static class MergeDiffResult {
+        public Set<Integer> newMemS;
+        public Set<Integer> newMemR;
+
+        public MergeDiffResult(Set<Integer> newMemS, Set<Integer> newMemR) {
+            this.newMemS = new HashSet<>(newMemS);
+            this.newMemR = new HashSet<>(newMemR);
+        }
+    }
+
+    // Helper Proc diff(A, A', B, B')
+    private static Diff diff(Set<Integer> A, Set<Integer> APrime, Set<Integer> B, Set<Integer> BPrime) {
+        Set<Integer> senderAdd = new HashSet<>(APrime);
+        senderAdd.removeAll(A);
+        
+        Set<Integer> senderRemove = new HashSet<>(A);
+        senderRemove.removeAll(APrime);
+        
+        Set<Integer> receiverAdd = new HashSet<>(BPrime);
+        receiverAdd.removeAll(B);
+        
+        Set<Integer> receiverRemove = new HashSet<>(B);
+        receiverRemove.removeAll(BPrime);
+        
+        return new Diff(senderAdd, senderRemove, receiverAdd, receiverRemove);
+    }
+
+    // Helper Proc merge-diff(A, B, A+, A-, B+, B-)
+    private static MergeDiffResult mergeDiff(Set<Integer> A, Set<Integer> B, 
+                                            Set<Integer> APlus, Set<Integer> AMinus,
+                                            Set<Integer> BPlus, Set<Integer> BMinus) {
+        Set<Integer> newMemS = new HashSet<>(A);
+        newMemS.addAll(APlus);
+        newMemS.removeAll(AMinus);
+        
+        Set<Integer> newMemR = new HashSet<>(B);
+        newMemR.addAll(BPlus);
+        newMemR.removeAll(BMinus);
+        
+        return new MergeDiffResult(newMemS, newMemR);
+    }
+
+///////////////////////////////////////////////////
+
+///////////////////////////////////////////////////
+    public static byte[] concatenateByteArrays(Map<Integer, byte[]> byteMap)
+    {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
+        {
+            for (byte[] byteArray : byteMap.values()) {
+                outputStream.write(byteArray);
+            }
+            return outputStream.toByteArray();
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Error concatenating byte arrays", e);
+        }
+    }
+
+
+    private static byte[] serializeObject(Object obj)
+    {
+        /* May be there are more object types to cover */
+        if (obj == null)
+        {
+            return new byte[0];
+        }
+        else if (obj instanceof c_BKAdd)
+        {
+            // System.out.println("Serializing object of type: " + obj.getClass().getName());
+            // System.out.println("Processing c_BKAdd");
+            c_BKAdd c = (c_BKAdd) obj;
+
+            return concatAll(
+                new byte[]{c.t},
+                concatenateByteArrays(c.pkstarMap),
+                concatenateByteArrays(c.pk_lMap)
+            );
+        }
+        else if (obj instanceof c_BKRemove)
+        {
+            // System.out.println("Serializing object of type: " + obj.getClass().getName());
+            // System.out.println("Processing c_BKRemove");
+            c_BKRemove c = (c_BKRemove) obj;
+
+            return concatAll(
+                new byte[]{c.t},
+                intToByteArray(c.i),
+                concatenateByteArrays(c.pkStarMap),
+                c.pkCircle,
+                concatenateByteArrays(c.pkPrimeMap)
+            );
+        }
+        else if (obj instanceof c_BKFork)
+        {
+            c_BKFork c = (c_BKFork) obj;
+
+            return concatAll(
+                new byte[]{c.t},
+                c.pk
+            );
+        }
+        else if (obj instanceof byte[])
+        {
+            return new byte[0]; 
+        }
+        // not sure what to return
+        // return obj.toString().getBytes();
+        System.out.println("WARNING: Falling back to toString() for type: " + obj.getClass().getName());
+        // return new byte[0];
+        throw new IllegalArgumentException("Unsupported ciphertext type: " + obj.getClass().getName());
+    }
+
+    private static byte[] serializeTreeDk(TreeDk dk)
+    {
+        Map<Integer, byte[]> skMap = dk.getDataSk();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        for (byte[] value : skMap.values()) {
+            if (value != null) {
+                outputStream.write(value, 0, value.length);
+            }
+        }
+        byte[] concatenated = outputStream.toByteArray();
+        return concatenated;
+    }
+
+    private static byte[] serializeQueue(Queue<QueuedCiphertext> cq) {
+        // Serialize queue of ciphertexts
+        return new byte[0]; // Placeholder
+    }
+
+    private static byte[] serializeToOperation(ToOperation to) {
+        if (to.isEmpty()) {
+            return new byte[0];
+        }
+        return concatAll(new byte[]{(byte)(to.op.ordinal())}, 
+                        new byte[]{(byte)(to.target.ordinal())}, 
+                        intToByteArray(to.uid));
+    }
+
+    private static byte[] serializeCiphertext(Ciphertext c) {
+        return concatAll(intToByteArray(c.i), c.cPrime, serializeObject(c.cM), 
+                        serializeQueue(c.cq), c.svkStar, c.svkPrime, 
+                        serializeToOperation(c.to), c.signature);
+    }
+
+
+    private static byte[] concatAll(byte[]... arrays) {
+        int totalLength = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                totalLength += array.length;
+            }
+        }
+
+        byte[] result = new byte[totalLength];
+        int currentIndex = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                System.arraycopy(array, 0, result, currentIndex, array.length);
+                currentIndex += array.length;
+            }
+        }
+        return result;
+    }
+
+    private static byte[] xor(byte[] a, byte[] b) {
+        if (a.length != b.length) {
+            throw new IllegalArgumentException("Arrays must have same length");
+        }
+        byte[] result = new byte[a.length];
+        for (int i = 0; i < a.length; i++) {
+            result[i] = (byte)(a[i] ^ b[i]);
+        }
+        return result;
+    }
+
+    private static byte[] intToByteArray(int value) {
+        return new byte[] {
+            (byte)(value >>> 24),
+            (byte)(value >>> 16),
+            (byte)(value >>> 8),
+            (byte)(value)
+        };
+    }
+
+    private static byte[] deriveKey(byte[] masterKey, byte[] info) {
+        byte[] salt = new byte[] {0x01, 0x02, 0x03, 0x04};
+        HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA512Digest());
+        HKDFParameters params = new HKDFParameters(masterKey, salt, info);
+        hkdf.init(params);
+
+        byte[] derivedKey = new byte[64]; // 64 bytes = 512-bit key
+        hkdf.generateBytes(derivedKey, 0, derivedKey.length);
+        return derivedKey;
+    }
 
 }
 

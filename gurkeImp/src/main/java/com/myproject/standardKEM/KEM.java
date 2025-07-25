@@ -143,8 +143,8 @@ public class KEM {
 
     // EncapsulationResult class to hold key and ciphertext
     public static class EncapsulationResult {
-        byte[] k;
-        byte[] c;
+        public byte[] k;
+        public byte[] c;
 
         public EncapsulationResult(byte[] k, byte[] c) {
             this.k = k;

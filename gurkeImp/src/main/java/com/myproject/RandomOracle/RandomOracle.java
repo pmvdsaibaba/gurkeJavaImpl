@@ -50,6 +50,34 @@ public class RandomOracle {
         }
     }
 
+
+    public static byte[] Hash2(byte[]... inputs) {
+        try {
+            // Calculate total length
+            int totalLength = 0;
+            for (byte[] input : inputs) {
+                totalLength += input.length;
+            }
+
+            // Concatenate all inputs
+            byte[] concatenated = new byte[totalLength];
+            int currentPos = 0;
+            for (byte[] input : inputs) {
+                System.arraycopy(input, 0, concatenated, currentPos, input.length);
+                currentPos += input.length;
+            }
+
+            // Hash the concatenated input
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            byte[] hash = digest.digest(concatenated);
+
+            return hash;
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-512 algorithm not found", e);
+        }
+    }
+
     // Result holder class
     public static class RandomOracleResult {
         byte[] s;
