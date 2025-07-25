@@ -438,6 +438,36 @@ public class d_MSMR {
         return new MergeDiffResult(newMemS, newMemR);
     }
 
+////////////////////////////////////////////////
+    // Proc snd(st, ad)
+///////////////////////////////////////////////
+    public static SendResult procSnd(SenderState st, byte[] ad) throws Exception {
+        // Run queued ops first
+        EnqOpsResult enqResult = enqOps(st, st.memS, st.memR);
+        st = enqResult.updatedState;
+        Queue<QueuedCiphertext> cq = enqResult.cq;
+
+        ToOperation to = ToOperation.empty();
+        EncapsResult encapsResult = encaps(st, st.ek, ad, null, cq, new byte[0], to);
+        
+        return new SendResult(encapsResult.updatedState, encapsResult.ciphertext, 
+                             encapsResult.key, encapsResult.kid);
+    }
+
+    public static class SendResult {
+        public SenderState updatedState;
+        public Ciphertext ciphertext;
+        public byte[] key;
+        public Kid kid;
+
+        public SendResult(SenderState updatedState, Ciphertext ciphertext, byte[] key, Kid kid) {
+            this.updatedState = updatedState;
+            this.ciphertext = ciphertext;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
