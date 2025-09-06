@@ -121,12 +121,14 @@ public class d_MSMR {
 ////////////////////////////////////////////////////
     // Proc init(nS, nR)
 ////////////////////////////////////////////////////
-    public static InitResult procInit(int nS, int nR) throws Exception {
+    public static InitResult procInit(int nS, int nR) throws Exception
+    {
         List<SenderState> senderStates = new ArrayList<>();
         List<ReceiverState> receiverStates = new ArrayList<>();
 
         // For each sender
-        for (int i = 1; i <= nS; i++) {
+        for (int i = 1; i <= nS; i++)
+        {
             // Generate BK keys
             BKGenResult bkGenResult = UB_KEM.gen(nR);
             TreeEK ek = bkGenResult.ek;
@@ -141,12 +143,14 @@ public class d_MSMR {
             Queue<QueuedOperation> ops = new LinkedList<>();
 
             Set<Integer> memS = new HashSet<>();
-            for (int s = 1; s <= nS; s++) {
+            for (int s = 1; s <= nS; s++)
+            {
                 memS.add(s);
             }
 
             Set<Integer> memR = new HashSet<>();
-            for (int r = 1; r <= nR; r++) {
+            for (int r = 1; r <= nR; r++)
+            {
                 memR.add(r);
             }
 
@@ -378,6 +382,121 @@ public class d_MSMR {
 
         SenderState updatedState = new SenderState(st.i, memSPrime, memRPrime, st.ek, st.ssk, st.svk, st.tr, st.ops);
         return new EnqOpsResult(updatedState, cq);
+    }
+
+
+
+
+    public static class DeqOpsResult {
+        public Set<Integer> memS;
+        public Set<Integer> memR;
+        public TreeDk dk;
+        public byte[] svk;
+        public byte[] tr;
+
+        public DeqOpsResult(Set<Integer> memS, Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {
+            this.memS = new HashSet<>(memS);
+            this.memR = new HashSet<>(memR);
+            this.dk = dk;
+            this.svk = svk;
+            this.tr = tr;
+        }
+    }
+
+//////////////////////////////////////////////////////////
+    // Helper Proc deq-ops(st, cq, i)
+////////////////////////////////////////////////////////////
+    private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk, 
+                                    byte[] svk, byte[] tr, Queue<QueuedCiphertext> cq, int i) throws Exception
+    {
+        Set<Integer> currentMemS = new HashSet<>(memS);
+        Set<Integer> currentMemR = new HashSet<>(memR);
+        // Dk could be of type bytes or MapTreeDk
+        TreeDk currentDk = dk;
+        byte[] currentSvk = svk;
+        byte[] currentTr = tr;
+
+        while (!cq.isEmpty())
+        {
+            QueuedCiphertext qc = cq.poll();
+            OpType op = qc.op;
+            TargetType t = qc.t;
+            int uid = qc.uid;
+            Object cM = qc.cM;
+            Object cP = qc.cP;
+
+            // If tr is empty (uninitialized)
+            if (currentTr.length == 0)
+            {
+                if (t == TargetType.RECEIVER && op == OpType.ADD)
+                {
+/////////////////////////////////////////////////////////////
+// This code need to be fixed.
+// there should be a new parameter dk for from TreeDk
+/////////////////////////////////////////////////////////////
+                    // // Init message from sender i
+                    // if (cP instanceof Object[])
+                    // {
+                    //     Object[] cPArray = (Object[]) cP;
+                    //     byte[] c1 = (byte[]) cPArray[0];
+                    //     byte[] c2 = (byte[]) cPArray[1];
+
+                    //     // Decrypt
+                    //     // Todo: Verify for the case when Receiver is added Dk is of type, Bytes
+                    //     DecapsulationResult kemDecResult = KEM.dec(currentDk, c1);
+                    //     byte[] k = kemDecResult.k;
+
+                    //     // Derive plaintext
+                    //     byte[] hashInput = concatAll(k, c1);
+                    //     byte[] hash = computeHash(hashInput);
+                    //     byte[] plaintext = xor(c2, hash);
+
+                    //     // Parse plaintext (dk, tr, diff)
+                    //     // This is a simplified parsing - in practice you'd need proper deserialization
+                    //     currentDk = deserializeTreeDk(plaintext); // Extract dk
+                    //     currentTr = extractTr(plaintext); // Extract tr
+                    //     Diff diffResult = extractDiff(plaintext); // Extract diff
+
+                    //     // Merge diff into membership sets
+                    //     MergeDiffResult mergeResult = mergeDiff(currentMemS, currentMemR, 
+                    //                                         diffResult.senderAdd, diffResult.senderRemove,
+                    //                                         diffResult.receiverAdd, diffResult.receiverRemove);
+                    //     currentMemS = mergeResult.newMemS;
+                    //     currentMemR = mergeResult.newMemR;
+                    // }
+                } else {
+                    // Ignore until init from sender i
+                    continue;
+                }
+            }
+
+            // Update membership based on operation
+            if (op == OpType.ADD) {
+                if (t == TargetType.SENDER) {
+                    currentMemS.add(uid);
+                } else if (t == TargetType.RECEIVER) {
+                    currentMemR.add(uid);
+                }
+            } else if (op == OpType.REMOVE) {
+                if (t == TargetType.SENDER) {
+                    currentMemS.remove(uid);
+                } else if (t == TargetType.RECEIVER) {
+                    currentMemR.remove(uid);
+                }
+            }
+
+            // Process BK operations for receivers
+            if (t == TargetType.RECEIVER && cM != null)
+            {
+                UB_KEM.BKProcResult procResult = UB_KEM.proc(currentDk, cM);
+                // BKRemoveResult procResult = UB_KEM.proc(currentDk, cM);
+                // UB_KEM.proc retrun type is different from what is expected here
+                currentDk = procResult.dk1;
+                // Handle forked keys if needed
+            }
+        }
+
+        return new DeqOpsResult(currentMemS, currentMemR, currentDk, currentSvk, currentTr);
     }
 
 
