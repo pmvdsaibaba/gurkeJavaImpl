@@ -551,7 +551,7 @@ public class d_MSMR {
         tr = deqResult.tr;
 
         // Verify signature
-        byte[] messageToVerify = concatAll(tr, ad, cPrime, serializeObject(cM), 
+        byte[] messageToVerify = concatAll(tr, ad, intToByteArray(c.i), cPrime, serializeObject(cM), 
                                         serializeQueue(cq), svkStar, svkPrime, 
                                         serializeToOperation(to));
         
