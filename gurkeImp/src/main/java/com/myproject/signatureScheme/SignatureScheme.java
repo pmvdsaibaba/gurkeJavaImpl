@@ -13,14 +13,21 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class SignatureScheme {
 
-    static {
-        Security.addProvider(new BouncyCastleProvider());
-    }
+    // static {
+    //     Security.addProvider(new BouncyCastleProvider());
+    // }
 
     // --- S.gen : ∅ →$ VK × SK ---
-    public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException
+    {
+        Security.addProvider(new BouncyCastleProvider());
+        
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
-        keyGen.initialize(new ECGenParameterSpec("secp384r1"), new SecureRandom());
+
+        SecureRandom random = new SecureRandom(); // no fixed seed!
+        keyGen.initialize(new ECGenParameterSpec("secp384r1"), random);
+
+        // keyGen.initialize(new ECGenParameterSpec("secp384r1"), new SecureRandom());
         java.security.KeyPair kp = keyGen.generateKeyPair();
 
         // Convert the keys to byte arrays (encoded format)

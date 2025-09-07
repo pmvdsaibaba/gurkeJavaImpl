@@ -111,11 +111,11 @@ public class d_MSMR {
 
     public static class InitResult {
         public List<SenderState> senderStates;
-        public List<ReceiverState> receiverStates;
+        public Map<Integer, List<ReceiverState>> receiverStatesMap;
 
-        public InitResult(List<SenderState> senderStates, List<ReceiverState> receiverStates) {
+        public InitResult(List<SenderState> senderStates, Map<Integer, List<ReceiverState>> receiverStatesMap) {
             this.senderStates = senderStates;
-            this.receiverStates = receiverStates;
+            this.receiverStatesMap = receiverStatesMap;
         }
     }
 ////////////////////////////////////////////////////
@@ -124,11 +124,16 @@ public class d_MSMR {
     public static InitResult procInit(int nS, int nR) throws Exception
     {
         List<SenderState> senderStates = new ArrayList<>();
-        List<ReceiverState> receiverStates = new ArrayList<>();
+        // List<ReceiverState> receiverStates = new ArrayList<>();
+
+        Map<Integer, List<ReceiverState>> receiverStateMap = new HashMap<>();
 
         // For each sender
         for (int i = 1; i <= nS; i++)
         {
+            List<ReceiverState> statesForReceiver = new ArrayList<>();
+
+
             // Generate BK keys
             BKGenResult bkGenResult = UB_KEM.gen(nR);
             TreeEK ek = bkGenResult.ek;
@@ -158,20 +163,27 @@ public class d_MSMR {
             senderStates.add(senderState);
 
             // Create receiver states for this sender
-            for (int j = 0; j < nR; j++)
+            for (int j = 1; j <= nR; j++)
             {
                 // if (receiverStates.size() <= j) {
                     // Initialize new receiver state
                     Map<Integer, TreeDk> dkMap = new HashMap<>();
                     Map<Integer, byte[]> svkMap = new HashMap<>();
                     Map<Integer, byte[]> trMap = new HashMap<>();
-                    
-                    dkMap.put(i, dkList.get(j));
+
+                    dkMap.put(i, dkList.get(j - 1));
                     svkMap.put(i, svk);
                     trMap.put(i, tr);
                     
                     ReceiverState receiverState = new ReceiverState(memS, memR, dkMap, svkMap, trMap);
-                    receiverStates.add(receiverState);
+                    // receiverStates.add(receiverState);
+
+                    // Group by receiver ID (j)
+                    receiverStateMap
+                        .computeIfAbsent(j, k -> new ArrayList<>())  // initialize if absent
+                        .add(receiverState);                         // add state for this sender
+
+
                 // } else {
                 //     // Add to existing receiver state
                 //     ReceiverState receiverState = receiverStates.get(j);
@@ -182,7 +194,7 @@ public class d_MSMR {
             }
         }
 
-        return new InitResult(senderStates, receiverStates);
+        return new InitResult(senderStates, receiverStateMap);
     }
 
     public static class ToOperation {
@@ -432,7 +444,7 @@ public class d_MSMR {
                 {
 /////////////////////////////////////////////////////////////
 // This code need to be fixed.
-// there should be a new parameter dk for from TreeDk
+// there should be a new parameter dk different from TreeDk
 /////////////////////////////////////////////////////////////
                     // // Init message from sender i
                     // if (cP instanceof Object[])
@@ -499,6 +511,138 @@ public class d_MSMR {
         return new DeqOpsResult(currentMemS, currentMemR, currentDk, currentSvk, currentTr);
     }
 
+
+////////////////////////////////////////////////////
+// Proc rcv(st, ad, c)
+////////////////////////////////////////////////////
+    public static ReceiveResult procRcv(ReceiverState st, byte[] ad, Ciphertext c) throws Exception
+    {
+        if (c == null) {
+            return new ReceiveResult(st, null, null, false);
+        }
+
+        // Parse ciphertext
+        int i = c.i;
+        byte[] cPrime = c.cPrime;
+        Object cM = c.cM;
+        Queue<QueuedCiphertext> cq = c.cq;
+        byte[] svkStar = c.svkStar;
+        byte[] svkPrime = c.svkPrime;
+        ToOperation to = c.to;
+        byte[] sigma = c.signature;
+
+        // Get receiver state for sender i
+        if (!st.dkMap.containsKey(i) || !st.svkMap.containsKey(i) || !st.trMap.containsKey(i)) {
+            return new ReceiveResult(st, null, null, false);
+        }
+
+        TreeDk dk = st.dkMap.get(i);
+        byte[] svk = st.svkMap.get(i);
+        byte[] tr = st.trMap.get(i);
+        Set<Integer> memS = new HashSet<>(st.memS);
+        Set<Integer> memR = new HashSet<>(st.memR);
+
+        // Dequeue operations
+        DeqOpsResult deqResult = deqOps(memS, memR, dk, svk, tr, cq, i);
+        memS = deqResult.memS;
+        memR = deqResult.memR;
+        dk = deqResult.dk;
+        svk = deqResult.svk;
+        tr = deqResult.tr;
+
+        // Verify signature
+        byte[] messageToVerify = concatAll(tr, ad, cPrime, serializeObject(cM), 
+                                        serializeQueue(cq), svkStar, svkPrime, 
+                                        serializeToOperation(to));
+        
+        if (!SignatureScheme.vfy(svk, messageToVerify, sigma)) {
+            return new ReceiveResult(st, null, null, false);
+        }
+
+        // Process cM if not empty
+        if (cM != null && !isEmptyObject(cM)) {
+            UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
+            dk = procResult.dk1;
+            TreeDk dkStar = procResult.dk2;
+            // int uid = procResult.uid;
+            // Todo: There is issue with algorithm.
+            int uid = 10001;
+
+            // If forked
+            if (dkStar != null) {
+                // Add new sender state
+                st.dkMap.put(uid, dkStar);
+                st.svkMap.put(uid, svkStar);
+                st.trMap.put(uid, new byte[0]); // ε
+            }
+
+            // Update membership based on operation
+            if (to.op == OpType.ADD) {
+                if (to.target == TargetType.SENDER) {
+                    memS.add(uid);
+                } else if (to.target == TargetType.RECEIVER) {
+                    memR.add(uid);
+                }
+            } else if (to.op == OpType.REMOVE) {
+                if (to.target == TargetType.RECEIVER) {
+                    memR.remove(uid);
+                }
+            }
+        }
+
+        // Decrypt
+        byte[] finInput = concatAll(tr, ad, serializeCiphertext(c));
+        UB_KEM.DecResult decResult = UB_KEM.dec(dk, finInput, cPrime);
+        dk = decResult.dk;
+
+        byte[] kdf_k = "kdf_k".getBytes();
+        byte[] kdf_id = "kdf_id".getBytes();
+        byte[] kdf_tr = "kdf_tr".getBytes();
+
+        byte[] k = deriveKey(decResult.k, kdf_k);
+        byte[] id = deriveKey(decResult.k, kdf_id);
+        byte[] newTr = deriveKey(decResult.k, kdf_tr);
+
+        Kid kid = new Kid(id, i, memS, memR);
+
+        // Handle sender removal
+        if (to.op == OpType.REMOVE && to.target == TargetType.SENDER) {
+            memS.remove(to.uid);
+            if (to.uid == i) {
+                // Current sender removed, remove from state
+                st.dkMap.remove(i);
+                st.svkMap.remove(i);
+                st.trMap.remove(i);
+            }
+        }
+
+        // Update state
+        st.dkMap.put(i, dk);
+        st.svkMap.put(i, svkPrime);
+        st.trMap.put(i, newTr);
+
+        ReceiverState updatedState = new ReceiverState(memS, memR, st.dkMap, st.svkMap, st.trMap);
+
+        return new ReceiveResult(updatedState, k, kid, true);
+    }
+
+    public static class ReceiveResult {
+        public ReceiverState updatedState;
+        public byte[] key;
+        public Kid kid;
+        public boolean success;
+
+        public ReceiveResult(ReceiverState updatedState, byte[] key, Kid kid, boolean success) {
+            this.updatedState = updatedState;
+            this.key = key;
+            this.kid = kid;
+            this.success = success;
+        }
+    }
+    private static boolean isEmptyObject(Object obj) {
+        // Check if object represents empty/null value
+        return obj == null || (obj instanceof byte[] && ((byte[]) obj).length == 0);
+    }
 
     public static class Diff {
         public Set<Integer> senderAdd;
