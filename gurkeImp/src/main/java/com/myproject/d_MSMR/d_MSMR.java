@@ -30,6 +30,7 @@ import java.util.HashMap;
 
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.Arrays;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -359,13 +360,17 @@ public class d_MSMR {
                 byte[] c1 = kemEncResult.c;
                 byte[] k = kemEncResult.k;
 
-                // // c2 = H(k, c1) ⊕ (dk, tr, diff)
-                // Todo: check if the xor is truncating the hash if sizes are different
-                // Todo: check if the serializeObject should be also for diff
+                // Serialize (dk, tr, diff) with length prefixes
+                byte[] dkBytes = serializeTreeDk(dk);
+                byte[] trBytes = st.tr;
+                byte[] diffBytes = serializeObject_Diff(queuedOp.diff);
+                byte[] dkLenBytes = intToByteArray(dkBytes.length);
+                byte[] trLenBytes = intToByteArray(trBytes.length);
+                byte[] dkTrDiff = concatAll(dkLenBytes, trLenBytes, dkBytes, trBytes, diffBytes);
+
                 byte[] hash = RandomOracle.Hash2(k, c1);
-                byte[] dkTrDiff = concatAll(serializeTreeDk(dk), st.tr, serializeObject_Diff(queuedOp.diff));
                 byte[] c2 = xor(hash, dkTrDiff);
-                
+
                 cP = new Object[]{c1, c2}; // (c1, c2)
             } else if (queuedOp.t == TargetType.RECEIVER && queuedOp.op == OpType.REMOVE) {
                 // Receiver remove
@@ -407,18 +412,22 @@ public class d_MSMR {
 //////////////////////////////////////////////////////////
     // Helper Proc deq-ops(st, cq, i)
 ////////////////////////////////////////////////////////////
-    private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk, 
-                                    byte[] svk, byte[] tr, Queue<QueuedCiphertext> cq, int i) throws Exception
-    {
+
+
+    // Updated deqOps: now takes kemDkMap as an argument for KEM decapsulation
+    private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk,
+                                       byte[] svk, byte[] tr, Queue<QueuedCiphertext> cq, int i,
+                                       Map<Integer, byte[]> kemDkMap) throws Exception {
+        // 62. (memS,memR, dk, svk, tr) ← st
         Set<Integer> currentMemS = new HashSet<>(memS);
         Set<Integer> currentMemR = new HashSet<>(memR);
-        // Dk could be of type bytes or MapTreeDk
         TreeDk currentDk = dk;
         byte[] currentSvk = svk;
         byte[] currentTr = tr;
 
-        while (!cq.isEmpty())
-        {
+        // 63. While cq.first() ̸= ⊥:
+        while (!cq.isEmpty()) {
+            // 64. (op, t, uid, cM, cP ) ← cq.dequeue()
             QueuedCiphertext qc = cq.poll();
             OpType op = qc.op;
             TargetType t = qc.t;
@@ -426,79 +435,173 @@ public class d_MSMR {
             Object cM = qc.cM;
             Object cP = qc.cP;
 
-            // If tr is empty (uninitialized)
-            if (currentTr.length == 0)
-            {
-                if (t == TargetType.RECEIVER && op == OpType.ADD)
-                {
-/////////////////////////////////////////////////////////////
-// This code need to be fixed.
-// there should be a new parameter dk different from TreeDk
-/////////////////////////////////////////////////////////////
-                    // // Init message from sender i
-                    // if (cP instanceof Object[])
-                    // {
-                    //     Object[] cPArray = (Object[]) cP;
-                    //     byte[] c1 = (byte[]) cPArray[0];
-                    //     byte[] c2 = (byte[]) cPArray[1];
+            // 65. If tr = ϵ:
+            if (currentTr.length == 0) {
+                // 66. If t = R ∧ op = A:
+                if (t == TargetType.RECEIVER && op == OpType.ADD) {
+                    // 67. // Init msg from sender i
+                    if (cP instanceof Object[]) {
+                        Object[] cPArray = (Object[]) cP;
+                        byte[] c1 = (byte[]) cPArray[0];
+                        byte[] c2 = (byte[]) cPArray[1];
 
-                    //     // Decrypt
-                    //     // Todo: Verify for the case when Receiver is added Dk is of type, Bytes
-                    //     DecapsulationResult kemDecResult = KEM.dec(currentDk, c1);
-                    //     byte[] k = kemDecResult.k;
+                        // Use kemDkMap for KEM decapsulation key (must be present for KEM decapsulation)
+                        if (kemDkMap == null || !kemDkMap.containsKey(i)) {
+                            throw new IllegalStateException("KEM decapsulation key missing for i=" + i + ". This is a protocol error.");
+                        }
+                        byte[] kemDk = kemDkMap.get(i);
+                        KEM.DecapsulationResult kemDecResult = KEM.dec(kemDk, c1);
+                        byte[] k = kemDecResult.getK();
 
-                    //     // Derive plaintext
-                    //     byte[] hashInput = concatAll(k, c1);
-                    //     byte[] hash = computeHash(hashInput);
-                    //     byte[] plaintext = xor(c2, hash);
+                        byte[] hash = RandomOracle.Hash2(k, c1);
+                        byte[] plaintext = xor(c2, hash);
 
-                    //     // Parse plaintext (dk, tr, diff)
-                    //     // This is a simplified parsing - in practice you'd need proper deserialization
-                    //     currentDk = deserializeTreeDk(plaintext); // Extract dk
-                    //     currentTr = extractTr(plaintext); // Extract tr
-                    //     Diff diffResult = extractDiff(plaintext); // Extract diff
+                        int dkLen = byteArrayToInt(Arrays.copyOfRange(plaintext, 0, 4));
+                        int trLen = byteArrayToInt(Arrays.copyOfRange(plaintext, 4, 8));
+                        byte[] dkBytes = Arrays.copyOfRange(plaintext, 8, 8 + dkLen);
+                        byte[] trBytes = Arrays.copyOfRange(plaintext, 8 + dkLen, 8 + dkLen + trLen);
+                        byte[] diffBytes = Arrays.copyOfRange(plaintext, 8 + dkLen + trLen, plaintext.length);
 
-                    //     // Merge diff into membership sets
-                    //     MergeDiffResult mergeResult = mergeDiff(currentMemS, currentMemR, 
-                    //                                         diffResult.senderAdd, diffResult.senderRemove,
-                    //                                         diffResult.receiverAdd, diffResult.receiverRemove);
-                    //     currentMemS = mergeResult.newMemS;
-                    //     currentMemR = mergeResult.newMemR;
-                    // }
+                        TreeDk newDk = deserializeTreeDk(dkBytes);
+                        byte[] newTr = trBytes;
+                        Diff diffResult = deserializeDiff(diffBytes);
+
+                        currentDk = newDk;
+                        currentTr = newTr;
+
+                        MergeDiffResult mergeResult = mergeDiff(currentMemS, currentMemR,
+                                diffResult.senderAdd, diffResult.senderRemove,
+                                diffResult.receiverAdd, diffResult.receiverRemove);
+                        currentMemS = mergeResult.newMemS;
+                        currentMemR = mergeResult.newMemR;
+                    }
                 } else {
-                    // Ignore until init from sender i
+                    // 75. Continue // Ignore until init from i
                     continue;
                 }
-            }
-
-            // Update membership based on operation
-            if (op == OpType.ADD) {
-                if (t == TargetType.SENDER) {
-                    currentMemS.add(uid);
-                } else if (t == TargetType.RECEIVER) {
-                    currentMemR.add(uid);
+            } else {
+                // 76. If op = A: memt∪←{uid}
+                // 77. Else: memt ← memt \ {uid}
+                if (op == OpType.ADD) {
+                    if (t == TargetType.SENDER) {
+                        currentMemS.add(uid);
+                    } else if (t == TargetType.RECEIVER) {
+                        currentMemR.add(uid);
+                    }
+                } else if (op == OpType.REMOVE) {
+                    if (t == TargetType.SENDER) {
+                        currentMemS.remove(uid);
+                    } else if (t == TargetType.RECEIVER) {
+                        currentMemR.remove(uid);
+                    }
                 }
-            } else if (op == OpType.REMOVE) {
-                if (t == TargetType.SENDER) {
-                    currentMemS.remove(uid);
-                } else if (t == TargetType.RECEIVER) {
-                    currentMemR.remove(uid);
-                }
-            }
 
-            // Process BK operations for receivers
-            if (t == TargetType.RECEIVER && cM != null)
-            {
-                UB_KEM.BKProcResult procResult = UB_KEM.proc(currentDk, cM);
-                // BKRemoveResult procResult = UB_KEM.proc(currentDk, cM);
-                // UB_KEM.proc retrun type is different from what is expected here
-                currentDk = procResult.dk1;
-                // Handle forked keys if needed
+                // 78. If t = R:
+                if (t == TargetType.RECEIVER && cM != null) {
+                    // 79. (uid, dk, dk∗) ← BK.proc(dk, cM)
+                    UB_KEM.BKProcResult procResult = UB_KEM.proc(currentDk, cM);
+                    currentDk = procResult.dk1;
+                    // Handle forked keys if needed
+                }
+                // 80. st ← (memS,memR, dk, svk, tr)
             }
         }
-
+        // 81. Return st
         return new DeqOpsResult(currentMemS, currentMemR, currentDk, currentSvk, currentTr);
     }
+
+//     private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk, 
+//                                     byte[] svk, byte[] tr, Queue<QueuedCiphertext> cq, int i) throws Exception
+//     {
+//         Set<Integer> currentMemS = new HashSet<>(memS);
+//         Set<Integer> currentMemR = new HashSet<>(memR);
+//         // Dk could be of type bytes or MapTreeDk
+//         TreeDk currentDk = dk;
+//         byte[] currentSvk = svk;
+//         byte[] currentTr = tr;
+
+//         while (!cq.isEmpty())
+//         {
+//             QueuedCiphertext qc = cq.poll();
+//             OpType op = qc.op;
+//             TargetType t = qc.t;
+//             int uid = qc.uid;
+//             Object cM = qc.cM;
+//             Object cP = qc.cP;
+
+//             // If tr is empty (uninitialized)
+//             if (currentTr.length == 0)
+//             {
+//                 if (t == TargetType.RECEIVER && op == OpType.ADD)
+//                 {
+// /////////////////////////////////////////////////////////////
+// // This code need to be fixed.
+// // there should be a new parameter dk different from TreeDk
+// /////////////////////////////////////////////////////////////
+//                     // // Init message from sender i
+//                     // if (cP instanceof Object[])
+//                     // {
+//                     //     Object[] cPArray = (Object[]) cP;
+//                     //     byte[] c1 = (byte[]) cPArray[0];
+//                     //     byte[] c2 = (byte[]) cPArray[1];
+
+//                     //     // Decrypt
+//                     //     // Todo: Verify for the case when Receiver is added Dk is of type, Bytes
+//                     //     DecapsulationResult kemDecResult = KEM.dec(currentDk, c1);
+//                     //     byte[] k = kemDecResult.k;
+
+//                     //     // Derive plaintext
+//                     //     byte[] hashInput = concatAll(k, c1);
+//                     //     byte[] hash = computeHash(hashInput);
+//                     //     byte[] plaintext = xor(c2, hash);
+
+//                     //     // Parse plaintext (dk, tr, diff)
+//                     //     // This is a simplified parsing - in practice you'd need proper deserialization
+//                     //     currentDk = deserializeTreeDk(plaintext); // Extract dk
+//                     //     currentTr = extractTr(plaintext); // Extract tr
+//                     //     Diff diffResult = extractDiff(plaintext); // Extract diff
+
+//                     //     // Merge diff into membership sets
+//                     //     MergeDiffResult mergeResult = mergeDiff(currentMemS, currentMemR, 
+//                     //                                         diffResult.senderAdd, diffResult.senderRemove,
+//                     //                                         diffResult.receiverAdd, diffResult.receiverRemove);
+//                     //     currentMemS = mergeResult.newMemS;
+//                     //     currentMemR = mergeResult.newMemR;
+//                     // }
+//                 } else {
+//                     // Ignore until init from sender i
+//                     continue;
+//                 }
+//             }
+
+//             // Update membership based on operation
+//             if (op == OpType.ADD) {
+//                 if (t == TargetType.SENDER) {
+//                     currentMemS.add(uid);
+//                 } else if (t == TargetType.RECEIVER) {
+//                     currentMemR.add(uid);
+//                 }
+//             } else if (op == OpType.REMOVE) {
+//                 if (t == TargetType.SENDER) {
+//                     currentMemS.remove(uid);
+//                 } else if (t == TargetType.RECEIVER) {
+//                     currentMemR.remove(uid);
+//                 }
+//             }
+
+//             // Process BK operations for receivers
+//             if (t == TargetType.RECEIVER && cM != null)
+//             {
+//                 UB_KEM.BKProcResult procResult = UB_KEM.proc(currentDk, cM);
+//                 // BKRemoveResult procResult = UB_KEM.proc(currentDk, cM);
+//                 // UB_KEM.proc retrun type is different from what is expected here
+//                 currentDk = procResult.dk1;
+//                 // Handle forked keys if needed
+//             }
+//         }
+
+//         return new DeqOpsResult(currentMemS, currentMemR, currentDk, currentSvk, currentTr);
+//     }
 
 
 ////////////////////////////////////////////////////
@@ -535,8 +638,8 @@ public class d_MSMR {
         Set<Integer> memS = new HashSet<>(ST.memS);
         Set<Integer> memR = new HashSet<>(ST.memR);
 
-        // Dequeue operations
-        DeqOpsResult deqResult = deqOps(memS, memR, dk, svk, tr, cq, i);
+        // Dequeue operations (pass kemDkMap for KEM decapsulation)
+        DeqOpsResult deqResult = deqOps(memS, memR, dk, svk, tr, cq, i, ST.kemDkMap);
         memS = deqResult.memS;
         memR = deqResult.memR;
         dk = deqResult.dk;
@@ -1297,5 +1400,34 @@ public class d_MSMR {
         return derivedKey;
     }
 
+    // Helper: get the length of serialized TreeDk (protocol-specific, set as needed)
+    private static int getTreeDkSerializedLength() {
+        // TODO: Return the correct length for your TreeDk serialization
+        // For example, if TreeDk always serializes to 128 bytes:
+        // return 128;
+        throw new UnsupportedOperationException("getTreeDkSerializedLength() not implemented");
+    }
+
+    // Helper: deserialize TreeDk from bytes
+    private static TreeDk deserializeTreeDk(byte[] bytes) {
+        // TODO: Implement deserialization logic for TreeDk
+        throw new UnsupportedOperationException("deserializeTreeDk() not implemented");
+    }
+
+
+    // Helper: convert 4 bytes to int (big-endian)
+    private static int byteArrayToInt(byte[] bytes) {
+        return   ((bytes[0] & 0xFF) << 24)
+               | ((bytes[1] & 0xFF) << 16)
+               | ((bytes[2] & 0xFF) << 8)
+               | (bytes[3] & 0xFF);
+    }
+
+
+    // Helper: deserialize Diff from bytes
+    private static Diff deserializeDiff(byte[] bytes) {
+        // TODO: Implement deserialization logic for Diff
+        throw new UnsupportedOperationException("deserializeDiff() not implemented");
+    }
 }
 
