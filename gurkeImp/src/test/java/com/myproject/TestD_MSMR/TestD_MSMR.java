@@ -65,11 +65,11 @@ public class TestD_MSMR {
 
         // Step 3: Verify receiver state structure and memS/memR
         for (int receiverId = 1; receiverId <= nR; receiverId++) {
-            List<ReceiverState> receiverStates = initResult.receiverStatesMap.get(receiverId);
-            assertNotNull(receiverStates, "Receiver " + receiverId + " should have a list of states");
+            Map<Integer, SenderStateInReceiver> receiverStates = initResult.receiverStatesMap.get(receiverId);
+            assertNotNull(receiverStates, "Receiver " + receiverId + " should have a state map");
             assertEquals(nS, receiverStates.size(), "Receiver " + receiverId + " must have one state per sender");
 
-            for (ReceiverState rs : receiverStates) {
+            for (SenderStateInReceiver rs : receiverStates.values()) {
                 assertEquals(expectedMemS, rs.memS, "Receiver memS should contain all senders");
                 assertEquals(expectedMemR, rs.memR, "Receiver memR should contain all receivers");
 
@@ -92,14 +92,20 @@ public class TestD_MSMR {
             byte[] expectedSvk = sender.svk;
 
             for (int receiverId = 1; receiverId <= nR; receiverId++) {
-                List<ReceiverState> receiverStates = initResult.receiverStatesMap.get(receiverId);
+                Map<Integer, SenderStateInReceiver> receiverStates = initResult.receiverStatesMap.get(receiverId);
                 assertNotNull(receiverStates, "Receiver " + receiverId + " should exist in the map");
 
-                ReceiverState state = receiverStates.get(senderId - 1);  // List is in sender order
+                SenderStateInReceiver state = receiverStates.get(senderId);  // Map keyed by senderId
+                assertNotNull(state, "State for sender " + senderId + " should exist in receiver " + receiverId);
                 assertArrayEquals(expectedSvk, state.svkMap.get(senderId),
                     "svk in receiver must match sender's svk for sender " + senderId + ", receiver " + receiverId);
+
+                // svk in receiver state is exactly the same as in sender state
+                assertArrayEquals(sender.svk, state.svkMap.get(senderId),
+                    "svk in receiver state must be identical to sender's svk after init for sender " + senderId + ", receiver " + receiverId);
             }
         }
+
 
         System.out.println("procInit test passed successfully");
     }
@@ -120,7 +126,8 @@ public class TestD_MSMR {
         // Step 1: Initialize
         InitResult initResult = d_MSMR.procInit(nS, nR);
         SenderState senderState = initResult.senderStates.get(0);
-        ReceiverState receiverState = initResult.receiverStatesMap.get(1).get(0);
+        Map<Integer, SenderStateInReceiver> receiverStateMap = initResult.receiverStatesMap.get(1);
+        SenderStateInReceiver receiverState = receiverStateMap.get(1); // senderId = 1
 
         // Step 2: Generate Associated Data (AD)
         byte[] ad = new byte[16];
@@ -135,12 +142,17 @@ public class TestD_MSMR {
 
         System.out.println("Serializing object of type: " + sndResult.ciphertext.getClass().getName());
         // Step 4: Execute procRcv with the resulting ciphertext
-        Object rcvOutput = d_MSMR.procRcv(receiverState, ad, sndResult.ciphertext);
-        
-        // Verify it's a successful receive (not a failure)
-        // assertFalse(rcvOutput instanceof ReceiveFailure, "Receive should not fail");
-        // assertTrue(rcvOutput instanceof ReceiveResult, "Should be a successful receive");
-        
+        Object rcvOutput = d_MSMR.procRcv(receiverStateMap, ad, sndResult.ciphertext);
+
+        // Check that the key in rcvOutput matches the key in sndResult
+        assertTrue(rcvOutput instanceof ReceiveResult, "rcvOutput should be a ReceiveResult");
+        ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
+        assertNotNull(rcvResult.key, "rcvResult.key should not be null");
+        assertArrayEquals(sndResult.key, rcvResult.key, "Shared keys should match between sender and receiver");
+
+
+
+
 //         ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
 
 //         // Step 5: Validate output
@@ -236,6 +248,7 @@ public class TestD_MSMR {
 
 
         System.out.println("snd second time and all receiver has same key: test passed successfully");
+        System.out.println("**********************************************");
 
     }
 
