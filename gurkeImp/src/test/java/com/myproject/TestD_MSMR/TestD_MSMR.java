@@ -45,7 +45,7 @@ public class TestD_MSMR {
         assertEquals(nR, initResult.receiverStatesMap.size(), "There should be nR receiver entries in the map");
 
         // Verify sender state (sample)
-        SenderState senderState = initResult.senderStates.get(0);
+        SenderState senderState = initResult.senderStates.get(1); // sender IDs start from 1
         assertEquals(nR, senderState.memR.size());
         assertNotNull(senderState.ek);
         assertNotNull(senderState.ssk);
@@ -58,7 +58,7 @@ public class TestD_MSMR {
         for (int i = 1; i <= nS; i++) expectedMemS.add(i);
         for (int i = 1; i <= nR; i++) expectedMemR.add(i);
 
-        for (SenderState sender : initResult.senderStates) {
+        for (SenderState sender : initResult.senderStates.values()) {
             assertEquals(expectedMemS, sender.memS, "Sender memS should contain all senders");
             assertEquals(expectedMemR, sender.memR, "Sender memR should contain all receivers");
         }
@@ -81,13 +81,13 @@ public class TestD_MSMR {
         }
 
         // Step 4: Check sender IDs are sequential and correct
-        for (int i = 0; i < nS; i++) {
+        for (int i = 1; i <= nS; i++) {
             SenderState s = initResult.senderStates.get(i);
-            assertEquals(i + 1, s.i, "SenderState.i should be sequential starting from 1");
+            assertEquals(i, s.i, "SenderState.i should be sequential starting from 1");
         }
 
         // Step 5: Check that each receiver's receiverState for a sender has matching svk
-        for (SenderState sender : initResult.senderStates) {
+        for (SenderState sender : initResult.senderStates.values()) {
             int senderId = sender.i;
             byte[] expectedSvk = sender.svk;
 
@@ -125,7 +125,7 @@ public class TestD_MSMR {
 
         // Step 1: Initialize
         InitResult initResult = d_MSMR.procInit(nS, nR);
-        SenderState senderState = initResult.senderStates.get(0);
+        SenderState senderState = initResult.senderStates.get(1); // senderId = 1
         Map<Integer, SenderStateInReceiver> receiverStateMap = initResult.receiverStatesMap.get(1);
         SenderStateInReceiver receiverState = receiverStateMap.get(1); // senderId = 1
 
@@ -163,7 +163,7 @@ public class TestD_MSMR {
         System.out.println("snd first time and all receiver has same key: test passed successfully");
 
         // --- Additional test: sender 2 sends, all receivers derive same key ---
-        SenderState senderState2 = initResult.senderStates.get(1); // sender 2 (index 1)
+        SenderState senderState2 = initResult.senderStates.get(2); // senderId = 2
         SendResult sndResult2 = d_MSMR.procSnd(senderState2, ad);
         assertNotNull(sndResult2.ciphertext);
         assertNotNull(sndResult2.key);
@@ -182,7 +182,7 @@ public class TestD_MSMR {
         System.out.println("snd sender 2 and all receiver has same key: test passed successfully");
 
         // --- Additional test: sender 5 sends, all receivers derive same key ---
-        SenderState senderState5 = initResult.senderStates.get(4); // sender 5 (index 4)
+        SenderState senderState5 = initResult.senderStates.get(5); // senderId = 5
         SendResult sndResult5 = d_MSMR.procSnd(senderState5, ad);
         assertNotNull(sndResult5.ciphertext);
         assertNotNull(sndResult5.key);
@@ -204,7 +204,7 @@ public class TestD_MSMR {
 
         // --- Test: sender 2 sends, receiver 2 receives twice, keys should match (fresh init) ---
         InitResult freshInit = d_MSMR.procInit(nS, nR);
-        SenderState sender2 = freshInit.senderStates.get(1); // sender 2 (index 1)
+        SenderState sender2 = freshInit.senderStates.get(2); // senderId = 2
         Map<Integer, SenderStateInReceiver> receiver2StateMap = freshInit.receiverStatesMap.get(2);
 
         // First send/receive

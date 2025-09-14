@@ -110,10 +110,10 @@ public class d_MSMR {
     }
 
     public static class InitResult {
-        public List<SenderState> senderStates;
+        public Map<Integer, SenderState> senderStates;
         public Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStatesMap;
 
-        public InitResult(List<SenderState> senderStates, Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStatesMap) {
+        public InitResult(Map<Integer, SenderState> senderStates, Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStatesMap) {
             this.senderStates = senderStates;
             this.receiverStatesMap = receiverStatesMap;
         }
@@ -126,7 +126,7 @@ public class d_MSMR {
 ////////////////////////////////////////////////////
     public static InitResult procInit(int nS, int nR) throws Exception
     {
-        List<SenderState> senderStates = new ArrayList<>();
+        Map<Integer, SenderState> senderStates = new HashMap<>();
 
         Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStateMap = new HashMap<>();
 
@@ -159,7 +159,7 @@ public class d_MSMR {
             }
 
             SenderState senderState = new SenderState(i, memS, memR, ek, ssk, svk, tr, ops);
-            senderStates.add(senderState);
+            senderStates.put(i, senderState);
 
             // Create receiver states for this sender
             for (int j = 1; j <= nR; j++)
