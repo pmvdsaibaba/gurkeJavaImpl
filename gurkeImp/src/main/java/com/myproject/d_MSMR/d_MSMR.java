@@ -809,7 +809,89 @@ public class d_MSMR {
         return new AddSResult(encapsResult.updatedState, stS, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
     }
 
+///////////////////////////////////////////////////
+// Proc proc(st, ad, c) 
+///////////////////////////////////////////////////
+    public static SenderState proc(SenderState st, byte[] ad, CiphertextS c) {
+        // 38. If c = ⊥: Return st
+        if (c == null) {
+            return st;
+        }
 
+        // 39. (i,memS,memR, ek, ssk, svk, tr, ops) ← st
+        int i = st.i;
+        Set<Integer> memS = new HashSet<>(st.memS);
+        Set<Integer> memR = new HashSet<>(st.memR);
+        TreeEK ek = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+        Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
+
+        // 40. c ← (j,D,memjS,memjR, to)
+        int j = c.i;
+        TreeEK D = c.ek;
+        Set<Integer> memjS = c.memS;
+        Set<Integer> memjR = c.memR;
+        ToOperation to = c.to;
+
+        // 41. (op, t, uid) ← to
+        OpType op = to.op;
+        TargetType t = to.target;
+        int uid = to.uid;
+
+        // 42. If (op, t, uid) = (R, S, i):
+        if (op == OpType.REMOVE && t == TargetType.SENDER && uid == i) {
+            // 43. Return ⊥ // Calling sender was removed
+            return null;
+        }
+
+        // 44. If i = j: Return st // No need to process c
+        if (i == j) {
+            return st;
+        }
+
+        // 45. If op = A:
+        if (op == OpType.ADD) {
+            // 46. If uid ∈ memt: Return st
+            if ((t == TargetType.SENDER && memS.contains(uid)) || (t == TargetType.RECEIVER && memR.contains(uid))) {
+                return st;
+            }
+            // 47. memt∪←{uid}
+            if (t == TargetType.SENDER) {
+                memS.add(uid);
+            } else {
+                memR.add(uid);
+            }
+            // 48. If t = R:
+            if (t == TargetType.RECEIVER) {
+                // 49. (ekjR)j∈memS ← D
+                ek = D;
+                // 50-52. Difference between i and j’s memt sets, to sync the new receiver with i
+                Diff diff = diff(st.memS, memjS, st.memR, memjR);
+                // 53. ops ← ops.enqueue(A, t, uid, diff , ekiR)
+                ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, null));
+            } else {
+                // 55. ops ← ops.enqueue(A, t, uid, ϵ, ϵ)
+                ops.offer(new QueuedOperation(OpType.ADD, t, uid, null, null));
+            }
+        } else {
+            // 57. If uid ̸∈ memt: Return st
+            if ((t == TargetType.SENDER && !memS.contains(uid)) || (t == TargetType.RECEIVER && !memR.contains(uid))) {
+                return st;
+            }
+            // 58. memt ← memt \ {uid}
+            if (t == TargetType.SENDER) {
+                memS.remove(uid);
+            } else {
+                memR.remove(uid);
+            }
+            // 59. ops ← ops.enqueue(R, t, uid, ϵ, ϵ)
+            ops.offer(new QueuedOperation(OpType.REMOVE, t, uid, null, null));
+        }
+        // 60. st ← (i,memS,memR, ek, ssk, svk, tr, ops)
+        return new SenderState(i, memS, memR, ek, ssk, svk, tr, ops);
+    }
 
 ///////////////////////////////////////////////////
 
