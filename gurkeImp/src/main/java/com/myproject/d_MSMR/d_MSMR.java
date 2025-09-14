@@ -994,6 +994,77 @@ public class d_MSMR {
         return new SenderState(i, memS, memR, ek, ssk, svk, tr, ops);
     }
 
+
+
+///////////////////////////////////////////////////
+// Proc rmv(st, ad, t, uid)
+///////////////////////////////////////////////////
+    public static class RmvResult {
+        public SenderState updatedSenderState;
+        public CiphertextS cS;
+        public Ciphertext cR;
+        public byte[] key;
+        public Kid kid;
+
+        public RmvResult(SenderState updatedSenderState, CiphertextS cS, Ciphertext cR, byte[] key, Kid kid) {
+            this.updatedSenderState = updatedSenderState;
+            this.cS = cS;
+            this.cR = cR;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+    public static RmvResult procRmv(SenderState st, byte[] ad, TargetType t, int uid) throws Exception {
+        int i = st.i;
+        Set<Integer> memS = new HashSet<>(st.memS);
+        Set<Integer> memR = new HashSet<>(st.memR);
+        TreeEK ek = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+        Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
+
+        // 21. If uid ̸∈ memt: Return (st,⊥,⊥,⊥,⊥)
+        if ((t == TargetType.SENDER && !memS.contains(uid)) || (t == TargetType.RECEIVER && !memR.contains(uid))) {
+            return new RmvResult(st, null, null, null, null);
+        }
+
+        // 22. If t = R: memt ← memt \ {uid}
+        if (t == TargetType.RECEIVER) {
+            memR.remove(uid);
+        } else if (t == TargetType.SENDER) {
+            memS.remove(uid);
+        }
+
+        // 23. to ← (R, t, uid); cM ← ϵ
+        ToOperation to = new ToOperation(OpType.REMOVE, t, uid);
+        Object cM = null;
+
+        // 24. (st, cq) ← enq-ops(st,memS,memR)
+        EnqOpsResult enqResult = enqOps(st, memS, memR);
+        SenderState stAfterEnq = enqResult.updatedState;
+        Queue<QueuedCiphertext> cq = enqResult.cq;
+
+        // 25-26. If t = R: (ek, cM) ←$ BK.rmv(ek, uid)
+        if (t == TargetType.RECEIVER) {
+            UB_KEM.BKRemoveResult rmvResult = UB_KEM.rmv(ek, uid);
+            ek = rmvResult.ek;
+            cM = rmvResult.c;
+        }
+
+        // 27. cS ← (i, ϵ, ϵ, ϵ, to)
+        CiphertextS cS = new CiphertextS(i, null, null, null, to);
+
+        // 28. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, ϵ, to)
+        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);
+
+        // 29. Return (st, cS, cR, k, kid)
+        return new RmvResult(encapsResult.updatedState, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
+    }
+
+
+
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
