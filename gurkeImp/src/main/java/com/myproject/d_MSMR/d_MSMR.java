@@ -96,14 +96,16 @@ public class d_MSMR {
         public Set<Integer> memS;
         public Set<Integer> memR;
         public Map<Integer, TreeDk> dkMap; // St[i] for each sender i
+        public Map<Integer, byte[]> kemDkMap; // KEM decapsulation keys for each sender i (if any)
         public Map<Integer, byte[]> svkMap; // svk for each sender i
         public Map<Integer, byte[]> trMap; // tr for each sender i
 
         public SenderStateInReceiver(Set<Integer> memS, Set<Integer> memR, Map<Integer, TreeDk> dkMap,
-                           Map<Integer, byte[]> svkMap, Map<Integer, byte[]> trMap) {
+                           Map<Integer, byte[]> kemDkMap, Map<Integer, byte[]> svkMap, Map<Integer, byte[]> trMap) {
             this.memS = new HashSet<>(memS);
             this.memR = new HashSet<>(memR);
             this.dkMap = new HashMap<>(dkMap);
+            this.kemDkMap = kemDkMap != null ? new HashMap<>(kemDkMap) : null;
             this.svkMap = new HashMap<>(svkMap);
             this.trMap = new HashMap<>(trMap);
         }
@@ -172,7 +174,7 @@ public class d_MSMR {
                 svkMap.put(i, svk);
                 trMap.put(i, tr);
 
-                SenderStateInReceiver senderStateInReceiver = new SenderStateInReceiver(memS, memR, dkMap, svkMap, trMap);
+                SenderStateInReceiver senderStateInReceiver = new SenderStateInReceiver(memS, memR, dkMap, new HashMap<>(), svkMap, trMap);
 
                 // Group by receiver ID (j)
                 receiverStateMap
@@ -574,7 +576,7 @@ public class d_MSMR {
                 svkMap.put(uid, svkStar);
                 trMap.put(uid, new byte[0]); // ε
 
-                SenderStateInReceiver newSenderState = new SenderStateInReceiver(new HashSet<>(memS), new HashSet<>(memR), dkMap, svkMap, trMap);
+                SenderStateInReceiver newSenderState = new SenderStateInReceiver(new HashSet<>(memS), new HashSet<>(memR), dkMap, new HashMap<>(), svkMap, trMap);
                 st.put(uid, newSenderState);
             }
 
@@ -623,8 +625,8 @@ public class d_MSMR {
         ST.svkMap.put(i, svkPrime);
         ST.trMap.put(i, newTr);
 
-        SenderStateInReceiver updatedState = new SenderStateInReceiver(memS, memR, ST.dkMap, ST.svkMap, ST.trMap);
-        st.put(i, updatedState);
+    SenderStateInReceiver updatedState = new SenderStateInReceiver(memS, memR, ST.dkMap, ST.kemDkMap, ST.svkMap, ST.trMap);
+    st.put(i, updatedState);
 
         return new ReceiveResult(st, k, kid, true);
     }
@@ -734,9 +736,7 @@ public class d_MSMR {
         }
     }
 
-///////////////////////////////////////////////////
-    // Proc add(st, ad, S, uid)
-///////////////////////////////////////////////////
+
     // Result class for procAddS
     public static class AddSResult {
         public SenderState updatedSenderState;
@@ -756,24 +756,25 @@ public class d_MSMR {
         }
     }
 
-    // Ciphertext for sender add (procAddS)
+    // Ciphertext for sender/receiver add (procAddS/procAddR)
     public static class CiphertextS {
         public int i;
-        public TreeEK ek;
+        public Map<Integer, byte[]> ekMap; // KEM encapsulation keys for each sender j
         public Set<Integer> memS;
         public Set<Integer> memR;
         public ToOperation to;
 
-        public CiphertextS(int i, TreeEK ek, Set<Integer> memS, Set<Integer> memR, ToOperation to) {
+        public CiphertextS(int i, Map<Integer, byte[]> ekMap, Set<Integer> memS, Set<Integer> memR, ToOperation to) {
             this.i = i;
-            this.ek = ek;
+            this.ekMap = ekMap != null ? new HashMap<>(ekMap) : null;
             this.memS = new HashSet<>(memS);
             this.memR = new HashSet<>(memR);
             this.to = to;
         }
     }
-
-    // Implements: Proc add(st, ad, S, uid)
+///////////////////////////////////////////////////
+    // Proc add(st, ad, S, uid)
+///////////////////////////////////////////////////
     public static AddSResult procAddS(SenderState st, byte[] ad, int uid) throws Exception {
         // Step 1: Update memS to include uid
         Set<Integer> memS = new HashSet<>(st.memS);
@@ -809,6 +810,108 @@ public class d_MSMR {
         return new AddSResult(encapsResult.updatedState, stS, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
     }
 
+
+
+    // Result class for procAddR
+    public static class AddRResult {
+        public SenderState updatedSenderState;
+        public Map<Integer, SenderStateInReceiver> newReceiverState;
+        public CiphertextS cS;
+        public Ciphertext cR;
+        public byte[] key;
+        public Kid kid;
+
+        public AddRResult(SenderState updatedSenderState, Map<Integer, SenderStateInReceiver> newReceiverState, CiphertextS cS, Ciphertext cR, byte[] key, Kid kid) {
+            this.updatedSenderState = updatedSenderState;
+            this.newReceiverState = newReceiverState;
+            this.cS = cS;
+            this.cR = cR;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+//////////////////////////////////////////////
+    // Implements: Proc add(st, ad, R, uid)
+//////////////////////////////////////////////
+    public static AddRResult procAddR(SenderState st, byte[] ad, int uid) throws Exception {
+        // 46. (i,memS,memR, ek, ssk, svk, tr, ops) ← st
+        int i = st.i;
+        Set<Integer> memS = new HashSet<>(st.memS);
+        Set<Integer> memR = new HashSet<>(st.memR);
+        TreeEK ek = st.ek;
+        byte[] ssk = st.ssk;
+        byte[] svk = st.svk;
+        byte[] tr = st.tr;
+        Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
+
+        // 47. memR∪←{uid}; to ← (A, R, uid)
+        memR.add(uid);
+        ToOperation to = new ToOperation(OpType.ADD, TargetType.RECEIVER, uid);
+
+        // 48. cM, svkuid ← ϵ
+        Object cM = null;
+        byte[] svkuid = new byte[0];
+
+        // 49. (st, cq) ← enq-ops(st,memS,memR)
+        EnqOpsResult enqResult = enqOps(st, memS, memR);
+        SenderState stAfterEnq = enqResult.updatedState;
+        Queue<QueuedCiphertext> cq = enqResult.cq;
+
+        // 50-54. For all j ∈ memS \ {i}: KEM keygen for senders and new receiver
+        Map<Integer, byte[]> ekjRMap = new HashMap<>();
+        Map<Integer, byte[]> dkjRMap = new HashMap<>();
+        Map<Integer, SenderStateInReceiver> Stuid = new HashMap<>();
+        for (int j : memS) {
+            if (j == i) continue;
+            // 53. (ekjR, dkjR) ←$ K.gen
+            KEM.KeyPair kemKeyPair = KEM.gen();
+            byte[] ekjR = kemKeyPair.getEk();
+            byte[] dkjR = kemKeyPair.getDk();
+            ekjRMap.put(j, ekjR);
+            dkjRMap.put(j, dkjR);
+            // 54. Stuid[j] ← (memS,memR, dkjR, svk, ϵ) -- kemDkMap now used
+            Map<Integer, TreeDk> dkMap = new HashMap<>();
+            Map<Integer, byte[]> kemDkMap = new HashMap<>();
+            Map<Integer, byte[]> svkMap = new HashMap<>();
+            Map<Integer, byte[]> trMap = new HashMap<>();
+            dkMap.put(j, null); // No TreeDk for KEM receivers
+            kemDkMap.put(j, dkjR);
+            svkMap.put(j, svk);
+            trMap.put(j, new byte[0]);
+            Stuid.put(j, new SenderStateInReceiver(memS, memR, dkMap, kemDkMap, svkMap, trMap));
+        }
+
+        // 55. (ek, dk, cM) ←$ BK.add(ek)
+        UB_KEM.BKAddResult bkAddResult = UB_KEM.add(ek);
+        ek = bkAddResult.ek;
+        TreeDk dk = bkAddResult.dk;
+        cM = bkAddResult.c;
+
+        // 56. Stuid[i] ← (memS,memR, dk, svk, tr)
+        Map<Integer, TreeDk> dkMapI = new HashMap<>();
+        Map<Integer, byte[]> kemDkMapI = new HashMap<>();
+        Map<Integer, byte[]> svkMapI = new HashMap<>();
+        Map<Integer, byte[]> trMapI = new HashMap<>();
+        dkMapI.put(i, dk);
+        // kemDkMapI is empty for i
+        svkMapI.put(i, svk);
+        trMapI.put(i, tr);
+        Stuid.put(i, new SenderStateInReceiver(memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
+
+        // 57. stR ← Stuid
+        Map<Integer, SenderStateInReceiver> stR = Stuid;
+
+        // 58. cS ← (i, (ekjR)j∈memS\{i}, memS, memR, to)
+        CiphertextS cS = new CiphertextS(i, ekjRMap, new HashSet<>(memS), new HashSet<>(memR), to);
+
+        // 59. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, svkuid, to)
+        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to);
+
+        // 60. Return (st, stR, cS, cR, k, kid)
+        return new AddRResult(encapsResult.updatedState, stR, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
+    }
+
 ///////////////////////////////////////////////////
 // Proc proc(st, ad, c) 
 ///////////////////////////////////////////////////
@@ -828,9 +931,9 @@ public class d_MSMR {
         byte[] tr = st.tr;
         Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
 
-        // 40. c ← (j,D,memjS,memjR, to)
+        // 40. c ← (j,ekMap,memjS,memjR, to)
         int j = c.i;
-        TreeEK D = c.ek;
+        Map<Integer, byte[]> D = c.ekMap;
         Set<Integer> memjS = c.memS;
         Set<Integer> memjR = c.memR;
         ToOperation to = c.to;
@@ -866,11 +969,9 @@ public class d_MSMR {
             // 48. If t = R:
             if (t == TargetType.RECEIVER) {
                 // 49. (ekjR)j∈memS ← D
-                ek = D;
-                // 50-52. Difference between i and j’s memt sets, to sync the new receiver with i
+                // Do not assign D to ek; instead, pass the KEM key for uid if present
                 Diff diff = diff(st.memS, memjS, st.memR, memjR);
-                // 53. ops ← ops.enqueue(A, t, uid, diff , ekiR)
-                ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, null));
+                ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, D != null ? D.get(uid) : null));
             } else {
                 // 55. ops ← ops.enqueue(A, t, uid, ϵ, ϵ)
                 ops.offer(new QueuedOperation(OpType.ADD, t, uid, null, null));
