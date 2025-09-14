@@ -144,14 +144,58 @@ public class TestD_MSMR {
         // Step 4: Execute procRcv with the resulting ciphertext
         Object rcvOutput = d_MSMR.procRcv(receiverStateMap, ad, sndResult.ciphertext);
 
-        // Check that the key in rcvOutput matches the key in sndResult
+
+        // Check that the key in rcvOutput matches the key in sndResult for receiver 1
         assertTrue(rcvOutput instanceof ReceiveResult, "rcvOutput should be a ReceiveResult");
         ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
         assertNotNull(rcvResult.key, "rcvResult.key should not be null");
-        assertArrayEquals(sndResult.key, rcvResult.key, "Shared keys should match between sender and receiver");
+        assertArrayEquals(sndResult.key, rcvResult.key, "Shared keys should match between sender and receiver 1");
 
+        // Now check that all receivers derive the same key
+        for (int receiverId = 2; receiverId <= nR; receiverId++) {
+            Map<Integer, SenderStateInReceiver> receiverStateMapAll = initResult.receiverStatesMap.get(receiverId);
+            Object rcvOutputAll = d_MSMR.procRcv(receiverStateMapAll, ad, sndResult.ciphertext);
+            assertTrue(rcvOutputAll instanceof ReceiveResult, "rcvOutput for receiver " + receiverId + " should be a ReceiveResult");
+            ReceiveResult rcvResultAll = (ReceiveResult) rcvOutputAll;
+            assertNotNull(rcvResultAll.key, "rcvResult.key for receiver " + receiverId + " should not be null");
+            assertArrayEquals(sndResult.key, rcvResultAll.key, "Shared keys should match between sender and receiver " + receiverId);
+        }
 
+        // --- Additional test: sender 2 sends, all receivers derive same key ---
+        SenderState senderState2 = initResult.senderStates.get(1); // sender 2 (index 1)
+        SendResult sndResult2 = d_MSMR.procSnd(senderState2, ad);
+        assertNotNull(sndResult2.ciphertext);
+        assertNotNull(sndResult2.key);
+        assertNotNull(sndResult2.kid);
+        assertNotNull(sndResult2.updatedState);
 
+        // For each receiver, check that derived key matches sender's key
+        for (int receiverId = 1; receiverId <= nR; receiverId++) {
+            Map<Integer, SenderStateInReceiver> receiverStateMapAll = initResult.receiverStatesMap.get(receiverId);
+            Object rcvOutputAll = d_MSMR.procRcv(receiverStateMapAll, ad, sndResult2.ciphertext);
+            assertTrue(rcvOutputAll instanceof ReceiveResult, "rcvOutput for receiver " + receiverId + " (sender 2) should be a ReceiveResult");
+            ReceiveResult rcvResultAll = (ReceiveResult) rcvOutputAll;
+            assertNotNull(rcvResultAll.key, "rcvResult.key for receiver " + receiverId + " (sender 2) should not be null");
+            assertArrayEquals(sndResult2.key, rcvResultAll.key, "Shared keys should match between sender 2 and receiver " + receiverId);
+        }
+
+        // --- Additional test: sender 5 sends, all receivers derive same key ---
+        SenderState senderState5 = initResult.senderStates.get(4); // sender 5 (index 4)
+        SendResult sndResult5 = d_MSMR.procSnd(senderState5, ad);
+        assertNotNull(sndResult5.ciphertext);
+        assertNotNull(sndResult5.key);
+        assertNotNull(sndResult5.kid);
+        assertNotNull(sndResult5.updatedState);
+
+        // For each receiver, check that derived key matches sender's key
+        for (int receiverId = 1; receiverId <= nR; receiverId++) {
+            Map<Integer, SenderStateInReceiver> receiverStateMapAll = initResult.receiverStatesMap.get(receiverId);
+            Object rcvOutputAll = d_MSMR.procRcv(receiverStateMapAll, ad, sndResult5.ciphertext);
+            assertTrue(rcvOutputAll instanceof ReceiveResult, "rcvOutput for receiver " + receiverId + " (sender 5) should be a ReceiveResult");
+            ReceiveResult rcvResultAll = (ReceiveResult) rcvOutputAll;
+            assertNotNull(rcvResultAll.key, "rcvResult.key for receiver " + receiverId + " (sender 5) should not be null");
+            assertArrayEquals(sndResult5.key, rcvResultAll.key, "Shared keys should match between sender 5 and receiver " + receiverId);
+        }
 
 //         ReceiveResult rcvResult = (ReceiveResult) rcvOutput;
 
