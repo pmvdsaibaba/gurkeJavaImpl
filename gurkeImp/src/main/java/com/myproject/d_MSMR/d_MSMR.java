@@ -735,6 +735,83 @@ public class d_MSMR {
     }
 
 ///////////////////////////////////////////////////
+    // Proc add(st, ad, S, uid)
+///////////////////////////////////////////////////
+    // Result class for procAddS
+    public static class AddSResult {
+        public SenderState updatedSenderState;
+        public SenderState newSenderState;
+        public CiphertextS cS;
+        public Ciphertext cR;
+        public byte[] key;
+        public Kid kid;
+
+        public AddSResult(SenderState updatedSenderState, SenderState newSenderState, CiphertextS cS, Ciphertext cR, byte[] key, Kid kid) {
+            this.updatedSenderState = updatedSenderState;
+            this.newSenderState = newSenderState;
+            this.cS = cS;
+            this.cR = cR;
+            this.key = key;
+            this.kid = kid;
+        }
+    }
+
+    // Ciphertext for sender add (procAddS)
+    public static class CiphertextS {
+        public int i;
+        public TreeEK ek;
+        public Set<Integer> memS;
+        public Set<Integer> memR;
+        public ToOperation to;
+
+        public CiphertextS(int i, TreeEK ek, Set<Integer> memS, Set<Integer> memR, ToOperation to) {
+            this.i = i;
+            this.ek = ek;
+            this.memS = new HashSet<>(memS);
+            this.memR = new HashSet<>(memR);
+            this.to = to;
+        }
+    }
+
+    // Implements: Proc add(st, ad, S, uid)
+    public static AddSResult procAddS(SenderState st, byte[] ad, int uid) throws Exception {
+        // Step 1: Update memS to include uid
+        Set<Integer> memS = new HashSet<>(st.memS);
+        memS.add(uid);
+        ToOperation to = new ToOperation(OpType.ADD, TargetType.SENDER, uid);
+
+        // Step 2: Run enqOps
+        EnqOpsResult enqResult = enqOps(st, memS, st.memR);
+        SenderState stAfterEnq = enqResult.updatedState;
+        Queue<QueuedCiphertext> cq = enqResult.cq;
+
+        // Step 3: Generate new signature keypair for the new sender
+        com.myproject.signatureScheme.SignatureScheme.KeyPair newSigKeys = com.myproject.signatureScheme.SignatureScheme.gen();
+        byte[] svkuid = newSigKeys.getVk();
+        byte[] sskuid = newSigKeys.getSk();
+
+        // Step 4: Fork the BK tree for the new sender
+        com.myproject.dynamicUBKem.UB_KEM.BKForkResult forkResult = com.myproject.dynamicUBKem.UB_KEM.fork(st.ek);
+        // ek1 = for current sender, ek2 = for new sender
+        TreeEK ekuid = forkResult.ek2;
+        Object cM = forkResult.c;
+
+        // Step 5: Create new SenderState for the new sender
+        SenderState stS = new SenderState(uid, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
+
+        // Step 6: Prepare cS (placeholder, as per pseudocode)
+        CiphertextS cS = new CiphertextS(st.i, null, null, null, to);
+
+        // Step 7: Call encaps with svkuid and cM
+        EncapsResult encapsResult = encaps(stAfterEnq, st.ek, ad, cM, cq, svkuid, to);
+
+        // Step 8: Return all results
+        return new AddSResult(encapsResult.updatedState, stS, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
+    }
+
+
+
+///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
     public static byte[] concatenateByteArrays(Map<Integer, byte[]> byteMap)
