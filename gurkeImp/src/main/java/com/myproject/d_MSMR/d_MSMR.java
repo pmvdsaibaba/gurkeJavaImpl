@@ -112,11 +112,23 @@ public class d_MSMR {
         }
     }
 
+
+    // New type to hold isNewAddRcvr and receiver state map
+    public static class ReceiverEntry {
+        public boolean isNewAddRcvr;
+        public Map<Integer, SenderStateInReceiver> stateMap;
+
+        public ReceiverEntry(boolean isNewAddRcvr, Map<Integer, SenderStateInReceiver> stateMap) {
+            this.isNewAddRcvr = isNewAddRcvr;
+            this.stateMap = stateMap;
+        }
+    }
+
     public static class InitResult {
         public Map<Integer, SenderState> senderStates;
-        public Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStatesMap;
+        public Map<Integer, ReceiverEntry> receiverStatesMap;
 
-        public InitResult(Map<Integer, SenderState> senderStates, Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStatesMap) {
+        public InitResult(Map<Integer, SenderState> senderStates, Map<Integer, ReceiverEntry> receiverStatesMap) {
             this.senderStates = senderStates;
             this.receiverStatesMap = receiverStatesMap;
         }
@@ -131,11 +143,14 @@ public class d_MSMR {
     {
         Map<Integer, SenderState> senderStates = new HashMap<>();
 
-        Map<Integer, Map<Integer, SenderStateInReceiver>> receiverStateMap = new HashMap<>();
+        Map<Integer, ReceiverEntry> receiverStateMap = new HashMap<>();
 
+        // For each receiver, create ReceiverEntry with isNewAddRcvr=false and empty stateMap
+        for (int j = 1; j <= nR; j++) {
+            receiverStateMap.put(j, new ReceiverEntry(false, new HashMap<>()));
+        }
         // For each sender
-        for (int i = 1; i <= nS; i++)
-        {
+        for (int i = 1; i <= nS; i++) {
             // Generate BK keys
             BKGenResult bkGenResult = UB_KEM.gen(nR);
             TreeEK ek = bkGenResult.ek;
@@ -156,8 +171,7 @@ public class d_MSMR {
             }
 
             Set<Integer> memR = new HashSet<>();
-            for (int r = 1; r <= nR; r++)
-            {
+            for (int r = 1; r <= nR; r++) {
                 memR.add(r);
             }
 
@@ -165,8 +179,7 @@ public class d_MSMR {
             senderStates.put(i, senderState);
 
             // Create receiver states for this sender
-            for (int j = 1; j <= nR; j++)
-            {
+            for (int j = 1; j <= nR; j++) {
                 Map<Integer, TreeDk> dkMap = new HashMap<>();
                 Map<Integer, byte[]> svkMap = new HashMap<>();
                 Map<Integer, byte[]> trMap = new HashMap<>();
@@ -176,11 +189,7 @@ public class d_MSMR {
                 trMap.put(i, tr);
 
                 SenderStateInReceiver senderStateInReceiver = new SenderStateInReceiver(memS, memR, dkMap, new HashMap<>(), svkMap, trMap);
-
-                // Group by receiver ID (j)
-                receiverStateMap
-                    .computeIfAbsent(j, k -> new HashMap<>())  // initialize if absent
-                    .put(i, senderStateInReceiver);            // add state for this sender
+                receiverStateMap.get(j).stateMap.put(i, senderStateInReceiver);
             }
         }
 
@@ -607,7 +616,7 @@ public class d_MSMR {
 ////////////////////////////////////////////////////
 // Proc rcv(st, ad, c)
 ////////////////////////////////////////////////////
-    public static ReceiveResult procRcv(Map<Integer, SenderStateInReceiver> st, byte[] ad, Ciphertext c) throws Exception
+    public static ReceiveResult procRcv(ReceiverEntry st, byte[] ad, Ciphertext c) throws Exception
     {
         if (c == null) {
             return new ReceiveResult(st, null, null, false);
@@ -623,7 +632,7 @@ public class d_MSMR {
         ToOperation to = c.to;
         byte[] sigma = c.signature;
 
-        SenderStateInReceiver ST = st.get(i);
+        SenderStateInReceiver ST = st.stateMap.get(i);
         if (ST == null || !ST.dkMap.containsKey(i) || !ST.svkMap.containsKey(i) || !ST.trMap.containsKey(i)) {
             return new ReceiveResult(st, null, null, false);
         }
@@ -655,45 +664,55 @@ public class d_MSMR {
             return new ReceiveResult(st, null, null, false);
         }
 
+        boolean isNewAddRcvr = st.isNewAddRcvr;
+
         // Process cM if not empty
-        if (cM != null && !isEmptyObject(cM)) {
-            UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
-            dk = procResult.dk1;
-            TreeDk dkStar = procResult.dk2;
-            // int uid = procResult.uid;
-            // Todo: There is issue with algorithm.
-            // int uid = 10001;
-
-            // If forked
-            if (dkStar != null) {
-                // Add new sender state
-                // ST.dkMap.put(uid, dkStar);
-                // ST.svkMap.put(uid, svkStar);
-                // ST.trMap.put(uid, new byte[0]); // ε
-
-                Map<Integer, TreeDk> dkMap = new HashMap<>();
-                Map<Integer, byte[]> svkMap = new HashMap<>();
-                Map<Integer, byte[]> trMap = new HashMap<>();
-
-                dkMap.put(uid, dkStar);
-                svkMap.put(uid, svkStar);
-                trMap.put(uid, new byte[0]); // ε
-
-                SenderStateInReceiver newSenderState = new SenderStateInReceiver(new HashSet<>(memS), new HashSet<>(memR), dkMap, new HashMap<>(), svkMap, trMap);
-                st.put(uid, newSenderState);
+       if (cM != null && !isEmptyObject(cM))
+       {
+            if (isNewAddRcvr == true)
+            {
+                isNewAddRcvr = false;
             }
+            else
+            {
+                UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
+                dk = procResult.dk1;
+                TreeDk dkStar = procResult.dk2;
+                // int uid = procResult.uid;
+                // Todo: There is issue with algorithm.
+                // int uid = 10001;
 
-            // Update membership based on operation
-            if (to.op == OpType.ADD) {
-                if (to.target == TargetType.SENDER) {
-                    memS.add(uid);
-                } else if (to.target == TargetType.RECEIVER) {
-                    memR.add(uid);
+                // If forked
+                if (dkStar != null) {
+                    // Add new sender state
+                    // ST.dkMap.put(uid, dkStar);
+                    // ST.svkMap.put(uid, svkStar);
+                    // ST.trMap.put(uid, new byte[0]); // ε
+
+                    Map<Integer, TreeDk> dkMap = new HashMap<>();
+                    Map<Integer, byte[]> svkMap = new HashMap<>();
+                    Map<Integer, byte[]> trMap = new HashMap<>();
+
+                    dkMap.put(uid, dkStar);
+                    svkMap.put(uid, svkStar);
+                    trMap.put(uid, new byte[0]); // ε
+
+                    SenderStateInReceiver newSenderState = new SenderStateInReceiver(new HashSet<>(memS), new HashSet<>(memR), dkMap, new HashMap<>(), svkMap, trMap);
+                    st.stateMap.put(uid, newSenderState);
                 }
-            } else if (to.op == OpType.REMOVE) {
-                if (to.target == TargetType.RECEIVER) {
-                    memR.remove(uid);
-                }
+
+                    // Update membership based on operation
+                    if (to.op == OpType.ADD) {
+                        if (to.target == TargetType.SENDER) {
+                            memS.add(uid);
+                        } else if (to.target == TargetType.RECEIVER) {
+                            memR.add(uid);
+                        }
+                    } else if (to.op == OpType.REMOVE) {
+                        if (to.target == TargetType.RECEIVER) {
+                            memR.remove(uid);
+                        }
+                    }
             }
         }
 
@@ -728,19 +747,20 @@ public class d_MSMR {
         ST.svkMap.put(i, svkPrime);
         ST.trMap.put(i, newTr);
 
-    SenderStateInReceiver updatedState = new SenderStateInReceiver(memS, memR, ST.dkMap, ST.kemDkMap, ST.svkMap, ST.trMap);
-    st.put(i, updatedState);
+        SenderStateInReceiver updatedState = new SenderStateInReceiver(memS, memR, ST.dkMap, ST.kemDkMap, ST.svkMap, ST.trMap);
+        st.isNewAddRcvr = isNewAddRcvr;
+        st.stateMap.put(i, updatedState);
 
         return new ReceiveResult(st, k, kid, true);
     }
 
     public static class ReceiveResult {
-        public Map<Integer, SenderStateInReceiver> updatedState;
+        public ReceiverEntry updatedState;
         public byte[] key;
         public Kid kid;
         public boolean success;
 
-        public ReceiveResult(Map<Integer, SenderStateInReceiver> updatedState, byte[] key, Kid kid, boolean success) {
+        public ReceiveResult(ReceiverEntry updatedState, byte[] key, Kid kid, boolean success) {
             this.updatedState = updatedState;
             this.key = key;
             this.kid = kid;
@@ -918,15 +938,15 @@ public class d_MSMR {
     // Result class for procAddR
     public static class AddRResult {
         public SenderState updatedSenderState;
-        public Map<Integer, SenderStateInReceiver> newReceiverState;
+        public ReceiverEntry newReceiverEntry;
         public CiphertextS cS;
         public Ciphertext cR;
         public byte[] key;
         public Kid kid;
 
-        public AddRResult(SenderState updatedSenderState, Map<Integer, SenderStateInReceiver> newReceiverState, CiphertextS cS, Ciphertext cR, byte[] key, Kid kid) {
+        public AddRResult(SenderState updatedSenderState, ReceiverEntry newReceiverEntry, CiphertextS cS, Ciphertext cR, byte[] key, Kid kid) {
             this.updatedSenderState = updatedSenderState;
-            this.newReceiverState = newReceiverState;
+            this.newReceiverEntry = newReceiverEntry;
             this.cS = cS;
             this.cR = cR;
             this.key = key;
@@ -1003,7 +1023,7 @@ public class d_MSMR {
         Stuid.put(i, new SenderStateInReceiver(memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
 
         // 57. stR ← Stuid
-        Map<Integer, SenderStateInReceiver> stR = Stuid;
+        ReceiverEntry stR = new ReceiverEntry(true, Stuid);
 
         // 58. cS ← (i, (ekjR)j∈memS\{i}, memS, memR, to)
         CiphertextS cS = new CiphertextS(i, ekjRMap, new HashSet<>(memS), new HashSet<>(memR), to);
