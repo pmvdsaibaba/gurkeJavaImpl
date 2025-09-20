@@ -589,6 +589,68 @@ public class TestD_MSMR {
 
 
 
+
+
+    @Test
+    public void testProcRmvSender() throws Exception {
+        int nS = 7; // number of senders
+        int nR = 15; // number of receivers
+        int uidToRemove = 2; // Remove sender with ID 2
+
+        System.out.println("\n**********************************************");
+        System.out.println("* D_MSMR Remove Sender Test");
+        System.out.println("**********************************************");
+
+        // Step 1: Initialize
+        InitResult initResult = d_MSMR.procInit(nS, nR);
+        SenderState senderState = initResult.senderStates.get(1); // sender performing the removal
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
+
+        // Step 2: Remove a sender
+        d_MSMR.RmvResult rmvResult = d_MSMR.procRmv(senderState, ad, d_MSMR.TargetType.SENDER, uidToRemove);
+        assertNotNull(rmvResult.updatedSenderState, "Sender state should be updated after sender removal");
+        assertNotNull(rmvResult.cR, "Receiver ciphertext (cR) should not be null after sender removal");
+        assertNotNull(rmvResult.key, "Key should not be null after sender removal");
+        assertNotNull(rmvResult.kid, "Kid should not be null after sender removal");
+
+        // Verify the sender state was updated (member removed)
+        assertFalse(rmvResult.updatedSenderState.memS.contains(uidToRemove), "Removed sender should not be in sender's memS");
+        assertEquals(nS - 1, rmvResult.updatedSenderState.memS.size(), "memS should have one less member");
+
+        // Use a working copy of receiverStatesMap for all state updates
+        Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
+        for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
+            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+        }
+
+        // Update all other senders' state after procRmv
+        Map<Integer, SenderState> currentSenderStates = new HashMap<>(initResult.senderStates);
+        currentSenderStates.put(1, rmvResult.updatedSenderState);
+        for (int sid = 2; sid <= nS; sid++) {
+            SenderState otherSenderState = currentSenderStates.get(sid);
+            SenderState updatedOtherSenderState = d_MSMR.proc(otherSenderState, ad, rmvResult.cS);
+            currentSenderStates.put(sid, updatedOtherSenderState);
+        }
+
+        // Test that all receivers can process the remove sender ciphertext
+        for (int r = 1; r <= nR; r++) {
+            d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
+            assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist");
+            d_MSMR.ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, rmvResult.cR);
+            assertNotNull(rcvResult, "Receiver " + r + " should be able to process remove sender ciphertext");
+            assertTrue(rcvResult.success, "Receiver " + r + " should process remove sender ciphertext successfully");
+            assertArrayEquals(rmvResult.key, rcvResult.key, "Receiver " + r + " keys should match after sender removal");
+            currentReceiverStatesMap.put(r, rcvResult.updatedState);
+        }
+
+        System.out.println("testProcRmvSender passed. Key after sender removal:");
+        printByteArray(rmvResult.key);
+        System.out.println("************** End of remove sender test *******************");
+    }
+
+
+
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
@@ -597,7 +659,6 @@ public class TestD_MSMR {
         }
         System.out.println(sb.toString());
     }
-
 
     private void printTreeState(Tree tree) throws Exception {
         System.out.println("\n******************************************************************");
