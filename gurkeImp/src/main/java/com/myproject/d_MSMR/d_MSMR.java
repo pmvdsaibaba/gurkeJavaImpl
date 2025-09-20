@@ -1177,7 +1177,7 @@ public class d_MSMR {
         }
 
         // 27. cS ← (i, ϵ, ϵ, ϵ, to)
-        CiphertextS cS = new CiphertextS(i, null, null, null, to);
+        CiphertextS cS = new CiphertextS(i, Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), to);
 
         // 28. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, ϵ, to)
         EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);

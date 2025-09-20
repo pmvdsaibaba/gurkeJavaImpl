@@ -509,6 +509,86 @@ public class TestD_MSMR {
         System.out.println("\n************** End of test 2 *******************");
     }
 
+
+
+
+    @Test
+    public void testProcRmvReceiver() throws Exception {
+        int nS = 3; // number of senders
+        int nR = 10; // initial number of receivers
+        int uidToRemove = 5; // Remove receiver with ID 5
+
+        System.out.println("\n**********************************************");
+        System.out.println("* D_MSMR Remove Receiver Test");
+        System.out.println("**********************************************");
+
+        // Step 1: Initialize
+        InitResult initResult = d_MSMR.procInit(nS, nR);
+        SenderState senderState = initResult.senderStates.get(1);
+        byte[] ad = new byte[16];
+        new Random().nextBytes(ad);
+
+        // Step 2: Remove a receiver
+        d_MSMR.RmvResult rmvResult = d_MSMR.procRmv(senderState, ad, d_MSMR.TargetType.RECEIVER, uidToRemove);
+        assertNotNull(rmvResult.updatedSenderState, "Sender state should be updated after removal");
+        assertNotNull(rmvResult.cR, "Receiver ciphertext (cR) should not be null after removal");
+        assertNotNull(rmvResult.key, "Key should not be null after removal");
+        assertNotNull(rmvResult.kid, "Kid should not be null after removal");
+
+        // Verify the sender state was updated (member removed)
+        assertFalse(rmvResult.updatedSenderState.memR.contains(uidToRemove), "Removed UID should not be in sender's memR");
+        assertEquals(nR - 1, rmvResult.updatedSenderState.memR.size(), "memR should have one less member");
+
+        // Use a working copy of receiverStatesMap for all state updates
+        Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
+        for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
+            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+        }
+
+        // Remove the receiver entry for uidToRemove
+        currentReceiverStatesMap.remove(uidToRemove);
+
+        // Update all other senders' state after procRmv
+        Map<Integer, SenderState> currentSenderStates = new HashMap<>(initResult.senderStates);
+        currentSenderStates.put(1, rmvResult.updatedSenderState);
+        for (int sid = 2; sid <= nS; sid++) {
+            SenderState otherSenderState = currentSenderStates.get(sid);
+            SenderState updatedOtherSenderState = d_MSMR.proc(otherSenderState, ad, rmvResult.cS);
+            currentSenderStates.put(sid, updatedOtherSenderState);
+        }
+
+        // Test that all remaining receivers (from 1 to nR, except removed) can still receive after the remove operation
+        for (int r = 1; r <= nR; r++) {
+            // if ((r == uidToRemove) || (r == (uidToRemove+1))) continue;
+            if ((r == uidToRemove)) continue;
+            d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
+            assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist");
+            d_MSMR.ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, rmvResult.cR);
+            assertNotNull(rcvResult, "Receiver " + r + " should be able to process remove ciphertext");
+            assertTrue(rcvResult.success, "Receiver " + r + " should process remove ciphertext successfully");
+            assertArrayEquals(rmvResult.key, rcvResult.key, "Receiver " + r + " keys should match after remove");
+            currentReceiverStatesMap.put(r, rcvResult.updatedState);
+        }
+
+        // Try to process remove ciphertext for the removed receiver (should fail or return null)
+        // d_MSMR.ReceiverEntry removedReceiverEntry = initResult.receiverStatesMap.get(uidToRemove);
+        // if (removedReceiverEntry != null) {
+        //     Object removedRcvResult = d_MSMR.procRcv(removedReceiverEntry, ad, rmvResult.cR);
+        //     if (removedRcvResult instanceof d_MSMR.ReceiveResult) {
+        //         d_MSMR.ReceiveResult failResult = (d_MSMR.ReceiveResult) removedRcvResult;
+        //         assertFalse(failResult.success, "Removed receiver should not process remove ciphertext successfully");
+        //     } else {
+        //         assertNull(removedRcvResult, "Removed receiver should not be able to process remove ciphertext");
+        //     }
+        // }
+
+        System.out.println("testProcRmvReceiver passed. Key after remove:");
+        printByteArray(rmvResult.key);
+        System.out.println("************** End of remove receiver test *******************");
+    }
+
+
+
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
@@ -519,7 +599,6 @@ public class TestD_MSMR {
     }
 
 
-    
     private void printTreeState(Tree tree) throws Exception {
         System.out.println("\n******************************************************************");
         System.out.println("Tree State:");

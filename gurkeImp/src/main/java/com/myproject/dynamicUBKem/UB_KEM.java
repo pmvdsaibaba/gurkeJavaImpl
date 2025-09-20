@@ -560,6 +560,7 @@ public class UB_KEM {
         {
             TreeDk newDk;
             Tree tree;
+            // Tree treeOldDk;
             int i;
             Map<Integer, byte[]> skMap;
             int lStar;
@@ -572,6 +573,7 @@ public class UB_KEM {
 
                 TreeAddDkReturn addDk = Tree.T_add_dk(dk);
                 tree = addDk.getTree();
+                // treeOldDk = addDk.getTree();
                 i = addDk.getLeafIndex();
                 skMap = addDk.getDataSk();
                 lStar = addDk.getLeafIntersectionIndex();
@@ -582,8 +584,11 @@ public class UB_KEM {
                 t = rem.t;
                 cPrime = new Object[]{rem.i, rem.pkStarMap, rem.pkCircle, rem.pkPrimeMap};
 
+                // printTreeDiagram(dk.getTree());
                 TreeAddDkReturn remDk = Tree.T_rem_Dk(dk, rem.i);
+                // treeOldDk = dk.getTree();
                 tree = remDk.getTree();
+                // printTreeDiagram(tree);
                 i = remDk.getLeafIndex();
                 skMap = remDk.getDataSk();
                 lStar = remDk.getLeafIntersectionIndex();
@@ -616,10 +621,16 @@ public class UB_KEM {
                 int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
                 path_Sk = tree.T_path(leafNodeIndex_sk);
                 co_path_Sk = tree.T_co_path(leafNodeIndex_sk);
+
+                if (leafNodeIndex ==leafNodeIndex_sk)
+                {
+                    lStar = path_Sk.get(0);
+                }
                 position_InSk = path_Sk.indexOf(lStar);
 
 
-                if (lStar == path_Sk.get(0)) 
+                // if ((lStar == path_Sk.get(0)) || (leafNodeIndex ==leafNodeIndex_sk))
+                if ((lStar == path_Sk.get(0)) )
                 {
                     pkR = rem.pkCircle;
                     skL = skMap.get(path_Sk.get(0));
@@ -682,6 +693,43 @@ public class UB_KEM {
         throw new IllegalArgumentException("Unsupported ciphertext type");
     }
 
+
+    // public static void printTreeDiagram(Tree tree) {
+    //     Map<Integer, Tree.Node> nodeMap = new HashMap<>();
+    //     for (Tree.Node node : tree.getNodesInternal()) {
+    //         nodeMap.put(node.getNodeIndex(), node);
+    //     }
+
+    //     Tree.Node root = null;
+    //     for (Tree.Node node : tree.getNodesInternal()) {
+    //         if (node.getRootnode() == -1) { // rootNode == -1 or similar logic
+    //             root = node;
+    //             break;
+    //         }
+    //     }
+
+    //     if (root == null) {
+    //         System.out.println("No root node found.");
+    //         return;
+    //     }
+
+    //     printTreeRecursive(root, nodeMap, "", true);
+    // }
+
+    // public static void printTreeRecursive(Tree.Node node, Map<Integer, Tree.Node> nodeMap, String prefix, boolean isTail) {
+    //     System.out.println(prefix + (isTail ? "└── " : "├── ") + "[" + node.getNodeIndex() + "]");
+
+    //     Integer left = node.getChildLeftnode();
+    //     Integer right = node.getChildRightnode();
+
+    //     List<Tree.Node> children = new ArrayList<>();
+    //     if (left != null && left != -1) children.add(nodeMap.get(left));
+    //     if (right != null && right != -1) children.add(nodeMap.get(right));
+
+    //     for (int i = 0; i < children.size(); i++) {
+    //         printTreeRecursive(children.get(i), nodeMap, prefix + (isTail ? "    " : "│   "), i == children.size() - 1);
+    //     }
+    // }
 
     // Utility to print byte arrays
     private static void printByteArray(byte[] bytes) {
