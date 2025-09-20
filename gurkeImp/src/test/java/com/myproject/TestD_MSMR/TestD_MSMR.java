@@ -571,16 +571,16 @@ public class TestD_MSMR {
         }
 
         // Try to process remove ciphertext for the removed receiver (should fail or return null)
-        // d_MSMR.ReceiverEntry removedReceiverEntry = initResult.receiverStatesMap.get(uidToRemove);
-        // if (removedReceiverEntry != null) {
-        //     Object removedRcvResult = d_MSMR.procRcv(removedReceiverEntry, ad, rmvResult.cR);
-        //     if (removedRcvResult instanceof d_MSMR.ReceiveResult) {
-        //         d_MSMR.ReceiveResult failResult = (d_MSMR.ReceiveResult) removedRcvResult;
-        //         assertFalse(failResult.success, "Removed receiver should not process remove ciphertext successfully");
-        //     } else {
-        //         assertNull(removedRcvResult, "Removed receiver should not be able to process remove ciphertext");
-        //     }
-        // }
+        d_MSMR.ReceiverEntry removedReceiverEntry = initResult.receiverStatesMap.get(uidToRemove);
+        if (removedReceiverEntry != null) {
+            Object removedRcvResult = d_MSMR.procRcv(removedReceiverEntry, ad, rmvResult.cR);
+            if (removedRcvResult instanceof d_MSMR.ReceiveResult) {
+                d_MSMR.ReceiveResult failResult = (d_MSMR.ReceiveResult) removedRcvResult;
+                assertFalse(failResult.success, "Removed receiver should not process remove ciphertext successfully");
+            } else {
+                assertNull(removedRcvResult, "Removed receiver should not be able to process remove ciphertext");
+            }
+        }
 
         System.out.println("testProcRmvReceiver passed. Key after remove:");
         printByteArray(rmvResult.key);

@@ -619,6 +619,13 @@ public class UB_KEM {
 
                 List<Integer> set3 = new ArrayList<>(skMap.keySet());
                 int leafNodeIndex_sk = Tree.findLeafIndexFromSet(set3, tree);
+
+                // Case when the removed leaf
+                if(leafNodeIndex_sk == -1)
+                {
+                    return new BKProcResult(null, null);
+                }
+
                 path_Sk = tree.T_path(leafNodeIndex_sk);
                 co_path_Sk = tree.T_co_path(leafNodeIndex_sk);
 

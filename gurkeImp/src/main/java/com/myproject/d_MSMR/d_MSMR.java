@@ -678,6 +678,10 @@ public class d_MSMR {
                 UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
                 dk = procResult.dk1;
                 TreeDk dkStar = procResult.dk2;
+
+                if (dk == null) {
+                    return new ReceiveResult(st, null, null, false);
+                }
                 // int uid = procResult.uid;
                 // Todo: There is issue with algorithm.
                 // int uid = 10001;
