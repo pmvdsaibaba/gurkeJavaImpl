@@ -31,7 +31,7 @@ public class TestD_MSMR {
         int nR = 5;
         int nS = 5;
 
-        System.out.println("\n\n**********************************************");
+        System.out.println("\n**********************************************");
         System.out.println("* D_MSMR Init Test ");
         System.out.println("**********************************************");
 
@@ -268,7 +268,7 @@ public class TestD_MSMR {
         int nR = 5; // initial number of receivers
         int newUid = 13;
 
-        System.out.println("\n\n**********************************************");
+        System.out.println("\n**********************************************");
         System.out.println("* D_MSMR Add Receiver Test 1");
         System.out.println("**********************************************");
 
@@ -346,7 +346,7 @@ public class TestD_MSMR {
         SenderState currentSenderState = addResult.updatedSenderState;
         Map<Integer, SenderStateInReceiver> latestNewReceiverState = addResult.newReceiverEntry.stateMap;
 
-        for (int i = 0; i < newUids.length; i++) {
+    for (int i = 0; i < newUids.length; i++) {
             int uid = newUids[i];
             AddRResult addRes = d_MSMR.procAddR(currentSenderState, ad, uid);
             assertNotNull(addRes.updatedSenderState);
@@ -382,10 +382,10 @@ public class TestD_MSMR {
     @Test
     public void testProcAddR_test2() throws Exception {
         int nS = 3; // number of senders
-        int nR = 5; // initial number of receivers
-        int newUid = 6;
+        int nR = 14; // initial number of receivers
+        int newUid = 15;
 
-        System.out.println("\n\n**********************************************");
+        System.out.println("\n**********************************************");
         System.out.println("* D_MSMR Add Receiver Test 2");
         System.out.println("**********************************************");
 
@@ -435,12 +435,15 @@ public class TestD_MSMR {
         }
 
         // --- Add a few more receivers and test cross-sender/receiver key agreement ---
-        int[] newUids = {21, 22,23,24,25,26,27,28,29,30};
+        int[] newUids = {21, 22,23,24,25,26,27,28,29,30,45,66};
 
         SenderState currentSenderState = addResult.updatedSenderState;
         Map<Integer, SenderStateInReceiver> latestNewReceiverState = addResult.newReceiverEntry.stateMap;
 
+        System.out.println("[Progress] Adding new receivers, newUids: ");
         for (int i = 0; i < newUids.length; i++) {
+            System.out.print(java.util.Arrays.toString(new int[]{newUids[i]}));
+
             int uid = newUids[i];
             AddRResult addRes = d_MSMR.procAddR(currentSenderState, ad, uid);
             assertNotNull(addRes.updatedSenderState);
@@ -503,7 +506,7 @@ public class TestD_MSMR {
             assertArrayEquals(sendRes.key, rcvResult.key, "New Receiver " + uid + " keys should match sender 1 after adds");
             currentReceiverStatesMap.put(uid, rcvResult.updatedState);
         }
-        System.out.println("************** End of test 2 *******************");
+        System.out.println("\n************** End of test 2 *******************");
     }
 
     // Utility to print byte arrays
