@@ -271,6 +271,14 @@ public class Tree {
     public List<Integer> getLeafIndexes() { return leafIndexes; }
 
 
+    public void setNumLeaves(int numLeaves) { this.numLeaves = numLeaves; }
+    public void setTreeSize(int treeSize) { this.treeSize = treeSize; }
+    public void setNodeIndexMax(int nodeIndexMax) { this.nodeIndexMax = nodeIndexMax; }
+    public void setLeafIndexMax(int leafIndexMax) { this.leafIndexMax = leafIndexMax; }
+    public void setNodeIndexes(List<Integer> nodeIndexes) { this.nodeIndexes = nodeIndexes; }
+    public void setLeafIndexes(List<Integer> leafIndexes) { this.leafIndexes = leafIndexes; }
+    public void setInternalNode(List<Node> internalNode) { this.internalNode = internalNode; }
+
     /* T.nodes(τ ) → (tj)j∈[N]  */
     public List<Integer> nodes() {
         List<Integer> nodeIndexesTemp = new ArrayList<>();

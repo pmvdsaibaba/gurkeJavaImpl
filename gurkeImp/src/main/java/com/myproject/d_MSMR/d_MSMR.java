@@ -17,6 +17,7 @@ import com.myproject.RandomOracle.RandomOracle;
 
 import com.myproject.Tree.TreeEK;
 import com.myproject.Tree.TreeDk;
+import com.myproject.Tree.Tree;
 import com.myproject.signatureScheme.SignatureScheme;
 
 import java.util.Set;
@@ -346,7 +347,8 @@ public class d_MSMR {
 ////////////////////////////////////////////////////////////
     private static EnqOpsResult enqOps(SenderState st, Set<Integer> memSPrime, Set<Integer> memRPrime) throws Exception {
         Queue<QueuedCiphertext> cq = new LinkedList<>();
-        
+        TreeEK currentEk = st.ek; // Use a local variable instead of updating st.ek
+
         while (!st.ops.isEmpty())
         {
             /*  Retrieves the next operation to process from the st.ops queue.
@@ -357,10 +359,12 @@ public class d_MSMR {
 
             if (queuedOp.t == TargetType.RECEIVER && queuedOp.op == OpType.ADD) {
                 // Receiver add
-                UB_KEM.BKAddResult addResult = UB_KEM.add(st.ek);
+                // UB_KEM.BKAddResult addResult = UB_KEM.add(st.ek);
+                // // todo: if new state is needed or check if updating old state is ok.
+                // st.ek = addResult.ek;
+                UB_KEM.BKAddResult addResult = UB_KEM.add(currentEk);
+                currentEk = addResult.ek; // Do not update st.ek
 
-                // todo: if new state is needed or check if updating old state is ok.
-                st.ek = addResult.ek;
                 TreeDk dk = addResult.dk;
                 cM = addResult.c;
 
@@ -371,6 +375,10 @@ public class d_MSMR {
 
                 // Serialize (dk, tr, diff) with length prefixes
                 byte[] dkBytes = serializeTreeDk(dk);
+
+                // Just for test and debug. Test is ok, so commented. 
+                // TreeDk testDk = deserializeTreeDk(dkBytes);
+
                 byte[] trBytes = st.tr;
                 byte[] diffBytes = serializeObject_Diff(queuedOp.diff);
                 byte[] dkLenBytes = intToByteArray(dkBytes.length);
@@ -383,8 +391,12 @@ public class d_MSMR {
                 cP = new Object[]{c1, c2}; // (c1, c2)
             } else if (queuedOp.t == TargetType.RECEIVER && queuedOp.op == OpType.REMOVE) {
                 // Receiver remove
-                UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(st.ek, queuedOp.uid);
-                st.ek = removeResult.ek;
+                // UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(st.ek, queuedOp.uid);
+                // st.ek = removeResult.ek;
+
+                UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(currentEk, queuedOp.uid);
+                currentEk = removeResult.ek; // Do not update st.ek
+
                 cM = removeResult.c;
                 cP = null;
             }
@@ -395,7 +407,7 @@ public class d_MSMR {
             cq.offer(qc);
         }
 
-        SenderState updatedState = new SenderState(st.i, memSPrime, memRPrime, st.ek, st.ssk, st.svk, st.tr, st.ops);
+        SenderState updatedState = new SenderState(st.i, memSPrime, memRPrime, currentEk, st.ssk, st.svk, st.tr, st.ops);
         return new EnqOpsResult(updatedState, cq);
     }
 
@@ -1011,7 +1023,8 @@ public class d_MSMR {
         }
 
         // 55. (ek, dk, cM) ←$ BK.add(ek)
-        UB_KEM.BKAddResult bkAddResult = UB_KEM.add(ek);
+        // UB_KEM.BKAddResult bkAddResult = UB_KEM.add(ek);
+        UB_KEM.BKAddResult bkAddResult = UB_KEM.add(enqResult.updatedState.ek);
         ek = bkAddResult.ek;
         TreeDk dk = bkAddResult.dk;
         cM = bkAddResult.c;
@@ -1099,7 +1112,8 @@ public class d_MSMR {
                 // 49. (ekjR)j∈memS ← D
                 // Do not assign D to ek; instead, pass the KEM key for uid if present
                 Diff diff = diff(st.memS, memjS, st.memR, memjR);
-                ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, D != null ? D.get(uid) : null));
+                // ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, D != null ? D.get(uid) : null));
+                ops.offer(new QueuedOperation(OpType.ADD, t, uid, diff, D != null ? D.get(i) : null));
             } else {
                 // 55. ops ← ops.enqueue(A, t, uid, ϵ, ϵ)
                 ops.offer(new QueuedOperation(OpType.ADD, t, uid, null, null));
@@ -1305,18 +1319,158 @@ public class d_MSMR {
         return outputStream.toByteArray();
     }
 
-    private static byte[] serializeTreeDk(TreeDk dk)
-    {
-        Map<Integer, byte[]> skMap = dk.getDataSk();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        for (byte[] value : skMap.values()) {
-            if (value != null) {
-                outputStream.write(value, 0, value.length);
+    // private static byte[] serializeTreeDk(TreeDk dk)
+    // {
+    //     Map<Integer, byte[]> skMap = dk.getDataSk();
+    //     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    //     for (byte[] value : skMap.values()) {
+    //         if (value != null) {
+    //             outputStream.write(value, 0, value.length);
+    //         }
+    //     }
+    //     byte[] concatenated = outputStream.toByteArray();
+    //     return concatenated;
+    // }
+
+    private static byte[] serializeTreeDk(TreeDk dk) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            // Serialize leaf
+            out.write(intToByteArray(dk.getLeaf()));
+
+            // Serialize dataSk map
+            Map<Integer, byte[]> skMap = dk.getDataSk();
+            out.write(intToByteArray(skMap.size()));
+            for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
+                out.write(intToByteArray(entry.getKey()));
+                byte[] value = entry.getValue();
+                out.write(intToByteArray(value.length));
+                out.write(value);
             }
+
+            // Serialize Tree object
+            Tree tree = dk.getTree();
+            // Serialize basic fields
+            out.write(intToByteArray(tree.getNumOfLeaf()));
+            out.write(intToByteArray(tree.getSize()));
+            out.write(intToByteArray(tree.getNodeIndexMax()));
+            out.write(intToByteArray(tree.getLeafIndexMax()));
+
+            // Serialize nodeIndexes
+            out.write(intToByteArray(tree.getNodeIndexes().size()));
+            for (int idx : tree.getNodeIndexes()) {
+                out.write(intToByteArray(idx));
+            }
+            // Serialize leafIndexes
+            out.write(intToByteArray(tree.getLeafIndexes().size()));
+            for (int idx : tree.getLeafIndexes()) {
+                out.write(intToByteArray(idx));
+            }
+
+            // Serialize internalNode list
+            out.write(intToByteArray(tree.getNodesInternal().size()));
+            for (Tree.Node node : tree.getNodesInternal()) {
+                out.write(intToByteArray(node.getNodeIndex()));
+                out.write(intToByteArray(node.getRootnode()));
+                out.write(intToByteArray(node.getChildLeftnode()));
+                out.write(intToByteArray(node.getChildRightnode()));
+                out.write(intToByteArray(node.getNodeLevel()));
+                out.write(intToByteArray(node.getLeafIndex()));
+
+                // pk
+                byte[] pk = node.getPk();
+                out.write(intToByteArray(pk == null ? 0 : pk.length));
+                if (pk != null) out.write(pk);
+
+                // sk
+                byte[] sk = node.getSk();
+                out.write(intToByteArray(sk == null ? 0 : sk.length));
+                if (sk != null) out.write(sk);
+
+                out.write(node.isLeaf() ? 1 : 0);
+                out.write(node.isValidNode() ? 1 : 0);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Serialization failed", e);
         }
-        byte[] concatenated = outputStream.toByteArray();
-        return concatenated;
+        return out.toByteArray();
     }
+
+    private static TreeDk deserializeTreeDk(byte[] bytes) {
+        int pos = 0;
+
+        // Helper
+        java.util.function.IntFunction<Integer> readInt = (start) -> byteArrayToInt(java.util.Arrays.copyOfRange(bytes, start, start + 4));
+
+        // Deserialize leaf
+        int leaf = readInt.apply(pos); pos += 4;
+
+        // Deserialize dataSk map
+        int skMapSize = readInt.apply(pos); pos += 4;
+        Map<Integer, byte[]> skMap = new java.util.HashMap<>();
+        for (int i = 0; i < skMapSize; i++) {
+            int key = readInt.apply(pos); pos += 4;
+            int valueLen = readInt.apply(pos); pos += 4;
+            byte[] value = java.util.Arrays.copyOfRange(bytes, pos, pos + valueLen); pos += valueLen;
+            skMap.put(key, value);
+        }
+
+        // Deserialize Tree
+        int numLeaves = readInt.apply(pos); pos += 4;
+        int treeSize = readInt.apply(pos); pos += 4;
+        int nodeIndexMax = readInt.apply(pos); pos += 4;
+        int leafIndexMax = readInt.apply(pos); pos += 4;
+
+        int nodeIndexesSize = readInt.apply(pos); pos += 4;
+        java.util.List<Integer> nodeIndexes = new java.util.ArrayList<>();
+        for (int i = 0; i < nodeIndexesSize; i++) {
+            nodeIndexes.add(readInt.apply(pos)); pos += 4;
+        }
+        int leafIndexesSize = readInt.apply(pos); pos += 4;
+        java.util.List<Integer> leafIndexes = new java.util.ArrayList<>();
+        for (int i = 0; i < leafIndexesSize; i++) {
+            leafIndexes.add(readInt.apply(pos)); pos += 4;
+        }
+
+        int internalNodeSize = readInt.apply(pos); pos += 4;
+        java.util.List<Tree.Node> internalNode = new java.util.ArrayList<>();
+        for (int i = 0; i < internalNodeSize; i++) {
+            Tree.Node.Builder builder = new Tree.Node.Builder();
+            builder.setNodeIndex(readInt.apply(pos)); pos += 4;
+            builder.setRootnode(readInt.apply(pos)); pos += 4;
+            builder.setChildLeftnode(readInt.apply(pos)); pos += 4;
+            builder.setChildRightnode(readInt.apply(pos)); pos += 4;
+            builder.setNodeLevel(readInt.apply(pos)); pos += 4;
+            builder.setLeafIndex(readInt.apply(pos)); pos += 4;
+
+            int pkLen = readInt.apply(pos); pos += 4;
+            byte[] pk = pkLen > 0 ? java.util.Arrays.copyOfRange(bytes, pos, pos + pkLen) : null; pos += pkLen;
+            builder.setPk(pk);
+
+            int skLen = readInt.apply(pos); pos += 4;
+            byte[] sk = skLen > 0 ? java.util.Arrays.copyOfRange(bytes, pos, pos + skLen) : null; pos += skLen;
+            builder.setSk(sk);
+
+            builder.setIsLeaf(bytes[pos++] == 1);
+            builder.setIsValidNode(bytes[pos++] == 1);
+
+            internalNode.add(builder.build());
+        }
+
+        // Construct Tree
+        Tree tree = new Tree();
+        tree.setNumLeaves(numLeaves);
+        tree.setTreeSize(treeSize);
+        tree.setNodeIndexMax(nodeIndexMax);
+        tree.setLeafIndexMax(leafIndexMax);
+        tree.setNodeIndexes(nodeIndexes);
+        tree.setLeafIndexes(leafIndexes);
+        tree.setInternalNode(internalNode);
+
+        return new TreeDk(tree, skMap, leaf);
+    }
+
+
 
     private static byte[] serializeQueue(Queue<QueuedCiphertext> cq) {
         if (cq == null || cq.isEmpty()) {
@@ -1394,13 +1548,34 @@ public class d_MSMR {
         return result;
     }
 
+    // private static byte[] xor(byte[] a, byte[] b) {
+    //     if (a.length != b.length) {
+    //         throw new IllegalArgumentException("Arrays must have same length");
+    //     }
+    //     byte[] result = new byte[a.length];
+    //     for (int i = 0; i < a.length; i++) {
+    //         result[i] = (byte)(a[i] ^ b[i]);
+    //     }
+    //     return result;
+    // }
+
     private static byte[] xor(byte[] a, byte[] b) {
-        if (a.length != b.length) {
-            throw new IllegalArgumentException("Arrays must have same length");
+        int maxLen = Math.max(a.length, b.length);
+        byte[] aFull = new byte[maxLen];
+        byte[] bFull = new byte[maxLen];
+
+        // Repeat and fill aFull
+        for (int i = 0; i < maxLen; i++) {
+            aFull[i] = a[i % a.length];
         }
-        byte[] result = new byte[a.length];
-        for (int i = 0; i < a.length; i++) {
-            result[i] = (byte)(a[i] ^ b[i]);
+        // Repeat and fill bFull
+        for (int i = 0; i < maxLen; i++) {
+            bFull[i] = b[i % b.length];
+        }
+
+        byte[] result = new byte[maxLen];
+        for (int i = 0; i < maxLen; i++) {
+            result[i] = (byte)(aFull[i] ^ bFull[i]);
         }
         return result;
     }
@@ -1433,11 +1608,11 @@ public class d_MSMR {
         throw new UnsupportedOperationException("getTreeDkSerializedLength() not implemented");
     }
 
-    // Helper: deserialize TreeDk from bytes
-    private static TreeDk deserializeTreeDk(byte[] bytes) {
-        // TODO: Implement deserialization logic for TreeDk
-        throw new UnsupportedOperationException("deserializeTreeDk() not implemented");
-    }
+    // // Helper: deserialize TreeDk from bytes
+    // private static TreeDk deserializeTreeDk(byte[] bytes) {
+    //     // TODO: Implement deserialization logic for TreeDk
+    //     throw new UnsupportedOperationException("deserializeTreeDk() not implemented");
+    // }
 
 
     // Helper: convert 4 bytes to int (big-endian)
