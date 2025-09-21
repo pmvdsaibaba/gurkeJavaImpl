@@ -928,10 +928,11 @@ public class d_MSMR {
         SenderState stS = new SenderState(uid, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
 
         // Step 6: Prepare cS (placeholder, as per pseudocode)
-        CiphertextS cS = new CiphertextS(st.i, null, null, null, to);
+        CiphertextS cS = new CiphertextS(st.i,  Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), to);
 
         // Step 7: Call encaps with svkuid and cM
-        EncapsResult encapsResult = encaps(stAfterEnq, st.ek, ad, cM, cq, svkuid, to);
+        EncapsResult encapsResult = encaps(stAfterEnq, forkResult.ek1 , ad, cM, cq, svkuid, to);
+        // EncapsResult encapsResult = encaps(stAfterEnq, st.ek, ad, cM, cq, svkuid, to);
 
         // Step 8: Return all results
         return new AddSResult(encapsResult.updatedState, stS, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);

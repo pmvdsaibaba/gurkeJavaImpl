@@ -649,7 +649,68 @@ public class TestD_MSMR {
         System.out.println("************** End of remove sender test *******************");
     }
 
+    @Test
+    public void testProcAddS_test1() throws Exception {
+        int nS = 3; // initial number of senders
+        int nR = 5; // number of receivers
+        int newSenderUid = 10;
 
+        System.out.println("\n**********************************************");
+        System.out.println("* D_MSMR Add Sender Test 1");
+        System.out.println("**********************************************");
+
+        // Step 1: Initialize
+        d_MSMR.InitResult initResult = d_MSMR.procInit(nS, nR);
+        // Pick a sender to perform the add (e.g., sender 1)
+        d_MSMR.SenderState senderState = initResult.senderStates.get(1);
+
+        byte[] ad = new byte[16];
+        new java.util.Random().nextBytes(ad);
+
+        // Step 2: Add a new sender
+        d_MSMR.AddSResult addSResult = d_MSMR.procAddS(senderState, ad, newSenderUid);
+
+        assertNotNull(addSResult.updatedSenderState, "Updated sender state should not be null");
+        assertNotNull(addSResult.newSenderState, "New sender state should not be null");
+        assertNotNull(addSResult.cS, "Sender ciphertext should not be null");
+        assertNotNull(addSResult.cR, "Receiver ciphertext should not be null");
+        assertNotNull(addSResult.key, "Key should not be null");
+        assertNotNull(addSResult.kid, "Kid should not be null");
+
+        // Verify the sender state was updated with new member
+        assertTrue(addSResult.updatedSenderState.memS.contains(newSenderUid), "New sender UID should be in sender's memS");
+        assertEquals(nS + 1, addSResult.updatedSenderState.memS.size(), "memS should have one more member");
+
+        // Verify the new sender state for the sender
+        assertTrue(addSResult.newSenderState.memS.contains(newSenderUid), "New sender UID should be in new sender's memS");
+        assertEquals(nS + 1, addSResult.newSenderState.memS.size(), "New sender's memS should have correct size");
+
+        System.out.println("procAddS test passed. Add operation key:");
+        printByteArray(addSResult.key);
+
+        // Use a working copy of senderStates for all state updates
+        java.util.Map<Integer, d_MSMR.SenderState> currentSenderStates = new java.util.HashMap<>(initResult.senderStates);
+        currentSenderStates.put(newSenderUid, addSResult.newSenderState);
+        currentSenderStates.put(1, addSResult.updatedSenderState);
+
+        // Update all other senders' state after procAddS
+        for (int sid = 2; sid <= nS; sid++) {
+            d_MSMR.SenderState otherSenderState = currentSenderStates.get(sid);
+            d_MSMR.SenderState updatedOtherSenderState = d_MSMR.proc(otherSenderState, ad, addSResult.cS);
+            currentSenderStates.put(sid, updatedOtherSenderState);
+        }
+
+        // Test that all receivers can still receive after the add operation
+        for (int r = 1; r <= nR; r++) {
+            d_MSMR.ReceiverEntry receiverEntry = initResult.receiverStatesMap.get(r);
+            d_MSMR.ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, addSResult.cR);
+            assertNotNull(rcvResult, "Receiver " + r + " should be able to process add sender ciphertext");
+            assertTrue(rcvResult.success, "Receiver " + r + " should process add sender ciphertext successfully");
+            assertArrayEquals(addSResult.key, rcvResult.key, "Receiver " + r + " keys should match after sender add");
+        }
+
+        System.out.println("************** End of add sender test *******************");
+    }
 
     // Utility to print byte arrays
     private void printByteArray(byte[] bytes) {
