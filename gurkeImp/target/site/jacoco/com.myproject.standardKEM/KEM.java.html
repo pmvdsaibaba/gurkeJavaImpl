@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KEM.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gurkeImp</a> &gt; <a href="index.source.html" class="el_package">com.myproject.standardKEM</a> &gt; <span class="el_source">KEM.java</span></div><h1>KEM.java</h1><pre class="source lang-java linenums">package com.myproject.standardKEM;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.agreement.X25519Agreement;
+import org.bouncycastle.crypto.params.*;
+import org.bouncycastle.util.encoders.Base64;
+
+import java.security.*;
+import java.security.interfaces.*;
+import java.security.spec.*;
+import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
+import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.prng.FixedSecureRandom;
+import java.util.Arrays;
+
+<span class="nc" id="L18">public class KEM {</span>
+
+    static {
+        // Add Bouncy Castle as a Security Provider
+<span class="fc" id="L22">        Security.addProvider(new BouncyCastleProvider());</span>
+<span class="fc" id="L23">    }</span>
+
+    // This method generates an X25519 key pair (public and private keys) using BouncyCastle
+    public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException {
+        // Create a SecureRandom instance
+<span class="fc" id="L28">        SecureRandom random = new SecureRandom();</span>
+
+        // Initialize the X25519 key pair generator
+<span class="fc" id="L31">        X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();</span>
+
+        // Initialize with X25519 parameters (SecureRandom instance)
+<span class="fc" id="L34">        X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);</span>
+<span class="fc" id="L35">        keyPairGenerator.init(params);</span>
+
+        // Generate the key pair
+<span class="fc" id="L38">        AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();</span>
+        
+        // Extract the public and private keys from the key pair
+<span class="fc" id="L41">        X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();</span>
+<span class="fc" id="L42">        X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();</span>
+
+        // Convert the keys to byte arrays (encoded format)
+<span class="fc" id="L45">        byte[] publicKeyBytes = publicKeyParameters.getEncoded();</span>
+<span class="fc" id="L46">        byte[] privateKeyBytes = privateKeyParameters.getEncoded();</span>
+
+<span class="fc" id="L48">        return new KeyPair(publicKeyBytes, privateKeyBytes);</span>
+    }
+
+    // KeyPair class to hold the encapsulation key and decapsulation key
+    public static class KeyPair {
+        private byte[] publicKey; // Store the public key as a byte array
+        private byte[] privateKey; // Store the private key as a byte array
+
+<span class="fc" id="L56">        public KeyPair(byte[] ek, byte[] dk) {</span>
+<span class="fc" id="L57">            this.publicKey = ek;</span>
+<span class="fc" id="L58">            this.privateKey = dk;</span>
+<span class="fc" id="L59">        }</span>
+
+        public byte[] getEk() {
+<span class="fc" id="L62">            return publicKey;</span>
+        }
+
+        public byte[] getDk() {
+<span class="fc" id="L66">            return privateKey;</span>
+        }
+    }
+
+    // This method generates an X25519 key pair based on the provided seed (for deterministic generation)
+    public static KeyPair gen(byte[] seed) throws NoSuchAlgorithmException, NoSuchProviderException {
+        // Initialize the FixedSecureRandom instance with the provided seed
+<span class="fc" id="L73">        FixedSecureRandom random = new FixedSecureRandom(seed); // Pass the seed directly</span>
+
+        // Initialize the X25519 key pair generator
+<span class="fc" id="L76">        X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();</span>
+
+        // Initialize with X25519 parameters (using the seeded FixedSecureRandom instance)
+<span class="fc" id="L79">        X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);</span>
+<span class="fc" id="L80">        keyPairGenerator.init(params);</span>
+
+        // Generate the key pair
+<span class="fc" id="L83">        AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();</span>
+
+        // Extract the public and private keys from the key pair
+<span class="fc" id="L86">        X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();</span>
+<span class="fc" id="L87">        X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();</span>
+
+        // Convert the keys to byte arrays (encoded format)
+<span class="fc" id="L90">        byte[] publicKeyBytes = publicKeyParameters.getEncoded();</span>
+<span class="fc" id="L91">        byte[] privateKeyBytes = privateKeyParameters.getEncoded();</span>
+
+        // Return the key pair (with public and private keys as byte arrays)
+<span class="fc" id="L94">        return new KeyPair(publicKeyBytes, privateKeyBytes);</span>
+    }
+
+    // This method simulates the enc function to generate a key and ciphertext
+    public static EncapsulationResult enc(byte[] ek) throws Exception {
+        // Convert the byte array to an X25519 public key
+        // X509EncodedKeySpec keySpec = new X509EncodedKeySpec(ek);
+<span class="fc" id="L101">        KeyFactory keyFactory = KeyFactory.getInstance(&quot;X25519&quot;, &quot;BC&quot;);</span>
+<span class="fc" id="L102">        X25519PublicKeyParameters publicKey = new X25519PublicKeyParameters(ek, 0);</span>
+
+        // Generate a random shared secret
+        // SecureRandom secureRandom = new SecureRandom();
+
+<span class="fc" id="L107">        byte[] seed = new byte[32]; // 256-bit seed</span>
+<span class="fc" id="L108">        Arrays.fill(seed, (byte) 0xAC); // Fill with 0xEF</span>
+
+
+<span class="fc" id="L111">        FixedSecureRandom random = new FixedSecureRandom(seed); // Pass the seed directly</span>
+
+                // Initialize the X25519 key pair generator
+<span class="fc" id="L114">                X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();</span>
+
+                // Initialize with X25519 parameters (using the seeded FixedSecureRandom instance)
+<span class="fc" id="L117">                X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);</span>
+<span class="fc" id="L118">                keyPairGenerator.init(params);</span>
+
+                // Generate the key pair
+<span class="fc" id="L121">                AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();</span>
+
+                // Extract the public and private keys from the key pair
+<span class="fc" id="L124">                X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();</span>
+<span class="fc" id="L125">                X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();</span>
+
+<span class="fc" id="L127">                byte[] ciphertext = publicKeyParameters.getEncoded();</span>
+<span class="fc" id="L128">                byte[] privateKeyBytes = privateKeyParameters.getEncoded();</span>
+
+        // Generate private key for encapsulation (X25519)
+<span class="fc" id="L131">        X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(privateKeyBytes, 0);</span>
+
+        // Use X25519Agreement to perform the key agreement
+<span class="fc" id="L134">        X25519Agreement agreement = new X25519Agreement();</span>
+<span class="fc" id="L135">        agreement.init(privateKey);</span>
+
+<span class="fc" id="L137">        byte[] secretKey = new byte[agreement.getAgreementSize()];</span>
+<span class="fc" id="L138">        agreement.calculateAgreement(publicKey, secretKey, 0);</span>
+
+        // Return the result as an EncapsulationResult object containing both the original and encrypted keys
+<span class="fc" id="L141">        return new EncapsulationResult(secretKey, ciphertext);</span>
+    }
+
+    // EncapsulationResult class to hold key and ciphertext
+    public static class EncapsulationResult {
+        public byte[] k;
+        public byte[] c;
+
+<span class="fc" id="L149">        public EncapsulationResult(byte[] k, byte[] c) {</span>
+<span class="fc" id="L150">            this.k = k;</span>
+<span class="fc" id="L151">            this.c = c;</span>
+<span class="fc" id="L152">        }</span>
+
+        public byte[] getK() {
+<span class="fc" id="L155">            return k;</span>
+        }
+
+        public byte[] getC() {
+<span class="fc" id="L159">            return c;</span>
+        }
+    }
+
+    // This method simulates the dec function to generate a key and ciphertext
+    public static DecapsulationResult dec(byte[] dk, byte[] c) throws Exception {
+        // Convert the byte array to an X25519 private key
+        // PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(dk);
+        // KeyFactory keyFactory = KeyFactory.getInstance(&quot;X25519&quot;, &quot;BC&quot;);
+<span class="fc" id="L168">        X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(dk, 0);</span>
+
+<span class="fc" id="L170">        int debugPrintEnable = 0;</span>
+
+        // Use X25519Agreement to perform the key agreement
+<span class="fc" id="L173">        X25519Agreement agreement = new X25519Agreement();</span>
+<span class="fc" id="L174">        agreement.init(privateKey);</span>
+
+<span class="fc" id="L176">        byte[] decryptedKey = new byte[agreement.getAgreementSize()];</span>
+<span class="fc" id="L177">        agreement.calculateAgreement(new X25519PublicKeyParameters(c, 0), decryptedKey, 0);</span>
+
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (debugPrintEnable != 0)</span>
+<span class="nc" id="L180">        {    System.out.println(&quot;decryptedKey Key (k in dec): &quot;);</span>
+            // printByteArray(decryptedKey);
+<span class="nc" id="L182">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            for (byte b : decryptedKey) {</span>
+<span class="nc" id="L184">                sb.append(String.format(&quot;%02X&quot;, b));  // Convert to hexadecimal representation</span>
+            }
+<span class="nc" id="L186">            System.out.println(sb.toString());</span>
+        }
+
+        // Return the result as a DecapsulationResult containing the decrypted shared key
+<span class="fc" id="L190">        return new DecapsulationResult(decryptedKey);</span>
+    }
+
+    // DecapsulationResult class to hold key and ciphertext
+    public static class DecapsulationResult {
+        byte[] k;
+
+<span class="fc" id="L197">        public DecapsulationResult(byte[] k) {</span>
+<span class="fc" id="L198">            this.k = k;</span>
+<span class="fc" id="L199">        }</span>
+
+        public byte[] getK() {
+<span class="fc" id="L202">            return k;</span>
+        }
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,859 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Tree.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gurkeImp</a> &gt; <a href="index.source.html" class="el_package">com.myproject.Tree</a> &gt; <span class="el_source">Tree.java</span></div><h1>Tree.java</h1><pre class="source lang-java linenums">package com.myproject.Tree;
+
+import com.myproject.Tree.TreeEK;
+import com.myproject.Tree.TreeAddEkReturn;
+import com.myproject.Tree.TreeAddDkReturn;
+import com.myproject.Tree.TreeGetPathReturn;
+import com.myproject.Tree.TreeGetNodesReturn;
+import com.myproject.Tree.TreeDk;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
+import java.util.Map;
+import java.util.*;
+
+
+<span class="fc" id="L16">public class Tree {</span>
+    private int numLeaves;
+    private int treeSize;
+
+    // node indexes as 1,2,3,.... N
+    // These Indexes should be unique. So once created, the index will be permanently assigned to a node. Even if the node is deleted that index will not be reused
+    List&lt;Integer&gt; nodeIndexes;
+    // To store the maximum node index value created
+    int nodeIndexMax;
+
+    List&lt;Integer&gt; leafIndexes;
+    int leafIndexMax;
+
+    // this holds all the nodes
+<span class="fc" id="L30">    List&lt;Node&gt; internalNode = new ArrayList&lt;&gt;();</span>
+
+    // variables used in T.Add dk
+    private int TAddnode1Index;
+    private int TAddnode2Index;
+    private int TAddnode2Index_leaf;
+    private int TAddnode1Index_leaf;
+
+    // variables used in T.Rem dk
+    private int TRemnode1Index;
+    private int TRemnode2Index;
+    private int TRemnode2Index_leaf;
+    private int TRemnode1Index_leaf;
+    private int TRem_AffectedLeaf;
+
+ 
+
+    public static class Node {
+        private int nodeIndex;
+        private int rootNode;
+        private int childLeftNode;
+        private int childRightNode;
+        private int nodeLevel;
+        private int leafIndex;
+        private byte[] pk;
+        private byte[] sk;
+        private boolean isLeaf;
+        private boolean isValidNode;
+
+        // Private constructor — only accessible through the builder
+<span class="fc" id="L60">        private Node(Builder builder) {</span>
+<span class="fc" id="L61">            this.nodeIndex = builder.nodeIndex;</span>
+<span class="fc" id="L62">            this.rootNode = builder.rootNode;</span>
+<span class="fc" id="L63">            this.childLeftNode = builder.childLeftNode;</span>
+<span class="fc" id="L64">            this.childRightNode = builder.childRightNode;</span>
+<span class="fc" id="L65">            this.nodeLevel = builder.nodeLevel;</span>
+<span class="fc" id="L66">            this.leafIndex = builder.leafIndex;</span>
+<span class="fc" id="L67">            this.pk = builder.pk;</span>
+<span class="fc" id="L68">            this.sk = builder.sk;</span>
+<span class="fc" id="L69">            this.isLeaf = builder.isLeaf;</span>
+<span class="fc" id="L70">            this.isValidNode = builder.isValidNode;</span>
+<span class="fc" id="L71">        }</span>
+
+        // Builder class
+<span class="fc" id="L74">        public static class Builder {</span>
+<span class="fc" id="L75">            private int nodeIndex = -1;</span>
+<span class="fc" id="L76">            private int rootNode = -1;</span>
+<span class="fc" id="L77">            private int childLeftNode = -1;</span>
+<span class="fc" id="L78">            private int childRightNode = -1;</span>
+<span class="fc" id="L79">            private int nodeLevel = -1;</span>
+<span class="fc" id="L80">            private int leafIndex = -1;</span>
+<span class="fc" id="L81">            private byte[] pk = null;</span>
+<span class="fc" id="L82">            private byte[] sk = null;</span>
+<span class="fc" id="L83">            private boolean isLeaf = false;</span>
+<span class="fc" id="L84">            private boolean isValidNode = false;</span>
+
+            public Builder setRootnode(int rootNode) {
+<span class="fc" id="L87">                this.rootNode = rootNode;</span>
+<span class="fc" id="L88">                return this;</span>
+            }
+
+            public Builder setNodeIndex(int nodeIndex) {
+<span class="fc" id="L92">                this.nodeIndex = nodeIndex;</span>
+<span class="fc" id="L93">                return this;</span>
+            }
+
+            public Builder setChildLeftnode(int childLeftNode) {
+<span class="fc" id="L97">                this.childLeftNode = childLeftNode;</span>
+<span class="fc" id="L98">                return this;</span>
+            }
+
+            public Builder setChildRightnode(int childRightNode) {
+<span class="fc" id="L102">                this.childRightNode = childRightNode;</span>
+<span class="fc" id="L103">                return this;</span>
+            }
+
+            public Builder setNodeLevel(int nodeLevel) {
+<span class="fc" id="L107">                this.nodeLevel = nodeLevel;</span>
+<span class="fc" id="L108">                return this;</span>
+            }
+
+            public Builder setLeafIndex(int leafIndex) {
+<span class="fc" id="L112">                this.leafIndex = leafIndex;</span>
+<span class="fc" id="L113">                return this;</span>
+            }
+
+            public Builder setPk(byte[] pk) {
+<span class="fc" id="L117">                this.pk = pk;</span>
+<span class="fc" id="L118">                return this;</span>
+            }
+
+            public Builder setSk(byte[] sk) {
+<span class="fc" id="L122">                this.sk = sk;</span>
+<span class="fc" id="L123">                return this;</span>
+            }
+
+            public Builder setIsLeaf(boolean isLeaf) {
+<span class="fc" id="L127">                this.isLeaf = isLeaf;</span>
+<span class="fc" id="L128">                return this;</span>
+            }
+
+            public Builder setIsValidNode(boolean isValidNode) {
+<span class="fc" id="L132">                this.isValidNode = isValidNode;</span>
+<span class="fc" id="L133">                return this;</span>
+            }
+
+            public Node build() {
+<span class="fc" id="L137">                return new Node(this);</span>
+            }
+        }
+
+<span class="fc" id="L141">        public int getNodeIndex() { return nodeIndex; }</span>
+<span class="fc" id="L142">        public int getRootnode() { return rootNode; }</span>
+<span class="fc" id="L143">        public int getChildLeftnode() { return childLeftNode; }</span>
+<span class="fc" id="L144">        public int getChildRightnode() { return childRightNode; }</span>
+<span class="fc" id="L145">        public int getNodeLevel() { return nodeLevel; }</span>
+<span class="fc" id="L146">        public int getLeafIndex() { return leafIndex; }</span>
+<span class="fc" id="L147">        public byte[] getPk() { return pk; }</span>
+<span class="fc" id="L148">        public byte[] getSk() { return sk; }</span>
+<span class="fc" id="L149">        public boolean isLeaf() { return isLeaf; }</span>
+<span class="fc" id="L150">        public boolean isValidNode() { return isValidNode; }</span>
+
+<span class="nc" id="L152">        public void setNodeIndex(int nodeIndex) {this.nodeIndex = nodeIndex; }</span>
+<span class="fc" id="L153">        public void setRootnode(int rootNode) {this.rootNode = rootNode; }</span>
+<span class="fc" id="L154">        public void setChildLeftnode(int childLeftNode) {this.childLeftNode = childLeftNode; }</span>
+<span class="fc" id="L155">        public void setChildRightnode(int childRightNode) { this.childRightNode = childRightNode; }</span>
+<span class="fc" id="L156">        public void setNodeLevel(int nodeLevel) { this.nodeLevel = nodeLevel; }</span>
+<span class="fc" id="L157">        public void setLeafIndex(int leafIndex) { this.leafIndex = leafIndex; }</span>
+<span class="fc" id="L158">        public void setPk(byte[] pk) { this.pk = pk; }</span>
+<span class="fc" id="L159">        public void setSk(byte[] sk) { this.sk = sk;  }</span>
+<span class="fc" id="L160">        public void setIsLeaf(boolean isLeaf) {   this.isLeaf = isLeaf;  }</span>
+<span class="fc" id="L161">        public void setIsValidNode(boolean isValidNode) { this.isValidNode = isValidNode;  }</span>
+    }
+
+
+    public Tree deepCopy() {
+<span class="fc" id="L166">        Tree copy = new Tree();</span>
+<span class="fc" id="L167">        copy.numLeaves = this.numLeaves;</span>
+<span class="fc" id="L168">        copy.treeSize = this.treeSize;</span>
+<span class="fc" id="L169">        copy.nodeIndexMax = this.nodeIndexMax;</span>
+<span class="fc" id="L170">        copy.leafIndexMax = this.leafIndexMax;</span>
+<span class="fc" id="L171">        copy.TAddnode1Index = this.TAddnode1Index;</span>
+<span class="fc" id="L172">        copy.TAddnode2Index = this.TAddnode2Index;</span>
+<span class="fc" id="L173">        copy.TAddnode2Index_leaf = this.TAddnode2Index_leaf;</span>
+<span class="fc" id="L174">        copy.TAddnode1Index_leaf = this.TAddnode1Index_leaf;</span>
+<span class="fc" id="L175">        copy.TRemnode2Index_leaf = this.TRemnode2Index_leaf;</span>
+<span class="fc" id="L176">        copy.TRemnode1Index_leaf = this.TRemnode1Index_leaf;</span>
+<span class="fc" id="L177">        copy.TRemnode1Index = this.TRemnode1Index;</span>
+<span class="fc" id="L178">        copy.TRemnode2Index = this.TRemnode2Index;</span>
+<span class="fc" id="L179">        copy.TRem_AffectedLeaf = this.TRem_AffectedLeaf;</span>
+
+        // Deep copy nodeIndexes and leafIndexes
+<span class="fc" id="L182">        copy.nodeIndexes = new ArrayList&lt;&gt;(this.nodeIndexes);</span>
+<span class="fc" id="L183">        copy.leafIndexes = new ArrayList&lt;&gt;(this.leafIndexes);</span>
+
+        // Deep copy internalNode list
+<span class="fc" id="L186">        copy.internalNode = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        for (Node node : this.internalNode) {</span>
+<span class="fc" id="L188">            copy.internalNode.add(deepCopyNode(node));</span>
+<span class="fc" id="L189">        }</span>
+
+<span class="fc" id="L191">        return copy;</span>
+    }
+
+    private static Node deepCopyNode(Node node) {
+<span class="fc" id="L195">        return new Node.Builder()</span>
+<span class="fc" id="L196">            .setNodeIndex(node.getNodeIndex())</span>
+<span class="fc" id="L197">            .setRootnode(node.getRootnode())</span>
+<span class="fc" id="L198">            .setChildLeftnode(node.getChildLeftnode())</span>
+<span class="fc" id="L199">            .setChildRightnode(node.getChildRightnode())</span>
+<span class="fc" id="L200">            .setNodeLevel(node.getNodeLevel())</span>
+<span class="fc" id="L201">            .setLeafIndex(node.getLeafIndex())</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            .setPk(node.getPk() != null ? Arrays.copyOf(node.getPk(), node.getPk().length) : null)</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">            .setSk(node.getSk() != null ? Arrays.copyOf(node.getSk(), node.getSk().length) : null)</span>
+<span class="fc" id="L204">            .setIsLeaf(node.isLeaf())</span>
+<span class="fc" id="L205">            .setIsValidNode(node.isValidNode())</span>
+<span class="fc" id="L206">            .build();</span>
+    }
+
+
+    public void addNode(Node node) {
+<span class="fc" id="L211">        internalNode.add(node);</span>
+<span class="fc" id="L212">    }</span>
+
+    public List&lt;Node&gt; getNodesInternal() {
+<span class="fc" id="L215">        return internalNode;</span>
+    }
+
+    public static Tree init(int n) {
+<span class="fc" id="L219">        Tree tree = new Tree();</span>
+<span class="fc" id="L220">        tree.numLeaves = n;</span>
+<span class="fc" id="L221">        tree.treeSize = 2 * n - 1;</span>
+<span class="fc" id="L222">        int leafCount = 1;</span>
+
+<span class="fc" id="L224">        tree.nodeIndexes = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L225">        tree.leafIndexes = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L227" title="All 2 branches covered.">        for (int i = 1; i &lt; 2 * n; i++) {</span>
+
+<span class="fc" id="L229">            tree.nodeIndexes.add(i);</span>
+
+<span class="fc" id="L231">            Tree.Node node = new Tree.Node.Builder()</span>
+<span class="fc" id="L232">                .setNodeIndex(i)</span>
+<span class="fc" id="L233">                .build();</span>
+
+<span class="fc bfc" id="L235" title="All 2 branches covered.">            if( i != 1)</span>
+            {
+<span class="fc" id="L237">                node.setRootnode(i/2);</span>
+<span class="fc" id="L238">                node.setNodeLevel((int) (Math.log(i) / Math.log(2)));</span>
+            }
+
+<span class="fc bfc" id="L241" title="All 2 branches covered.">            if((2* i) &lt; (2*n))</span>
+            {
+<span class="fc" id="L243">                node.setChildLeftnode(2*i);</span>
+            }
+            else
+            {
+<span class="fc" id="L247">                node.setIsLeaf(true);</span>
+<span class="fc" id="L248">                node.setLeafIndex(leafCount);</span>
+<span class="fc" id="L249">                tree.leafIndexes.add(leafCount);</span>
+<span class="fc" id="L250">                tree.leafIndexMax = leafCount;</span>
+<span class="fc" id="L251">                leafCount++;</span>
+            }
+
+<span class="fc bfc" id="L254" title="All 2 branches covered.">            if(((2* i) +1) &lt; (2*n))</span>
+            {
+<span class="fc" id="L256">                node.setChildRightnode((2*i) + 1);</span>
+            }
+<span class="fc" id="L258">            node.setIsValidNode(true);</span>
+<span class="fc" id="L259">            tree.addNode(node);</span>
+        }
+<span class="fc" id="L261">        tree.nodeIndexMax = (2*n) - 1;</span>
+
+<span class="fc" id="L263">        return tree;</span>
+    }
+
+<span class="fc" id="L266">    public int getSize() { return treeSize; }</span>
+<span class="fc" id="L267">    public int getNumOfLeaf() { return numLeaves; }</span>
+<span class="fc" id="L268">    public int getNodeIndexMax() { return nodeIndexMax; }</span>
+<span class="fc" id="L269">    public List&lt;Integer&gt; getNodeIndexes() { return nodeIndexes; }</span>
+<span class="fc" id="L270">    public int getLeafIndexMax() { return leafIndexMax; }</span>
+<span class="fc" id="L271">    public List&lt;Integer&gt; getLeafIndexes() { return leafIndexes; }</span>
+
+
+<span class="fc" id="L274">    public void setNumLeaves(int numLeaves) { this.numLeaves = numLeaves; }</span>
+<span class="fc" id="L275">    public void setTreeSize(int treeSize) { this.treeSize = treeSize; }</span>
+<span class="fc" id="L276">    public void setNodeIndexMax(int nodeIndexMax) { this.nodeIndexMax = nodeIndexMax; }</span>
+<span class="fc" id="L277">    public void setLeafIndexMax(int leafIndexMax) { this.leafIndexMax = leafIndexMax; }</span>
+<span class="fc" id="L278">    public void setNodeIndexes(List&lt;Integer&gt; nodeIndexes) { this.nodeIndexes = nodeIndexes; }</span>
+<span class="fc" id="L279">    public void setLeafIndexes(List&lt;Integer&gt; leafIndexes) { this.leafIndexes = leafIndexes; }</span>
+<span class="fc" id="L280">    public void setInternalNode(List&lt;Node&gt; internalNode) { this.internalNode = internalNode; }</span>
+
+    /* T.nodes(τ ) → (tj)j∈[N]  */
+    public List&lt;Integer&gt; nodes() {
+<span class="fc" id="L284">        List&lt;Integer&gt; nodeIndexesTemp = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        for (int i = 0; i &lt; getNodesInternal().size(); i++) </span>
+        {
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">            if ( getNodesInternal().get(i).isValidNode() == true)</span>
+            {
+<span class="fc" id="L290">                nodeIndexesTemp.add(getNodesInternal().get(i).getNodeIndex());</span>
+            }
+        }
+        // nodeIndexesTemp.addAll(this.nodeIndexes);
+<span class="fc" id="L294">        return nodeIndexesTemp;</span>
+    }
+
+    /* T.getnodes(ek) → (τ, (pkj)j∈[N]) */
+    public static TreeGetNodesReturn getNodes(TreeEK ek) {
+<span class="fc" id="L299">        return new TreeGetNodesReturn(ek.getDataPk(), ek.getTree());</span>
+    }
+
+    /* T.getpath(dk) → (τ, i, (skl)l∈[L]) */
+    public static TreeGetPathReturn getPath(TreeDk dk) {
+<span class="fc" id="L304">        return new TreeGetPathReturn(dk.getDataSk(), dk.getLeaf(), dk.getTree());</span>
+    }
+
+    /* T.setnodes(τ, (pkj)j∈[N]) → ek */
+    public TreeEK setNodes(Map&lt;Integer, byte[]&gt; pkMap)
+    {
+<span class="fc" id="L310">        Tree treeCopy = this.deepCopy();</span>
+
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        for (Node node : treeCopy.getNodesInternal()) {</span>
+<span class="fc" id="L313">            int nodeIndex = node.getNodeIndex();</span>
+<span class="fc" id="L314">            byte[] pk = pkMap.get(nodeIndex);</span>
+<span class="fc bfc" id="L315" title="All 2 branches covered.">            if (pk != null) {</span>
+<span class="fc" id="L316">                node.setPk(pk);</span>
+            }
+<span class="fc" id="L318">        }</span>
+<span class="fc" id="L319">        return new TreeEK(treeCopy, pkMap);</span>
+    }
+
+    /* T.setpath(τ, i, (skpl )l∈[Li]) → dki */
+    public TreeDk setPath(int leaf, Map&lt;Integer, byte[]&gt; skMap)
+    {
+<span class="fc" id="L325">        Tree treeCopy = this.deepCopy();</span>
+
+<span class="fc" id="L327">        List&lt;Integer&gt; leafPath = treeCopy.T_path(leaf);</span>
+
+<span class="fc bfc" id="L329" title="All 2 branches covered.">        for (Node node : treeCopy.getNodesInternal()) {</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">            if (leafPath.contains(node.getNodeIndex())) {</span>
+<span class="fc" id="L331">                node.setSk(skMap.get(node.getNodeIndex()));</span>
+            }
+<span class="fc" id="L333">        }</span>
+
+<span class="fc" id="L335">        return new TreeDk(treeCopy, skMap, leaf);</span>
+    }
+
+    private static void treeAddInternal(Tree tree){ 
+
+<span class="fc" id="L340">        List&lt;Integer&gt; nodeLevelList = new ArrayList&lt;&gt;();</span>
+
+        // Loop through all internal nodes and collect the level of each leaf node
+<span class="fc bfc" id="L343" title="All 2 branches covered.">        for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) {</span>
+<span class="fc" id="L344">            Tree.Node node = tree.getNodesInternal().get(i);</span>
+
+<span class="fc bfc" id="L346" title="All 2 branches covered.">            if (node.isLeaf() == true) {</span>
+<span class="fc" id="L347">                nodeLevelList.add(node.getNodeLevel());</span>
+            }
+        }
+
+        // Sort the levels to find the leaf node(s) with the lowest level
+<span class="fc" id="L352">        Collections.sort(nodeLevelList);</span>
+
+        // List to store indexes of all leaf nodes that have the minimum level
+<span class="fc" id="L355">        List&lt;Integer&gt; nodeIndexList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">        for (int i = 0; i &lt;  tree.getNodesInternal().size(); i++) {</span>
+<span class="fc" id="L357">            Tree.Node node =  tree.getNodesInternal().get(i);</span>
+
+<span class="fc bfc" id="L359" title="All 2 branches covered.">            if (node.isLeaf() == true) {</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">                if (node.getNodeLevel() == nodeLevelList.get(0)) {</span>
+<span class="fc" id="L361">                    nodeIndexList.add(node.getNodeIndex());</span>
+                }
+            }
+        }
+
+        // Sort the node indexes to pick the leftmost (smallest index) leaf node with the lowest level
+<span class="fc" id="L367">        Collections.sort(nodeIndexList);</span>
+        // System.out.print(&quot;leftmost (smallest index) leaf node: &quot;);
+        // System.out.println(nodeIndexList);
+
+        // Find the position of that node in the internal node list
+<span class="fc" id="L372">        int nodeIndex = -1;</span>
+<span class="fc bfc" id="L373" title="All 2 branches covered.">        for (int i = 0; i &lt;  tree.getNodesInternal().size(); i++) {</span>
+<span class="fc" id="L374">            Tree.Node node =  tree.getNodesInternal().get(i);</span>
+
+<span class="fc bfc" id="L376" title="All 2 branches covered.">            if (node.isLeaf() == true) {</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">                if (node.getNodeIndex() == nodeIndexList.get(0)) {</span>
+<span class="fc" id="L378">                    nodeIndex = i;</span>
+                }
+            }
+        }
+
+        // System.out.print(&quot;position of the node: &quot;);
+        // System.out.println(nodeIndex);
+
+        // Get the actual leaf node object
+<span class="fc" id="L387">        Tree.Node currentLeafNode =  tree.getNodesInternal().get(nodeIndex);</span>
+
+        // Find the position of that node in the internal node list
+<span class="fc" id="L390">        int parentNodeIndex = -1;</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">        for (int i = 0; i &lt;  tree.getNodesInternal().size(); i++) {</span>
+<span class="fc" id="L392">            Tree.Node node =  tree.getNodesInternal().get(i);</span>
+
+<span class="fc bfc" id="L394" title="All 2 branches covered.">            if (node.getNodeIndex() == currentLeafNode.getRootnode()) {</span>
+<span class="fc" id="L395">                parentNodeIndex = i;</span>
+            }
+        }
+
+<span class="fc" id="L399">        Tree.Node currentLeafNodeParent =  tree.getNodesInternal().get(parentNodeIndex);</span>
+
+
+        // Create a new internal node (node1) to replace the current leaf node
+<span class="fc" id="L403">        Tree.Node node1 = new Tree.Node.Builder()</span>
+<span class="fc" id="L404">            .setNodeIndex(tree.nodeIndexMax + 1)</span>
+<span class="fc" id="L405">            .build();</span>
+
+<span class="pc bpc" id="L407" title="1 of 2 branches missed.">        if (nodeIndex != -1) {</span>
+            // Set properties of the new internal node based on the current leaf node
+<span class="fc" id="L409">            node1.setRootnode(currentLeafNode.getRootnode());  // Inherit parent</span>
+<span class="fc" id="L410">            node1.setNodeLevel(currentLeafNode.getNodeLevel());  // Same level as leaf</span>
+<span class="fc" id="L411">            node1.setChildLeftnode(currentLeafNode.getNodeIndex());  // Left child is current leaf</span>
+<span class="fc" id="L412">            node1.setChildRightnode(tree.nodeIndexMax + 2);  // Right child will be the new leaf</span>
+        }
+
+<span class="fc" id="L415">        node1.setIsValidNode(true);</span>
+<span class="fc" id="L416">        tree.addNode(node1);</span>
+
+        // Create a new leaf node (node2) as the right child of node1
+<span class="fc" id="L419">        Tree.Node node2 = new Tree.Node.Builder()</span>
+<span class="fc" id="L420">            .setNodeIndex(tree.nodeIndexMax + 2)  // New index</span>
+<span class="fc" id="L421">            .build();</span>
+
+<span class="fc" id="L423">        node2.setRootnode(tree.nodeIndexMax + 1);  // Its parent is the newly added node1</span>
+<span class="fc" id="L424">        node2.setNodeLevel(currentLeafNode.getNodeLevel() + 1);  // Level is increased</span>
+<span class="fc" id="L425">        node2.setIsLeaf(true);  // It's a leaf</span>
+<span class="fc" id="L426">        tree.leafIndexMax++;</span>
+<span class="fc" id="L427">        node2.setLeafIndex(tree.leafIndexMax);</span>
+<span class="fc" id="L428">        tree.leafIndexes.add(tree.leafIndexMax);</span>
+
+        // Update the original leaf node to now be an internal node with updated level and parent
+<span class="fc" id="L431">        currentLeafNode.setRootnode(tree.nodeIndexMax + 1);  // New parent</span>
+<span class="fc" id="L432">        currentLeafNode.setNodeLevel(node2.getNodeLevel());  // Updated level</span>
+
+<span class="fc bfc" id="L434" title="All 2 branches covered.">        if (currentLeafNodeParent.getChildLeftnode() == currentLeafNode.getNodeIndex()) {</span>
+<span class="fc" id="L435">            currentLeafNodeParent.setChildLeftnode(node1.getNodeIndex());</span>
+<span class="pc bpc" id="L436" title="1 of 2 branches missed.">        } else if (currentLeafNodeParent.getChildRightnode() == currentLeafNode.getNodeIndex()) {</span>
+<span class="fc" id="L437">             currentLeafNodeParent.setChildRightnode(node1.getNodeIndex());</span>
+        }
+
+<span class="fc" id="L440">        node2.setIsValidNode(true);</span>
+        // Add the new leaf node to the tree
+<span class="fc" id="L442">        tree.addNode(node2);</span>
+
+<span class="fc" id="L444">        tree.treeSize++;</span>
+<span class="fc" id="L445">        tree.treeSize++;</span>
+<span class="fc" id="L446">        tree.numLeaves++;</span>
+
+<span class="fc" id="L448">        tree.TAddnode1Index = node1.getNodeIndex();</span>
+<span class="fc" id="L449">        tree.TAddnode2Index = node2.getNodeIndex();</span>
+<span class="fc" id="L450">        tree.TAddnode2Index_leaf = node2.getLeafIndex();</span>
+<span class="fc" id="L451">        tree.TAddnode1Index_leaf = node1.getLeafIndex();</span>
+
+
+<span class="fc" id="L454">        tree.nodeIndexes.add(tree.TAddnode1Index);</span>
+<span class="fc" id="L455">        tree.nodeIndexes.add(tree.TAddnode2Index);</span>
+
+<span class="fc" id="L457">        tree.nodeIndexMax = tree.TAddnode2Index;</span>
+<span class="fc" id="L458">    }</span>
+
+    public static TreeAddEkReturn T_add_Ek(TreeEK ek)
+    {
+<span class="fc" id="L462">        treeAddInternal(ek.getTree());</span>
+
+        // dk.getDataSk().put(dk.getTree().TAddnode2Index, new byte[0]);
+        // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
+
+<span class="fc" id="L467">        return new TreeAddEkReturn(</span>
+<span class="fc" id="L468">            ek.getDataPk(), </span>
+<span class="fc" id="L469">            ek.getTree().T_path(ek.getTree().leafIndexMax),</span>
+<span class="fc" id="L470">            ek.getTree().T_co_path(ek.getTree().leafIndexMax),</span>
+<span class="fc" id="L471">            ek.getTree().numLeaves,</span>
+<span class="fc" id="L472">            ek.getTree());</span>
+    }
+
+    public static TreeAddDkReturn T_add_dk(TreeDk dk)
+    {
+
+<span class="fc" id="L478">        treeAddInternal(dk.getTree());</span>
+
+<span class="fc" id="L480">        List&lt;Integer&gt; set2 = new ArrayList&lt;&gt;(dk.getDataSk().keySet());</span>
+
+        /////////////////////////////////////////////////////////////////
+        // To find the intersection
+
+
+        // List&lt;Integer&gt; set2 = dk.getTree().T_path(dk.getTree().TAddnode1Index_leaf);
+
+        //////////////////////////////////////////////////////////////////
+        // Finding the leaf in input node.
+<span class="fc" id="L490">        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());</span>
+
+
+<span class="fc" id="L493">        List&lt;Integer&gt; set3 = dk.getTree().T_path(leafNodeIndex);</span>
+
+
+        // check if TAddnode2Index is leaf node or added node
+<span class="fc" id="L497">        List&lt;Integer&gt; set1 = dk.getTree().T_path(dk.getTree().TAddnode2Index_leaf);</span>
+
+<span class="fc" id="L499">        int IntersectionNode = findFirstCommonNodeInOrder(set1, set3);</span>
+
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">        if (IntersectionNode != -1) {</span>
+            // do nothing
+        } else {
+<span class="nc" id="L504">            System.out.println(&quot;Error T_add_dk: No common node found.&quot;);</span>
+        }
+
+
+        //////////////////////////////////////////////////////////////////
+        // wrong assumption if new nodes to be added
+
+        // dk.getDataSk().put(dk.getTree().TAddnode2Index, new byte[0]);
+        // dk.getDataSk().put(dk.getTree().TAddnode1Index, new byte[0]);
+
+
+<span class="fc" id="L515">        return new TreeAddDkReturn(</span>
+<span class="fc" id="L516">            dk.getDataSk(),</span>
+            leafNodeIndex,
+            IntersectionNode,
+<span class="fc" id="L519">            dk.getTree());</span>
+    }
+
+    private static void treeRemInternal(Tree tree, int leaf){
+
+<span class="fc" id="L524">        Tree.Node NodeToBeRemoved = null;</span>
+<span class="fc" id="L525">        Tree.Node NodeRootToBeRemoved = null;</span>
+<span class="fc" id="L526">        Tree.Node NewNodeRoot = null;</span>
+        Tree.Node tempNode;
+
+<span class="fc" id="L529">        List&lt;Integer&gt; pathList = tree.T_path(leaf);</span>
+<span class="fc" id="L530">        List&lt;Integer&gt; coPathList = tree.T_co_path(leaf);</span>
+
+        // tree.TRem_AffectedLeaf = coPathList.get(0);
+<span class="fc" id="L533">        tree.TRem_AffectedLeaf = -1;</span>
+<span class="fc" id="L534">        int affectedLeaf_nodeIndex = coPathList.get(0);</span>
+
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        for (Node node : tree.getNodesInternal()) {</span>
+<span class="fc bfc" id="L537" title="All 2 branches covered.">            if (node.getNodeIndex() == affectedLeaf_nodeIndex) {</span>
+<span class="fc" id="L538">                tree.TRem_AffectedLeaf = node.getLeafIndex();</span>
+<span class="fc" id="L539">                break;</span>
+            }
+<span class="fc" id="L541">        }</span>
+
+<span class="fc bfc" id="L543" title="All 2 branches covered.">        if(pathList.size() &gt; 2)</span>
+        {
+            // Todo: add an implementation to throw an exception if pathList size is &lt; 4
+<span class="fc" id="L546">            int LeafNodeIndex = pathList.get(0);</span>
+<span class="fc" id="L547">            int LeafRootNodeIndex = pathList.get(1);</span>
+<span class="fc" id="L548">            int newLeafRootNodeIndex = pathList.get(2);</span>
+
+            // System.out.print(&quot;LeafNodeIndex: &quot;);
+            // System.out.println(LeafNodeIndex);
+
+<span class="fc bfc" id="L553" title="All 2 branches covered.">            for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) {</span>
+
+<span class="fc" id="L555">                tempNode = tree.getNodesInternal().get(i);</span>
+
+<span class="fc bfc" id="L557" title="All 2 branches covered.">                if (tempNode.getNodeIndex() == LeafNodeIndex) {</span>
+<span class="fc" id="L558">                    NodeToBeRemoved = tree.getNodesInternal().get(i);</span>
+                }
+
+<span class="fc bfc" id="L561" title="All 2 branches covered.">                if (tempNode.getNodeIndex() == LeafRootNodeIndex) {</span>
+<span class="fc" id="L562">                    NodeRootToBeRemoved = tree.getNodesInternal().get(i);</span>
+                }
+
+<span class="fc bfc" id="L565" title="All 2 branches covered.">                if (tempNode.getNodeIndex() == newLeafRootNodeIndex) {</span>
+<span class="fc" id="L566">                    NewNodeRoot = tree.getNodesInternal().get(i);</span>
+                }
+            }
+
+<span class="fc bfc" id="L570" title="All 2 branches covered.">            if (NewNodeRoot.getChildLeftnode() == NodeToBeRemoved.getRootnode())</span>
+            {
+<span class="fc bfc" id="L572" title="All 2 branches covered.">                if (NodeRootToBeRemoved.getChildLeftnode() == NodeToBeRemoved.getNodeIndex())</span>
+                {
+<span class="fc" id="L574">                    NewNodeRoot.setChildLeftnode(NodeRootToBeRemoved.getChildRightnode());</span>
+
+<span class="fc bfc" id="L576" title="All 2 branches covered.">                    for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) </span>
+                    {
+<span class="fc" id="L578">                        tempNode = tree.getNodesInternal().get(i);</span>
+<span class="fc bfc" id="L579" title="All 2 branches covered.">                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildRightnode()) </span>
+                        {
+<span class="fc" id="L581">                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());</span>
+<span class="fc" id="L582">                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);</span>
+<span class="fc" id="L583">                            tree.TRemnode2Index = tempNode.getNodeIndex();</span>
+                        }
+                    }
+                }
+<span class="pc bpc" id="L587" title="1 of 2 branches missed.">                else if (NodeRootToBeRemoved.getChildRightnode() == NodeToBeRemoved.getNodeIndex())</span>
+                {
+<span class="fc" id="L589">                    NewNodeRoot.setChildLeftnode(NodeRootToBeRemoved.getChildLeftnode());</span>
+
+<span class="fc bfc" id="L591" title="All 2 branches covered.">                    for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) </span>
+                    {
+<span class="fc" id="L593">                        tempNode = tree.getNodesInternal().get(i);</span>
+<span class="fc bfc" id="L594" title="All 2 branches covered.">                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildLeftnode()) </span>
+                        {
+<span class="fc" id="L596">                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());</span>
+<span class="fc" id="L597">                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);</span>
+<span class="fc" id="L598">                            tree.TRemnode2Index = tempNode.getNodeIndex();</span>
+                        }
+                    }
+                }
+<span class="pc bpc" id="L602" title="1 of 2 branches missed.">            } else if (NewNodeRoot.getChildRightnode() == NodeToBeRemoved.getRootnode())</span>
+            {
+<span class="pc bpc" id="L604" title="1 of 2 branches missed.">                if (NodeRootToBeRemoved.getChildLeftnode() == NodeToBeRemoved.getNodeIndex())</span>
+                {
+<span class="fc" id="L606">                    NewNodeRoot.setChildRightnode(NodeRootToBeRemoved.getChildRightnode());</span>
+
+<span class="fc bfc" id="L608" title="All 2 branches covered.">                    for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) </span>
+                    {
+<span class="fc" id="L610">                        tempNode = tree.getNodesInternal().get(i);</span>
+<span class="fc bfc" id="L611" title="All 2 branches covered.">                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildRightnode()) </span>
+                        {
+<span class="fc" id="L613">                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());</span>
+<span class="fc" id="L614">                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);</span>
+<span class="fc" id="L615">                            tree.TRemnode2Index = tempNode.getNodeIndex();</span>
+                        }
+                    }
+                }
+<span class="nc bnc" id="L619" title="All 2 branches missed.">                else if (NodeRootToBeRemoved.getChildRightnode() == NodeToBeRemoved.getNodeIndex())</span>
+                {
+<span class="nc" id="L621">                    NewNodeRoot.setChildRightnode(NodeRootToBeRemoved.getChildLeftnode());</span>
+
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                    for (int i = 0; i &lt; tree.getNodesInternal().size(); i++) </span>
+                    {
+<span class="nc" id="L625">                        tempNode = tree.getNodesInternal().get(i);</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">                        if (tempNode.getNodeIndex() == NodeRootToBeRemoved.getChildLeftnode()) </span>
+                        {
+<span class="nc" id="L628">                            tempNode.setRootnode(NewNodeRoot.getNodeIndex());</span>
+<span class="nc" id="L629">                            tempNode.setNodeLevel(tempNode.getNodeLevel()-1);</span>
+<span class="nc" id="L630">                            tree.TRemnode2Index = tempNode.getNodeIndex();</span>
+                        }
+                    }
+                }
+
+            }
+
+<span class="fc" id="L637">            NodeToBeRemoved.setRootnode(-1);</span>
+<span class="fc" id="L638">            NodeToBeRemoved.setNodeLevel(-1);</span>
+<span class="fc" id="L639">            NodeToBeRemoved.setLeafIndex(-1);</span>
+<span class="fc" id="L640">            NodeToBeRemoved.setIsLeaf(false);</span>
+<span class="fc" id="L641">            NodeToBeRemoved.setIsValidNode(false);</span>
+<span class="fc" id="L642">            NodeToBeRemoved.setPk(null);</span>
+<span class="fc" id="L643">            NodeToBeRemoved.setSk(null);</span>
+
+<span class="fc" id="L645">            NodeRootToBeRemoved.setRootnode(-1);</span>
+<span class="fc" id="L646">            NodeRootToBeRemoved.setNodeLevel(-1);</span>
+<span class="fc" id="L647">            NodeRootToBeRemoved.setLeafIndex(-1);</span>
+<span class="fc" id="L648">            NodeRootToBeRemoved.setChildRightnode(-1);</span>
+<span class="fc" id="L649">            NodeRootToBeRemoved.setChildLeftnode(-1);</span>
+<span class="fc" id="L650">            NodeRootToBeRemoved.setIsLeaf(false);</span>
+<span class="fc" id="L651">            NodeRootToBeRemoved.setIsValidNode(false);</span>
+<span class="fc" id="L652">            NodeRootToBeRemoved.setPk(null);</span>
+<span class="fc" id="L653">            NodeRootToBeRemoved.setSk(null);</span>
+
+<span class="fc bfc" id="L655" title="All 2 branches covered.">            for (Node node : tree.getNodesInternal()) {</span>
+<span class="fc" id="L656">                List&lt;Integer&gt; path = tree.getPathToRoot(node.getNodeIndex());</span>
+
+                // Level is the path length minus 1, or -1 if root
+<span class="pc bpc" id="L659" title="1 of 4 branches missed.">                int level = (path.size() &gt; 0 &amp;&amp; path.get(path.size() - 1) == node.getNodeIndex()) ? -1 : path.size() - 1;</span>
+<span class="fc" id="L660">                node.setNodeLevel(level);</span>
+<span class="fc" id="L661">            }</span>
+
+<span class="fc" id="L663">            tree.numLeaves--;</span>
+<span class="fc" id="L664">            tree.treeSize--;</span>
+<span class="fc" id="L665">            tree.treeSize--;</span>
+
+<span class="fc" id="L667">            tree.TRemnode1Index = NewNodeRoot.getNodeIndex();</span>
+        }
+
+<span class="fc" id="L670">    }</span>
+
+    public List&lt;Integer&gt; getPathToRoot(int nodeIndex) {
+<span class="fc" id="L673">        List&lt;Integer&gt; path = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L674">        int current = nodeIndex;</span>
+
+<span class="fc bfc" id="L676" title="All 2 branches covered.">        while (current != -1) {</span>
+<span class="fc" id="L677">            Node currentNode = null;</span>
+<span class="pc bpc" id="L678" title="1 of 2 branches missed.">            for (Node node : getNodesInternal()) {</span>
+<span class="fc bfc" id="L679" title="All 2 branches covered.">                if (node.getNodeIndex() == current) {</span>
+<span class="fc" id="L680">                    currentNode = node;</span>
+<span class="fc" id="L681">                    break;</span>
+                }
+<span class="fc" id="L683">            }</span>
+<span class="pc bpc" id="L684" title="1 of 2 branches missed.">            if (currentNode == null) break;</span>
+
+<span class="fc" id="L686">            path.add(current);</span>
+<span class="fc" id="L687">            current = currentNode.getRootnode();</span>
+<span class="fc" id="L688">        }</span>
+
+<span class="fc" id="L690">        return path;</span>
+    }
+
+
+    public static TreeAddEkReturn T_rem_Ek(TreeEK ek, int leaf)
+    {
+<span class="fc" id="L696">        treeRemInternal(ek.getTree(), leaf);</span>
+
+<span class="fc" id="L698">        return new TreeAddEkReturn(</span>
+<span class="fc" id="L699">            ek.getDataPk(), </span>
+<span class="fc" id="L700">            ek.getTree().T_path(ek.getTree().TRem_AffectedLeaf),</span>
+<span class="fc" id="L701">            ek.getTree().T_co_path(ek.getTree().TRem_AffectedLeaf),</span>
+<span class="fc" id="L702">            ek.getTree().numLeaves, // check this: seems something wrong: this is not needed for remove</span>
+<span class="fc" id="L703">            ek.getTree() );</span>
+    }
+
+    public static TreeAddDkReturn T_rem_Dk(TreeDk dk, int leaf)
+    {
+//****************************************************
+// Bug:
+// 
+// If Intersection node is root node then this node removing is not working
+// Yet to fix this.
+// 
+//  
+// ************************************************************/
+
+        /////////////////////////////////////////////////////////////////
+        // To find the intersection
+
+<span class="fc" id="L720">        List&lt;Integer&gt; set1 = dk.getTree().T_path(leaf);</span>
+<span class="fc" id="L721">        List&lt;Integer&gt; set2 = new ArrayList&lt;&gt;(dk.getDataSk().keySet());</span>
+
+        // int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());
+        // List&lt;Integer&gt; set3 = dk.getTree().T_path(leafNodeIndex);
+
+<span class="fc" id="L726">        int IntersectionNode = findFirstCommonNodeInOrder(set1, set2);</span>
+
+<span class="fc" id="L728">        treeRemInternal(dk.getTree(), leaf);</span>
+
+<span class="pc bpc" id="L730" title="1 of 2 branches missed.">        if (IntersectionNode != -1) {</span>
+            // do nothing
+        } else {
+<span class="nc" id="L733">            System.out.println(&quot;Error T_rem_Dk: No common node found.&quot;);</span>
+        }
+
+
+        //////////////////////////////////////////////////////////////////
+        // Finding the leaf in input node.
+
+<span class="fc" id="L740">        int leafNodeIndex = findLeafIndexFromSet(set2, dk.getTree());</span>
+
+<span class="fc" id="L742">        return new TreeAddDkReturn(</span>
+<span class="fc" id="L743">            dk.getDataSk(), </span>
+            leafNodeIndex,
+            IntersectionNode,
+<span class="fc" id="L746">            dk.getTree());</span>
+    }
+
+    public List&lt;Integer&gt; T_path( int Leaf_i) {
+        int tempNodeIndex;
+<span class="fc" id="L751">        int currentNodeIndex = -1;</span>
+<span class="fc" id="L752">        List&lt;Integer&gt; returnlist = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L754" title="All 2 branches covered.">        for (int i = 0; i &lt; getNodesInternal().size(); i++)</span>
+        {
+<span class="fc" id="L756">            Tree.Node node = getNodesInternal().get(i);</span>
+<span class="fc bfc" id="L757" title="All 2 branches covered.">            if (node.isLeaf() == true)</span>
+            {
+<span class="fc bfc" id="L759" title="All 2 branches covered.">                if(node.getLeafIndex() == Leaf_i)</span>
+                {
+<span class="fc" id="L761">                    tempNodeIndex = node.getNodeIndex();</span>
+<span class="fc" id="L762">                    currentNodeIndex = tempNodeIndex;</span>
+                }
+            }
+        }
+
+<span class="fc bfc" id="L767" title="All 2 branches covered.">        while (currentNodeIndex != -1)</span>
+        {
+<span class="fc" id="L769">            Node currentNode = null;</span>
+
+<span class="pc bpc" id="L771" title="1 of 2 branches missed.">            for (Node node : getNodesInternal()) {</span>
+<span class="fc bfc" id="L772" title="All 2 branches covered.">                if (node.getNodeIndex() == currentNodeIndex) {</span>
+<span class="fc" id="L773">                    currentNode = node;</span>
+<span class="fc" id="L774">                    break;</span>
+                }
+<span class="fc" id="L776">            }</span>
+
+<span class="pc bpc" id="L778" title="1 of 2 branches missed.">            if (currentNode == null)</span>
+            {
+<span class="nc" id="L780">                break;</span>
+            }
+<span class="fc" id="L782">            returnlist.add(currentNodeIndex);</span>
+<span class="fc" id="L783">            currentNodeIndex = currentNode.getRootnode();</span>
+<span class="fc" id="L784">        }</span>
+<span class="fc" id="L785">        return returnlist;</span>
+    }
+
+
+    public List&lt;Integer&gt; T_co_path( int Leaf_i) {
+<span class="fc" id="L790">        List&lt;Integer&gt; copath = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L792">        List&lt;Integer&gt; path  = T_path(Leaf_i);</span>
+
+<span class="fc bfc" id="L794" title="All 2 branches covered.">        if (path.size() &lt; 2) return copath; // no co-path if only one node</span>
+
+        // Start from 2nd node in path (index 1), because first is the leaf
+<span class="fc bfc" id="L797" title="All 2 branches covered.">        for (int i = 1; i &lt; path.size(); i++) {</span>
+<span class="fc" id="L798">            int childIndex = path.get(i - 1);</span>
+<span class="fc" id="L799">            int parentIndex = path.get(i);</span>
+
+<span class="fc" id="L801">            Node node = getNodesInternal().get(parentIndex-1);</span>
+
+<span class="fc" id="L803">            int leftChild = node.getChildLeftnode();</span>
+<span class="fc" id="L804">            int rightChild = node.getChildRightnode();</span>
+
+<span class="pc bpc" id="L806" title="1 of 4 branches missed.">            if (leftChild == childIndex &amp;&amp; rightChild != -1) {</span>
+<span class="fc" id="L807">                copath.add(rightChild);</span>
+<span class="pc bpc" id="L808" title="2 of 4 branches missed.">            } else if (rightChild == childIndex &amp;&amp; leftChild != -1) {</span>
+<span class="fc" id="L809">                copath.add(leftChild);</span>
+            }
+        }
+
+<span class="fc" id="L813">        return copath;</span>
+    }
+
+    // set 1 should be proper like the path order.
+    // set 2 can be just indexes
+    public static int findFirstCommonNodeInOrder(List&lt;Integer&gt; set1, List&lt;Integer&gt; set2) {
+
+<span class="fc" id="L820">        Set&lt;Integer&gt; set2Lookup = new HashSet&lt;&gt;(set2);</span>
+
+        // Iterate over set1 (which is in leaf to root order)
+<span class="pc bpc" id="L823" title="1 of 2 branches missed.">        for (int node : set1) {</span>
+<span class="fc bfc" id="L824" title="All 2 branches covered.">            if (set2Lookup.contains(node)) {</span>
+<span class="fc" id="L825">                return node; // Return the first node in set1 that is also in set2</span>
+            }
+<span class="fc" id="L827">        }</span>
+
+        // If no common node found
+<span class="nc" id="L830">        return -1;</span>
+    }
+
+    // public static void main(String[] args) {
+    //     List&lt;Integer&gt; set1 = Arrays.asList(13, 7, 2, 3, 4, 1);
+    //     List&lt;Integer&gt; set2 = Arrays.asList(3,2,17,10);
+
+    //     Integer result = findFirstCommonNodeInOrder(set1, set2);
+
+    //     if (result != null) {
+    //         System.out.println(&quot;First common node in set1 order: &quot; + result);
+    //     } else {
+    //         System.out.println(&quot;No common node found.&quot;);
+    //     }
+    // }
+
+    public static int findLeafIndexFromSet(List&lt;Integer&gt; nodeIndexes, Tree tree)
+    {
+<span class="fc bfc" id="L848" title="All 2 branches covered.">        for (Node node : tree.getNodesInternal()) {</span>
+<span class="pc bpc" id="L849" title="1 of 6 branches missed.">            if (nodeIndexes.contains(node.getNodeIndex()) &amp;&amp; node.isLeaf() &amp;&amp; node.isValidNode()) {</span>
+<span class="fc" id="L850">                return node.getLeafIndex();</span>
+            }
+<span class="fc" id="L852">        }</span>
+<span class="fc" id="L853">        return -1; // not found</span>
+    }
+
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

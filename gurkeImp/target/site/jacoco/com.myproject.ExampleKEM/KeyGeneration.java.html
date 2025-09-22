@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KeyGeneration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gurkeImp</a> &gt; <a href="index.source.html" class="el_package">com.myproject.ExampleKEM</a> &gt; <span class="el_source">KeyGeneration.java</span></div><h1>KeyGeneration.java</h1><pre class="source lang-java linenums">package com.myproject.ExampleKEM;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.util.Base64;
+
+<span class="nc" id="L8">public class KeyGeneration {</span>
+
+    // KeyPairHolder class to hold public and private keys
+    public static class KeyPairHolder {
+        private RSAPublicKey publicKey;
+        private RSAPrivateKey privateKey;
+
+        // Constructor to initialize KeyPairHolder with public and private keys
+<span class="nc" id="L16">        public KeyPairHolder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {</span>
+<span class="nc" id="L17">            this.publicKey = publicKey;</span>
+<span class="nc" id="L18">            this.privateKey = privateKey;</span>
+<span class="nc" id="L19">        }</span>
+
+        // Getter for the public key
+        public RSAPublicKey getPublicKey() {
+<span class="nc" id="L23">            return publicKey;</span>
+        }
+
+        // Getter for the private key
+        public RSAPrivateKey getPrivateKey() {
+<span class="nc" id="L28">            return privateKey;</span>
+        }
+
+        // Method to display the keys as Base64 strings
+        public void displayKeys() {
+<span class="nc" id="L33">            System.out.println(&quot;Public Key: &quot; + Base64.getEncoder().encodeToString(publicKey.getEncoded()));</span>
+<span class="nc" id="L34">            System.out.println(&quot;Private Key: &quot; + Base64.getEncoder().encodeToString(privateKey.getEncoded()));</span>
+<span class="nc" id="L35">        }</span>
+
+        // Method to return the public key as a Base64 string
+        public String getPublicKeyBase64() {
+<span class="nc" id="L39">            return Base64.getEncoder().encodeToString(publicKey.getEncoded());</span>
+        }
+
+        // Method to return the private key as a Base64 string
+        public String getPrivateKeyBase64() {
+<span class="nc" id="L44">            return Base64.getEncoder().encodeToString(privateKey.getEncoded());</span>
+        }
+    }
+
+    // Key generation without seed
+    public static KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
+        // Add Bouncy Castle as a Security Provider
+<span class="nc" id="L51">        Security.addProvider(new BouncyCastleProvider());</span>
+
+        // Create the KeyPairGenerator
+<span class="nc" id="L54">        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(&quot;RSA&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L55">        keyPairGenerator.initialize(2048); // 2048-bit RSA key size</span>
+        
+        // Generate the key pair
+<span class="nc" id="L58">        return keyPairGenerator.generateKeyPair();</span>
+    }
+
+    // Key generation with byte array seed
+    public static KeyPair generateKeyPairWithSeed(byte[] seed) throws NoSuchAlgorithmException, NoSuchProviderException {
+        // Add Bouncy Castle as a Security Provider
+<span class="nc" id="L64">        Security.addProvider(new BouncyCastleProvider());</span>
+
+        // Create the KeyPairGenerator
+<span class="nc" id="L67">        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(&quot;RSA&quot;, &quot;BC&quot;);</span>
+
+        // Initialize with a specific byte array seed
+<span class="nc" id="L70">        SecureRandom secureRandom = new SecureRandom();</span>
+<span class="nc" id="L71">        secureRandom.setSeed(seed); // Setting the seed as a byte array</span>
+<span class="nc" id="L72">        keyPairGenerator.initialize(2048, secureRandom); // 2048-bit RSA key size</span>
+
+        // Generate the key pair
+<span class="nc" id="L75">        return keyPairGenerator.generateKeyPair();</span>
+    }
+
+    public static void main(String[] args) {
+        try {
+            // Generate key pair without seed
+<span class="nc" id="L81">            KeyPair keyPair = generateKeyPair();</span>
+<span class="nc" id="L82">            RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();</span>
+<span class="nc" id="L83">            RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();</span>
+
+            // Create KeyPairHolder for the generated keys
+<span class="nc" id="L86">            KeyPairHolder keyPairHolder = new KeyPairHolder(publicKey, privateKey);</span>
+<span class="nc" id="L87">            System.out.println(&quot;Generated RSA Key Pair (Without Seed):&quot;);</span>
+<span class="nc" id="L88">            keyPairHolder.displayKeys(); // Display the keys</span>
+
+            // Generate key pair with byte array seed
+<span class="nc" id="L91">            byte[] seed = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };  // Example byte array seed</span>
+<span class="nc" id="L92">            keyPair = generateKeyPairWithSeed(seed);</span>
+<span class="nc" id="L93">            publicKey = (RSAPublicKey) keyPair.getPublic();</span>
+<span class="nc" id="L94">            privateKey = (RSAPrivateKey) keyPair.getPrivate();</span>
+
+            // Create KeyPairHolder for the generated keys with seed
+<span class="nc" id="L97">            KeyPairHolder keyPairHolderWithSeed = new KeyPairHolder(publicKey, privateKey);</span>
+<span class="nc" id="L98">            System.out.println(&quot;\nGenerated RSA Key Pair (With Seed):&quot;);</span>
+<span class="nc" id="L99">            keyPairHolderWithSeed.displayKeys(); // Display the keys</span>
+
+<span class="nc" id="L101">        } catch (Exception e) {</span>
+<span class="nc" id="L102">            e.printStackTrace();</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
