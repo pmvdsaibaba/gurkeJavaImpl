@@ -113,15 +113,16 @@ public class d_MSMR {
         }
     }
 
-
-    // New type to hold isNewAddRcvr and receiver state map
     public static class ReceiverEntry {
         public boolean isNewAddRcvr;
         public Map<Integer, SenderStateInReceiver> stateMap;
+        public Map<Integer, byte[]> dkjRMap; 
 
-        public ReceiverEntry(boolean isNewAddRcvr, Map<Integer, SenderStateInReceiver> stateMap) {
+        public ReceiverEntry(boolean isNewAddRcvr, Map<Integer, SenderStateInReceiver> stateMap,
+                    Map<Integer, byte[]> dkjRMap) {
             this.isNewAddRcvr = isNewAddRcvr;
             this.stateMap = stateMap;
+            this.dkjRMap = dkjRMap;
         }
     }
 
@@ -148,7 +149,7 @@ public class d_MSMR {
 
         // For each receiver, create ReceiverEntry with isNewAddRcvr=false and empty stateMap
         for (int j = 1; j <= nR; j++) {
-            receiverStateMap.put(j, new ReceiverEntry(false, new HashMap<>()));
+            receiverStateMap.put(j, new ReceiverEntry(false, new HashMap<>(), new HashMap<>()));
         }
         // For each sender
         for (int i = 1; i <= nS; i++) {
@@ -254,11 +255,9 @@ public class d_MSMR {
         public byte[] svkPrime;
         public ToOperation to;
         public byte[] signature;
-        public Map<Integer, byte[]> dkjRMap; 
 
         public Ciphertext(int i, byte[] cPrime, Object cM, Queue<QueuedCiphertext> cq,
-                         byte[] svkStar, byte[] svkPrime, ToOperation to, byte[] signature,
-                         Map<Integer, byte[]> dkjRMap) { 
+                         byte[] svkStar, byte[] svkPrime, ToOperation to, byte[] signature) {
             this.i = i;
             this.cPrime = cPrime;
             this.cM = cM;
@@ -267,7 +266,6 @@ public class d_MSMR {
             this.svkPrime = svkPrime;
             this.to = to;
             this.signature = signature;
-            this.dkjRMap = dkjRMap != null ? new HashMap<>(dkjRMap) : null;
         }
     }
 
@@ -290,7 +288,7 @@ public class d_MSMR {
     // Helper Proc encaps(st, ek, ad, cM, cq, svk*, to)
 //////////////////////////////////////////////////////////
     private static EncapsResult encaps(SenderState st, TreeEK ek, byte[] ad, Object cM, 
-                                      Queue<QueuedCiphertext> cq, byte[] svkStar, ToOperation to, Map<Integer, byte[]> dkjRMap) throws Exception
+                                      Queue<QueuedCiphertext> cq, byte[] svkStar, ToOperation to) throws Exception
     {
         BKEncResult encResult = UB_KEM.enc(ek);
         EncOutput u = encResult.u;
@@ -307,7 +305,7 @@ public class d_MSMR {
         
         byte[] sigma = SignatureScheme.sgn(st.ssk, messageToSign);
 
-        Ciphertext cR = new Ciphertext(st.i, cPrime, cM, cq, svkStar, svkPrime, to, sigma, dkjRMap);
+        Ciphertext cR = new Ciphertext(st.i, cPrime, cM, cq, svkStar, svkPrime, to, sigma);
 
         byte[] finInput = concatAll(st.tr, ad, serializeCiphertext(cR));
         FinResult finResult = UB_KEM.fin(u, finInput);
@@ -647,11 +645,12 @@ public class d_MSMR {
         byte[] cPrime = c.cPrime;
         Object cM = c.cM;
         Queue<QueuedCiphertext> cq = c.cq;
+        Queue<QueuedCiphertext> cq_Copy = new LinkedList<>(c.cq);
         byte[] svkStar = c.svkStar;
         byte[] svkPrime = c.svkPrime;
         ToOperation to = c.to;
         byte[] sigma = c.signature;
-        Map<Integer, byte[]> dkjRMap = c.dkjRMap;
+        Map<Integer, byte[]> dkjRMap = st.dkjRMap;
 
         SenderStateInReceiver ST = st.stateMap.get(i);
         if (ST == null || !ST.dkMap.containsKey(i) || !ST.svkMap.containsKey(i) || !ST.trMap.containsKey(i)) {
@@ -678,7 +677,7 @@ public class d_MSMR {
 
         // Verify signature
         byte[] messageToVerify = concatAll(tr, ad, intToByteArray(c.i), cPrime, serializeObject(cM), 
-                                        serializeQueue(cq), svkStar, svkPrime, 
+                                        serializeQueue(cq_Copy), svkStar, svkPrime, 
                                         serializeToOperation(to));
         
         if (!SignatureScheme.vfy(svk, messageToVerify, sigma)) {
@@ -867,8 +866,7 @@ public class d_MSMR {
 
         // EncapsResult encapsResult = encaps(st, st.ek, ad, null, cq, new byte[0], to);
 
-        Map<Integer, byte[]> dkjRMap = new HashMap<>();
-        EncapsResult encapsResult = encaps(st, st.ek, ad, null, cq, new byte[0], to, dkjRMap);
+        EncapsResult encapsResult = encaps(st, st.ek, ad, null, cq, new byte[0], to);
         
         return new SendResult(encapsResult.updatedState, encapsResult.ciphertext, 
                              encapsResult.key, encapsResult.kid);
@@ -958,8 +956,7 @@ public class d_MSMR {
         // Step 7: Call encaps with svkuid and cM
         // EncapsResult encapsResult = encaps(stAfterEnq, forkResult.ek1 , ad, cM, cq, svkuid, to);
         
-        Map<Integer, byte[]> dkjRMap = new HashMap<>();
-        EncapsResult encapsResult = encaps(stAfterEnq, forkResult.ek1 , ad, cM, cq, svkuid, to, dkjRMap);
+        EncapsResult encapsResult = encaps(stAfterEnq, forkResult.ek1 , ad, cM, cq, svkuid, to);
         // EncapsResult encapsResult = encaps(stAfterEnq, st.ek, ad, cM, cq, svkuid, to);
 
         // Step 8: Return all results
@@ -1057,14 +1054,14 @@ public class d_MSMR {
         Stuid.put(i, new SenderStateInReceiver(memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
 
         // 57. stR ← Stuid
-        ReceiverEntry stR = new ReceiverEntry(true, Stuid);
+        ReceiverEntry stR = new ReceiverEntry(true, Stuid, dkjRMap);
 
         // 58. cS ← (i, (ekjR)j∈memS\{i}, memS, memR, to)
         CiphertextS cS = new CiphertextS(i, ekjRMap, new HashSet<>(memS), new HashSet<>(memR), to);
 
         // 59. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, svkuid, to)
         // EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to);
-        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to, dkjRMap); 
+        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to); 
 
         // 60. Return (st, stR, cS, cR, k, kid)
         return new AddRResult(encapsResult.updatedState, stR, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
@@ -1218,8 +1215,7 @@ public class d_MSMR {
         // 28. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, ϵ, to)
         // EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);
 
-        Map<Integer, byte[]> dkjRMap = new HashMap<>();
-        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to , dkjRMap);
+        EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);
 
         // 29. Return (st, cS, cR, k, kid)
         return new RmvResult(encapsResult.updatedState, cS, encapsResult.ciphertext, encapsResult.key, encapsResult.kid);
@@ -1543,10 +1539,9 @@ public class d_MSMR {
     }
 
     private static byte[] serializeCiphertext(Ciphertext c) {
-        byte[] dkjRMapBytes = serializeDkjRMap(c.dkjRMap);
         return concatAll(intToByteArray(c.i), c.cPrime, serializeObject(c.cM), 
                     serializeQueue(c.cq), c.svkStar, c.svkPrime, 
-                    serializeToOperation(c.to), c.signature, dkjRMapBytes);
+                    serializeToOperation(c.to), c.signature);
     }
 
 

@@ -303,13 +303,14 @@ public class TestD_MSMR {
         System.out.println("procAddR test passed. Add operation key:");
         printByteArray(addResult.key);
 
-        // Use a working copy of receiverStatesMap for all state updates
+        // Use a working copy of receiverStatesMap AND dkjRMap for all state updates
         Map<Integer, Map<Integer, SenderStateInReceiver>> currentReceiverStatesMap = new HashMap<>();
+        Map<Integer, Map<Integer, byte[]>> currentDkjRMap = new HashMap<>();
         for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
             currentReceiverStatesMap.put(entry.getKey(), new HashMap<>(entry.getValue().stateMap));
+            currentDkjRMap.put(entry.getKey(), new HashMap<>(entry.getValue().dkjRMap));
         }
 
-        /** This commented test code block is working. Added to check if the newly added receiver is able to generate the key */
         // Immediately test that the newly added receiver can process the add ciphertext and derive the same key
         d_MSMR.ReceiverEntry newReceiverEntry = addResult.newReceiverEntry;
         ReceiveResult newRcvResult = d_MSMR.procRcv(newReceiverEntry, ad, addResult.cR);
@@ -318,6 +319,7 @@ public class TestD_MSMR {
         assertArrayEquals(addResult.key, newRcvResult.key, "New Receiver " + newUid + " key should match sender after add");
         // Update receiver state after receive
         currentReceiverStatesMap.put(newUid, newRcvResult.updatedState.stateMap);
+        currentDkjRMap.put(newUid, newRcvResult.updatedState.dkjRMap);
 
         // Update all other senders' state after procAddR
         Map<Integer, SenderState> currentSenderStates = new HashMap<>(initResult.senderStates);
@@ -330,14 +332,19 @@ public class TestD_MSMR {
 
         // Test that all existing receivers (from 1 to nR) can still receive after the add operation
         for (int r = 1; r <= nR; r++) {
-            // Always use the latest receiver state
-            d_MSMR.ReceiverEntry receiverEntry = new d_MSMR.ReceiverEntry(false, currentReceiverStatesMap.get(r));
+            // Always use the latest receiver state and dkjRMap
+            d_MSMR.ReceiverEntry receiverEntry = new d_MSMR.ReceiverEntry(
+                false,
+                currentReceiverStatesMap.get(r),
+                currentDkjRMap.get(r)
+            );
             ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, addResult.cR);
             assertNotNull(rcvResult, "Receiver " + r + " should be able to process add ciphertext");
             assertTrue(rcvResult.success, "Receiver " + r + " should process add ciphertext successfully");
             assertArrayEquals(addResult.key, rcvResult.key, "Receiver " + r + " keys should match");
             // Update receiver state after receive
             currentReceiverStatesMap.put(r, rcvResult.updatedState.stateMap);
+            currentDkjRMap.put(r, rcvResult.updatedState.dkjRMap);
         }
 
         // --- Add a few more receivers and test cross-sender/receiver key agreement ---
@@ -346,7 +353,7 @@ public class TestD_MSMR {
         SenderState currentSenderState = addResult.updatedSenderState;
         Map<Integer, SenderStateInReceiver> latestNewReceiverState = addResult.newReceiverEntry.stateMap;
 
-    for (int i = 0; i < newUids.length; i++) {
+        for (int i = 0; i < newUids.length; i++) {
             int uid = newUids[i];
             AddRResult addRes = d_MSMR.procAddR(currentSenderState, ad, uid);
             assertNotNull(addRes.updatedSenderState);
@@ -362,17 +369,23 @@ public class TestD_MSMR {
                 SenderState updatedOtherSenderState = d_MSMR.proc(otherSenderState, ad, addRes.cS);
                 currentSenderStates.put(sid, updatedOtherSenderState);
             }
-            // Insert new receiver state for the new uid
-            currentReceiverStatesMap.put(uid, addRes.newReceiverEntry.stateMap);
+            // Insert new receiver state and dkjRMap for the new uid
+            currentReceiverStatesMap.put(uid, new HashMap<>(addRes.newReceiverEntry.stateMap));
+            currentDkjRMap.put(uid, new HashMap<>(addRes.newReceiverEntry.dkjRMap));
             latestNewReceiverState = addRes.newReceiverEntry.stateMap;
             // After each add, update all existing receivers with the add ciphertext
             for (int r = 1; r <= nR; r++) {
-                d_MSMR.ReceiverEntry receiverEntry = new d_MSMR.ReceiverEntry(false, currentReceiverStatesMap.get(r));
+                d_MSMR.ReceiverEntry receiverEntry = new d_MSMR.ReceiverEntry(
+                    false,
+                    currentReceiverStatesMap.get(r),
+                    currentDkjRMap.get(r)
+                );
                 ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, addRes.cR);
                 assertNotNull(rcvResult, "Receiver " + r + " should be able to process add ciphertext for new UID " + uid);
                 assertTrue(rcvResult.success, "Receiver " + r + " should process add ciphertext for new UID " + uid);
                 assertArrayEquals(addRes.key, rcvResult.key, "Receiver " + r + " keys should match for new UID " + uid);
                 currentReceiverStatesMap.put(r, rcvResult.updatedState.stateMap);
+                currentDkjRMap.put(r, rcvResult.updatedState.dkjRMap);
             }
         }
 
@@ -406,10 +419,17 @@ public class TestD_MSMR {
         Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
         for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
             // Deep copy if needed, but here we just copy the ReceiverEntry reference
-            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+            currentReceiverStatesMap.put(
+                entry.getKey(),
+                new d_MSMR.ReceiverEntry(
+                    entry.getValue().isNewAddRcvr,
+                    new HashMap<>(entry.getValue().stateMap),
+                    new HashMap<>(entry.getValue().dkjRMap)
+                )
+            );
         }
 
-        currentReceiverStatesMap.put(newUid, new d_MSMR.ReceiverEntry(addResult.newReceiverEntry.isNewAddRcvr, new HashMap<>(addResult.newReceiverEntry.stateMap)));
+        currentReceiverStatesMap.put(newUid, new d_MSMR.ReceiverEntry(addResult.newReceiverEntry.isNewAddRcvr, new HashMap<>(addResult.newReceiverEntry.stateMap), new HashMap<>(addResult.newReceiverEntry.dkjRMap)));
 
         // Update all other senders' state after procAddR
         Map<Integer, SenderState> currentSenderStates = new HashMap<>(initResult.senderStates);
@@ -540,7 +560,7 @@ public class TestD_MSMR {
         // Use a working copy of receiverStatesMap for all state updates
         Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
         for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
-            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap), new HashMap<>(entry.getValue().dkjRMap)));
         }
 
         // Remove the receiver entry for uidToRemove
@@ -619,7 +639,7 @@ public class TestD_MSMR {
         // Use a working copy of receiverStatesMap for all state updates
         Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
         for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
-            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap), new HashMap<>(entry.getValue().dkjRMap)));
         }
 
         // Update all other senders' state after procRmv
@@ -752,7 +772,7 @@ public class TestD_MSMR {
         // Use working copies for state updates
         Map<Integer, d_MSMR.ReceiverEntry> currentReceiverStatesMap = new HashMap<>();
         for (Map.Entry<Integer, d_MSMR.ReceiverEntry> entry : initResult.receiverStatesMap.entrySet()) {
-            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap)));
+            currentReceiverStatesMap.put(entry.getKey(), new d_MSMR.ReceiverEntry(entry.getValue().isNewAddRcvr, new HashMap<>(entry.getValue().stateMap), new HashMap<>(entry.getValue().dkjRMap)));
         }
         Map<Integer, SenderState> currentSenderStates = new HashMap<>(initResult.senderStates);
 
@@ -771,6 +791,26 @@ public class TestD_MSMR {
             assertTrue(rcvResult.success, "Receiver " + r + " should process sender 1's ciphertext successfully");
             assertArrayEquals(sendResult1.key, rcvResult.key, "Receiver " + r + " key should match sender 1's key");
             currentReceiverStatesMap.put(r, rcvResult.updatedState);
+        }
+
+
+
+        for (int senderId = 1; senderId <= nS; senderId++) {
+            SenderState senderStateLoop = currentSenderStates.get(senderId);
+            SendResult sendResult = d_MSMR.procSnd(senderStateLoop, ad);
+            assertNotNull(sendResult.ciphertext, "Ciphertext from sender " + senderId + " should not be null");
+            assertNotNull(sendResult.key, "Key from sender " + senderId + " should not be null");
+            currentSenderStates.put(senderId, sendResult.updatedState);
+
+            for (int r = 1; r <= nR; r++) {
+                d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
+                assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist");
+                ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, sendResult.ciphertext);
+                assertNotNull(rcvResult, "Receiver " + r + " should be able to process sender " + senderId + "'s ciphertext");
+                assertTrue(rcvResult.success, "Receiver " + r + " should process sender " + senderId + "'s ciphertext successfully");
+                assertArrayEquals(sendResult.key, rcvResult.key, "Receiver " + r + " key should match sender " + senderId + "'s key");
+                currentReceiverStatesMap.put(r, rcvResult.updatedState);
+            }
         }
 
         // Step 3: Sender 1 adds a new receiver
@@ -800,23 +840,26 @@ public class TestD_MSMR {
         }
 
 
+// Before this add that all senders first send and all receivers process. Else below add will fail
+
+
         // Step 4: Sender 2 adds another new receiver
         int newUid2 = 12;
         AddRResult addResult2 = d_MSMR.procAddR(currentSenderStates.get(2), ad, newUid2);
         currentSenderStates.put(2, addResult2.updatedSenderState);
         currentReceiverStatesMap.put(newUid2, addResult2.newReceiverEntry);
 
-        // totalReceivers = nR + 1;
-        // for (int r = 1; r <= totalReceivers; r++) {
-        //     d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
-        //     assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist after add");
-        //     ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, addResult2.cR);
-        //     assertNotNull(rcvResult, "Receiver " + r + " should be able to process add ciphertext for newUid2");
-        //     assertTrue(rcvResult.success, "Receiver " + r + " should process add ciphertext for newUid2 successfully");
-        //     assertArrayEquals(addResult2.key, rcvResult.key, "Receiver " + r + " key should match sender after add");
-        //     // Update receiver state after receive
-        //     currentReceiverStatesMap.put(r, rcvResult.updatedState);
-        // }
+        totalReceivers = nR + 1;
+        for (int r = 1; r <= totalReceivers; r++) {
+            d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
+            assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist after add");
+            ReceiveResult rcvResult = d_MSMR.procRcv(receiverEntry, ad, addResult2.cR);
+            assertNotNull(rcvResult, "Receiver " + r + " should be able to process add ciphertext for newUid2");
+            assertTrue(rcvResult.success, "Receiver " + r + " should process add ciphertext for newUid2 successfully");
+            assertArrayEquals(addResult2.key, rcvResult.key, "Receiver " + r + " key should match sender after add");
+            // Update receiver state after receive
+            currentReceiverStatesMap.put(r, rcvResult.updatedState);
+        }
 
         // for (int sid = 1; sid <= nS; sid++) {
         //     if (sid == 2) continue;
