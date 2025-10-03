@@ -97,6 +97,7 @@ public class d_MSMR {
     }
 
     public static class SenderStateInReceiver {
+        int updateCount;
         public Set<Integer> memS;
         public Set<Integer> memR;
         public Map<Integer, TreeDk> dkMap; // St[i] for each sender i
@@ -104,8 +105,9 @@ public class d_MSMR {
         public Map<Integer, byte[]> svkMap; // svk for each sender i
         public Map<Integer, byte[]> trMap; // tr for each sender i
 
-        public SenderStateInReceiver(Set<Integer> memS, Set<Integer> memR, Map<Integer, TreeDk> dkMap,
+        public SenderStateInReceiver(int updateCount, Set<Integer> memS, Set<Integer> memR, Map<Integer, TreeDk> dkMap,
                            Map<Integer, byte[]> kemDkMap, Map<Integer, byte[]> svkMap, Map<Integer, byte[]> trMap) {
+            this.updateCount = updateCount;
             this.memS = new HashSet<>(memS);
             this.memR = new HashSet<>(memR);
             this.dkMap = new HashMap<>(dkMap);
@@ -192,7 +194,7 @@ public class d_MSMR {
                 svkMap.put(i, svk);
                 trMap.put(i, tr);
 
-                SenderStateInReceiver senderStateInReceiver = new SenderStateInReceiver(memS, memR, dkMap, new HashMap<>(), svkMap, trMap);
+                SenderStateInReceiver senderStateInReceiver = new SenderStateInReceiver(1, memS, memR, dkMap, new HashMap<>(), svkMap, trMap);
                 receiverStateMap.get(j).stateMap.put(i, senderStateInReceiver);
             }
         }
@@ -424,13 +426,15 @@ public class d_MSMR {
 
 
     public static class DeqOpsResult {
+        int updateCount;
         public Set<Integer> memS;
         public Set<Integer> memR;
         public TreeDk dk;
         public byte[] svk;
         public byte[] tr;
 
-        public DeqOpsResult(Set<Integer> memS, Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {
+        public DeqOpsResult(int updateCount, Set<Integer> memS, Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {
+            this.updateCount = updateCount;
             this.memS = new HashSet<>(memS);
             this.memR = new HashSet<>(memR);
             this.dk = dk;
@@ -445,7 +449,7 @@ public class d_MSMR {
 
 
     // Updated deqOps: now takes kemDkMap as an argument for KEM decapsulation
-    private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk,
+    private static DeqOpsResult deqOps(int updateCount, Set<Integer> memS, Set<Integer> memR, TreeDk dk,
                                        byte[] svk, byte[] tr, Queue<QueuedCiphertext> cq, int i,
                                        Map<Integer, byte[]> kemDkMap, Map<Integer, byte[]> dkjRMap) throws Exception {
         // 62. (memS,memR, dk, svk, tr) ← st
@@ -501,6 +505,8 @@ public class d_MSMR {
                         byte[] newTr = trBytes;
                         Diff diffResult = deserializeDiff(diffBytes);
 
+                        updateCount++;
+
                         currentDk = newDk;
                         currentTr = newTr;
 
@@ -536,13 +542,15 @@ public class d_MSMR {
                     // 79. (uid, dk, dk∗) ← BK.proc(dk, cM)
                     UB_KEM.BKProcResult procResult = UB_KEM.proc(currentDk, cM);
                     currentDk = procResult.dk1;
+
+                    updateCount++;
                     // Handle forked keys if needed
                 }
                 // 80. st ← (memS,memR, dk, svk, tr)
             }
         }
         // 81. Return st
-        return new DeqOpsResult(currentMemS, currentMemR, currentDk, currentSvk, currentTr);
+        return new DeqOpsResult(updateCount, currentMemS, currentMemR, currentDk, currentSvk, currentTr);
     }
 
 //     private static DeqOpsResult deqOps(Set<Integer> memS, Set<Integer> memR, TreeDk dk, 
@@ -664,6 +672,7 @@ public class d_MSMR {
         if (ST == null || !ST.dkMap.containsKey(i) || !ST.svkMap.containsKey(i) || !ST.trMap.containsKey(i)) {
             return new ReceiveResult(st, null, null, false);
         }
+        int updateCount = ST.updateCount;
 
         OpType op = to.op;
         TargetType t = to.target;
@@ -676,12 +685,13 @@ public class d_MSMR {
         Set<Integer> memR = new HashSet<>(ST.memR);
 
         // Dequeue operations (pass kemDkMap for KEM decapsulation)
-        DeqOpsResult deqResult = deqOps(memS, memR, dk, svk, tr, cq, i, ST.kemDkMap, dkjRMap);
+        DeqOpsResult deqResult = deqOps(updateCount, memS, memR, dk, svk, tr, cq, i, ST.kemDkMap, dkjRMap);
         memS = deqResult.memS;
         memR = deqResult.memR;
         dk = deqResult.dk;
         svk = deqResult.svk;
         tr = deqResult.tr;
+        updateCount = deqResult.updateCount;
 
         // Verify signature
         byte[] messageToVerify = concatAll(tr, ad, intToByteArray(c.i), cPrime, serializeObject(cM), 
@@ -706,6 +716,7 @@ public class d_MSMR {
                 UB_KEM.BKProcResult procResult = UB_KEM.proc(dk, cM);
                 dk = procResult.dk1;
                 TreeDk dkStar = procResult.dk2;
+                updateCount++;
 
                 if (dk == null) {
                     return new ReceiveResult(st, null, null, false);
@@ -729,7 +740,7 @@ public class d_MSMR {
                     svkMap.put(uid, svkStar);
                     trMap.put(uid, new byte[0]); // ε
 
-                    SenderStateInReceiver newSenderState = new SenderStateInReceiver(new HashSet<>(memS), new HashSet<>(memR), dkMap, new HashMap<>(), svkMap, trMap);
+                    SenderStateInReceiver newSenderState = new SenderStateInReceiver(updateCount, new HashSet<>(memS), new HashSet<>(memR), dkMap, new HashMap<>(), svkMap, trMap);
                     st.stateMap.put(uid, newSenderState);
                 }
 
@@ -752,6 +763,7 @@ public class d_MSMR {
         byte[] finInput = concatAll(tr, ad, serializeCiphertext(c));
         UB_KEM.DecResult decResult = UB_KEM.dec(dk, finInput, cPrime);
         dk = decResult.dk;
+        updateCount++;
 
         byte[] kdf_k = "kdf_k".getBytes();
         byte[] kdf_id = "kdf_id".getBytes();
@@ -779,7 +791,7 @@ public class d_MSMR {
         ST.svkMap.put(i, svkPrime);
         ST.trMap.put(i, newTr);
 
-        SenderStateInReceiver updatedState = new SenderStateInReceiver(memS, memR, ST.dkMap, ST.kemDkMap, ST.svkMap, ST.trMap);
+        SenderStateInReceiver updatedState = new SenderStateInReceiver(updateCount, memS, memR, ST.dkMap, ST.kemDkMap, ST.svkMap, ST.trMap);
         st.isNewAddRcvr = isNewAddRcvr;
         st.stateMap.put(i, updatedState);
 
@@ -959,8 +971,10 @@ public class d_MSMR {
 
         updateCount++;
 
+        // may be updateCount should be 1 here?
         // Step 5: Create new SenderState for the new sender
-        SenderState stS = new SenderState(uid, updateCount, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
+        // SenderState stS = new SenderState(uid, updateCount, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
+        SenderState stS = new SenderState(uid, 1, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
 
         // Step 6: Prepare cS (placeholder, as per pseudocode)
         CiphertextS cS = new CiphertextS(st.i,  Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), to);
@@ -1047,7 +1061,8 @@ public class d_MSMR {
             kemDkMap.put(j, dkjR);
             svkMap.put(j, svk);
             trMap.put(j, new byte[0]);
-            Stuid.put(j, new SenderStateInReceiver(memS, memR, dkMap, kemDkMap, svkMap, trMap));
+            // Stuid.put(j, new SenderStateInReceiver(st.updateCount, memS, memR, dkMap, kemDkMap, svkMap, trMap));
+            Stuid.put(j, new SenderStateInReceiver(1, memS, memR, dkMap, kemDkMap, svkMap, trMap));
         }
 
         // 55. (ek, dk, cM) ←$ BK.add(ek)
@@ -1067,7 +1082,8 @@ public class d_MSMR {
         // kemDkMapI is empty for i
         svkMapI.put(i, svk);
         trMapI.put(i, tr);
-        Stuid.put(i, new SenderStateInReceiver(memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
+        // Stuid.put(i, new SenderStateInReceiver(st.updateCount, memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
+        Stuid.put(i, new SenderStateInReceiver(1, memS, memR, dkMapI, kemDkMapI, svkMapI, trMapI));
 
         // 57. stR ← Stuid
         ReceiverEntry stR = new ReceiverEntry(true, Stuid, dkjRMap);
