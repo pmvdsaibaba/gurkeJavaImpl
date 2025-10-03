@@ -73,6 +73,7 @@ public class d_MSMR {
 
     public static class SenderState {
         public int i;
+        public int updateCount;
         public Set<Integer> memS;
         public Set<Integer> memR;
         public TreeEK ek;
@@ -81,9 +82,10 @@ public class d_MSMR {
         public byte[] tr;
         public Queue<QueuedOperation> ops;
 
-        public SenderState(int i, Set<Integer> memS, Set<Integer> memR, TreeEK ek, 
+        public SenderState(int i, int updateCount, Set<Integer> memS, Set<Integer> memR, TreeEK ek, 
                           byte[] ssk, byte[] svk, byte[] tr, Queue<QueuedOperation> ops) {
             this.i = i;
+            this.updateCount = updateCount;
             this.memS = new HashSet<>(memS);
             this.memR = new HashSet<>(memR);
             this.ek = ek;
@@ -177,7 +179,7 @@ public class d_MSMR {
                 memR.add(r);
             }
 
-            SenderState senderState = new SenderState(i, memS, memR, ek, ssk, svk, tr, ops);
+            SenderState senderState = new SenderState(i, 1, memS, memR, ek, ssk, svk, tr, ops);
             senderStates.put(i, senderState);
 
             // Create receiver states for this sender
@@ -293,6 +295,7 @@ public class d_MSMR {
         BKEncResult encResult = UB_KEM.enc(ek);
         EncOutput u = encResult.u;
         byte[] cPrime = encResult.c;
+        int updateCount = st.updateCount;
 
         SignatureScheme.KeyPair newSigKeys = SignatureScheme.gen();
         byte[] svkPrime = newSigKeys.getVk();
@@ -328,7 +331,9 @@ public class d_MSMR {
             memS.remove(to.uid);
         }
 
-        SenderState updatedState = new SenderState(st.i, memS, st.memR, newEk, sskPrime, svkPrime, tr, st.ops);
+        updateCount++;
+
+        SenderState updatedState = new SenderState(st.i, updateCount, memS, st.memR, newEk, sskPrime, svkPrime, tr, st.ops);
         
         return new EncapsResult(updatedState, cR, k, kid);
     }
@@ -349,6 +354,7 @@ public class d_MSMR {
     private static EnqOpsResult enqOps(SenderState st, Set<Integer> memSPrime, Set<Integer> memRPrime) throws Exception {
         Queue<QueuedCiphertext> cq = new LinkedList<>();
         TreeEK currentEk = st.ek; // Use a local variable instead of updating st.ek
+        int updateCount = st.updateCount;
 
         while (!st.ops.isEmpty())
         {
@@ -365,6 +371,7 @@ public class d_MSMR {
                 // st.ek = addResult.ek;
                 UB_KEM.BKAddResult addResult = UB_KEM.add(currentEk);
                 currentEk = addResult.ek; // Do not update st.ek
+                updateCount++;
 
                 TreeDk dk = addResult.dk;
                 cM = addResult.c;
@@ -397,6 +404,7 @@ public class d_MSMR {
 
                 UB_KEM.BKRemoveResult removeResult = UB_KEM.rmv(currentEk, queuedOp.uid);
                 currentEk = removeResult.ek; // Do not update st.ek
+                updateCount++;
 
                 cM = removeResult.c;
                 cP = null;
@@ -408,7 +416,7 @@ public class d_MSMR {
             cq.offer(qc);
         }
 
-        SenderState updatedState = new SenderState(st.i, memSPrime, memRPrime, currentEk, st.ssk, st.svk, st.tr, st.ops);
+        SenderState updatedState = new SenderState(st.i, updateCount, memSPrime, memRPrime, currentEk, st.ssk, st.svk, st.tr, st.ops);
         return new EnqOpsResult(updatedState, cq);
     }
 
@@ -931,6 +939,8 @@ public class d_MSMR {
         memS.add(uid);
         ToOperation to = new ToOperation(OpType.ADD, TargetType.SENDER, uid);
 
+        int updateCount = st.updateCount;
+
         // Step 2: Run enqOps
         EnqOpsResult enqResult = enqOps(st, memS, st.memR);
         SenderState stAfterEnq = enqResult.updatedState;
@@ -947,8 +957,10 @@ public class d_MSMR {
         TreeEK ekuid = forkResult.ek2;
         Object cM = forkResult.c;
 
+        updateCount++;
+
         // Step 5: Create new SenderState for the new sender
-        SenderState stS = new SenderState(uid, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
+        SenderState stS = new SenderState(uid, updateCount, memS, st.memR, ekuid, sskuid, svkuid, new byte[0], new LinkedList<>());
 
         // Step 6: Prepare cS (placeholder, as per pseudocode)
         CiphertextS cS = new CiphertextS(st.i,  Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), to);
@@ -998,6 +1010,8 @@ public class d_MSMR {
         byte[] tr = st.tr;
         Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
 
+        int updateCount = st.updateCount;
+
         // 47. memR∪←{uid}; to ← (A, R, uid)
         memR.add(uid);
         ToOperation to = new ToOperation(OpType.ADD, TargetType.RECEIVER, uid);
@@ -1010,6 +1024,7 @@ public class d_MSMR {
         EnqOpsResult enqResult = enqOps(st, memS, memR);
         SenderState stAfterEnq = enqResult.updatedState;
         Queue<QueuedCiphertext> cq = enqResult.cq;
+        updateCount = stAfterEnq.updateCount;
 
         // 50-54. For all j ∈ memS \ {i}: KEM keygen for senders and new receiver
         Map<Integer, byte[]> ekjRMap = new HashMap<>();
@@ -1041,6 +1056,7 @@ public class d_MSMR {
         ek = bkAddResult.ek;
         TreeDk dk = bkAddResult.dk;
         cM = bkAddResult.c;
+        updateCount++;
 
         // 56. Stuid[i] ← (memS,memR, dk, svk, tr)
         Map<Integer, TreeDk> dkMapI = new HashMap<>();
@@ -1059,6 +1075,7 @@ public class d_MSMR {
         // 58. cS ← (i, (ekjR)j∈memS\{i}, memS, memR, to)
         CiphertextS cS = new CiphertextS(i, ekjRMap, new HashSet<>(memS), new HashSet<>(memR), to);
 
+        stAfterEnq.updateCount = updateCount;
         // 59. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, svkuid, to)
         // EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to);
         EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, svkuid, to); 
@@ -1085,6 +1102,7 @@ public class d_MSMR {
         byte[] svk = st.svk;
         byte[] tr = st.tr;
         Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
+        int updateCount = st.updateCount;
 
         // 40. c ← (j,ekMap,memjS,memjR, to)
         int j = c.i;
@@ -1147,7 +1165,7 @@ public class d_MSMR {
             ops.offer(new QueuedOperation(OpType.REMOVE, t, uid, null, null));
         }
         // 60. st ← (i,memS,memR, ek, ssk, svk, tr, ops)
-        return new SenderState(i, memS, memR, ek, ssk, svk, tr, ops);
+        return new SenderState(i, updateCount, memS, memR, ek, ssk, svk, tr, ops);
     }
 
 
@@ -1181,6 +1199,8 @@ public class d_MSMR {
         byte[] tr = st.tr;
         Queue<QueuedOperation> ops = new LinkedList<>(st.ops);
 
+        int updateCount = st.updateCount;
+
         // 21. If uid ̸∈ memt: Return (st,⊥,⊥,⊥,⊥)
         if ((t == TargetType.SENDER && !memS.contains(uid)) || (t == TargetType.RECEIVER && !memR.contains(uid))) {
             return new RmvResult(st, null, null, null, null);
@@ -1201,12 +1221,14 @@ public class d_MSMR {
         EnqOpsResult enqResult = enqOps(st, memS, memR);
         SenderState stAfterEnq = enqResult.updatedState;
         Queue<QueuedCiphertext> cq = enqResult.cq;
+        updateCount = stAfterEnq.updateCount;
 
         // 25-26. If t = R: (ek, cM) ←$ BK.rmv(ek, uid)
         if (t == TargetType.RECEIVER) {
             UB_KEM.BKRemoveResult rmvResult = UB_KEM.rmv(ek, uid);
             ek = rmvResult.ek;
             cM = rmvResult.c;
+            updateCount++;
         }
 
         // 27. cS ← (i, ϵ, ϵ, ϵ, to)
@@ -1215,6 +1237,7 @@ public class d_MSMR {
         // 28. (st, cR, k, kid) ←$ encaps(st, ek, ad, cM, cq, ϵ, to)
         // EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);
 
+        stAfterEnq.updateCount = updateCount;
         EncapsResult encapsResult = encaps(stAfterEnq, ek, ad, cM, cq, new byte[0], to);
 
         // 29. Return (st, cS, cR, k, kid)
@@ -1663,4 +1686,3 @@ public class d_MSMR {
         throw new UnsupportedOperationException("deserializeDiff() not implemented");
     }
 }
-
