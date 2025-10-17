@@ -815,12 +815,15 @@ public class TestD_MSMR {
 
 
 
-
+        System.out.println("\n++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        System.out.println("* Add a new sender ");
+        System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
         // Step 3: Sender 1 adds a new receiver
         int newUid1 = 11;
-        AddRResult addResult1 = d_MSMR.procAddR(currentSenderStates.get(2), ad, newUid1);
-        currentSenderStates.put(1, addResult1.updatedSenderState);
+        int sender_temp = 1;
+        AddRResult addResult1 = d_MSMR.procAddR(currentSenderStates.get(sender_temp), ad, newUid1);
+        currentSenderStates.put(sender_temp, addResult1.updatedSenderState);
         currentReceiverStatesMap.put(newUid1, addResult1.newReceiverEntry);
 
         // All other senders do proc
@@ -830,7 +833,7 @@ public class TestD_MSMR {
             currentSenderStates.put(sid, updatedOtherSenderState);
         }
 
-        nR = nR + 1;
+        nR++;
         for (int r = 1; r <= nR; r++) {
             d_MSMR.ReceiverEntry receiverEntry = currentReceiverStatesMap.get(r);
             assertNotNull(receiverEntry, "ReceiverEntry for " + r + " should exist after add");
@@ -841,6 +844,14 @@ public class TestD_MSMR {
             // Update receiver state after receive
             currentReceiverStatesMap.put(r, rcvResult.updatedState);
         }
+
+
+
+        System.out.println("\n++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        System.out.println("* other sender send the ciphertext  ");
+        System.out.println("* Issue> with Tree pk and sk. ");
+        System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
 
 
         for (int senderId = 2; senderId <= nS; senderId++) {

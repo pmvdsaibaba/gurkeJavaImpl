@@ -325,6 +325,15 @@ public class d_MSMR {
         byte[] id = deriveKey(finResult.k, kdf_id);
         byte[] tr = deriveKey(finResult.k, kdf_tr);
 
+
+        if (ENABLE_DEBUG) {
+
+            System.out.println("***** D-MSMR encaps ** kdf k ********************");
+            System.out.print("** Kdf k:");
+            System.out.println(Arrays.toString(k));
+            System.out.println("----------------------------------------------------------------------------------------_");
+        }
+
         Kid kid = new Kid(id, st.i, st.memS, st.memR);
 
         // sender removal
@@ -662,6 +671,7 @@ public class d_MSMR {
         Object cM = c.cM;
         Queue<QueuedCiphertext> cq = c.cq;
         Queue<QueuedCiphertext> cq_Copy = new LinkedList<>(c.cq);
+        Queue<QueuedCiphertext> cq_Copy2 = new LinkedList<>(c.cq);
         byte[] svkStar = c.svkStar;
         byte[] svkPrime = c.svkPrime;
         ToOperation to = c.to;
@@ -685,7 +695,7 @@ public class d_MSMR {
         Set<Integer> memR = new HashSet<>(ST.memR);
 
         // Dequeue operations (pass kemDkMap for KEM decapsulation)
-        DeqOpsResult deqResult = deqOps(updateCount, memS, memR, dk, svk, tr, cq, i, ST.kemDkMap, dkjRMap);
+        DeqOpsResult deqResult = deqOps(updateCount, memS, memR, dk, svk, tr, cq_Copy2, i, ST.kemDkMap, dkjRMap);
         memS = deqResult.memS;
         memR = deqResult.memR;
         dk = deqResult.dk;
@@ -772,6 +782,15 @@ public class d_MSMR {
         byte[] k = deriveKey(decResult.k, kdf_k);
         byte[] id = deriveKey(decResult.k, kdf_id);
         byte[] newTr = deriveKey(decResult.k, kdf_tr);
+
+        if (ENABLE_DEBUG) {
+
+            System.out.println("***** D-MSMR rcv ** kdf k ********************");
+            System.out.print("** Kdf k:");
+            System.out.println(Arrays.toString(k));
+            System.out.println("----------------------------------------------------------------------------------------_");
+        }
+
 
         Kid kid = new Kid(id, i, memS, memR);
 
@@ -1701,4 +1720,6 @@ public class d_MSMR {
         // TODO: Implement deserialization logic for Diff
         throw new UnsupportedOperationException("deserializeDiff() not implemented");
     }
+    // private static final boolean ENABLE_DEBUG = true;
+    private static final boolean ENABLE_DEBUG = false;
 }

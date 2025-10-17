@@ -112,6 +112,15 @@ public class UB_KEM {
 
         EncOutput u = new EncOutput(ek, sk, c);
 
+        if (ENABLE_DEBUG) {
+            System.out.println("***** BK enc (pk,sk) Pair ****************************");
+            System.out.print("** SK:");
+            System.out.println(Arrays.toString(sk));
+            System.out.print("** PK:");
+            System.out.println(Arrays.toString(pk));
+            System.out.println("----------------------------------------------------------------------------------------_");
+        }
+
         return new BKEncResult(u, c);
     }
 
@@ -156,6 +165,7 @@ public class UB_KEM {
 
             Nike.KeyPair newKp = Nike.gen(s);
             byte[] newPk = newKp.getEk();
+            byte[] newSk = newKp.getDk();
 
             newPkMap.put(nodeId, newPk);
 
@@ -163,12 +173,46 @@ public class UB_KEM {
             {
                 kFinal = kj;
 
-                // System.out.println("BK.fin SK:");
-                // printByteArray(sk);
-                // System.out.println("BK.fin PK:");
-                // printByteArray(pkj);
-                // System.out.println("BK.fin  k prime ");
-                // printByteArray(kPrime);
+                if (ENABLE_DEBUG) {
+                    // System.out.println("***** BK Fin ***** N.Key (sk, pk) ***** Key ***************");
+                    // System.out.print("** (N.gen)sk:");
+                    // printByteArray(sk);
+                    // System.out.print("** pk-j (in Tree):");
+                    // printByteArray(pkj);
+                    // System.out.print("** k:");
+                    // // printByteArray(kFinal);
+                    // System.out.println(Arrays.toString(kFinal));
+                    // System.out.println("----------------------------------------------------------------------------------------_");
+
+                    // System.out.println("***** BK Fin ***** N.gen (Pair) ***************");
+                    // System.out.print("** sk new (in Tree):");
+                    // printByteArray(sk);
+                    // System.out.print("** pk new (in Tree):");
+                    // printByteArray(newPk);
+                    // System.out.println("----------------------------------------------------------------------------------------_");
+                    System.out.println("***** BK Fin ***** N.Key (sk, pk) ***** Key ***************");
+                    System.out.print("** (N.gen)sk:");
+                    System.out.println(Arrays.toString(sk));
+                    System.out.print("** pk-j (in Tree):");
+                    System.out.println(Arrays.toString(pkj));
+                    System.out.print("** k:");
+                    System.out.println(Arrays.toString(kFinal));
+                    System.out.print("** k Prime:");
+                    System.out.println(Arrays.toString(kPrime));
+
+                    System.out.print("** c :");
+                    System.out.println(Arrays.toString(c));
+                    System.out.print("** ad :");
+                    System.out.println(Arrays.toString(ad));
+                    // System.out.println("----------------------------------------------------------------------------------------_");
+
+                    System.out.println("***** BK Fin ***** N.gen (Pair) ***************");
+                    System.out.print("** sk new (in Tree):");
+                    System.out.println(Arrays.toString(newSk));
+                    System.out.print("** pk new (in Tree):");
+                    System.out.println(Arrays.toString(newPk));
+                    System.out.println("----------------------------------------------------------------------------------------_");
+                }
             }
         }
 
@@ -214,6 +258,7 @@ public class UB_KEM {
 
             Nike.KeyPair newKp = Nike.gen(s);
             byte[] newSk = newKp.getDk();
+            byte[] newPk = newKp.getEk();
 
             updatedSkMap.put(nodeId, newSk);
 
@@ -227,6 +272,33 @@ public class UB_KEM {
                 // printByteArray(pk);
                 // System.out.println("BK.dec  k prime ");
                 // printByteArray(kPrime);
+
+                if (ENABLE_DEBUG)
+                {
+                    System.out.println("***** BK Dec ***** N.Key (sk, pk) ***** Key ***************");
+                    System.out.print("** sk (in Tree):");
+                    System.out.println(Arrays.toString(skl));
+                    System.out.print("** pk (pair)");
+                    System.out.println(Arrays.toString(pk));
+                    System.out.print("** k:");
+                    System.out.println(Arrays.toString(kl));
+                    System.out.print("** k Prime:");
+                    System.out.println(Arrays.toString(kPrime));
+                    System.out.print("** c :");
+                    System.out.println(Arrays.toString(c));
+                    System.out.print("** ad :");
+                    System.out.println(Arrays.toString(ad));
+
+
+
+                    System.out.println("***** BK Dec ***** N.gen (Pair) ***************");
+                    System.out.print("** sk new (in Tree):");
+                    System.out.println(Arrays.toString(newSk));
+                    System.out.print("** pk new (in Tree):");
+                    System.out.println(Arrays.toString(newPk));
+                    System.out.println("----------------------------------------------------------------------------------------_");
+
+                }
             }
 
             // kFinal = kl;
@@ -689,8 +761,25 @@ public class UB_KEM {
                 s = ro.getS();
                 sPrime = ro.getK();
 
+                Nike.KeyPair tempDk = Nike.gen(s);
+
                 // skMap.put(path_Sk.get(jj - 1), Nike.gen(s).getDk());
-                skMap.put(path_Sk.get(jj + 1), Nike.gen(s).getDk());
+                skMap.put(path_Sk.get(jj + 1), tempDk.getDk());
+
+                if (path_Sk.get(jj + 1) == 1) // root node
+                {
+                    if (ENABLE_DEBUG)
+                    {
+                        System.out.println("***** BK Proc ***** N.gen (Pair) ***************");
+                        System.out.print("** sk new (in Tree root node):");
+                        System.out.println(Arrays.toString(tempDk.getDk()));
+                        System.out.print("** pk new (in Tree root node):");
+                        System.out.println(Arrays.toString(tempDk.getEk()));
+                        System.out.println("----------------------------------------------------------------------------------------_");
+
+                    }
+                }
+
             }
 
             newDk = tree.setPath(i, skMap);
@@ -746,4 +835,7 @@ public class UB_KEM {
         }
         System.out.println(sb.toString());
     }
+
+    // private static final boolean ENABLE_DEBUG = true;
+    private static final boolean ENABLE_DEBUG = false;
 }
