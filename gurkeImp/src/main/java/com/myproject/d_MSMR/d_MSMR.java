@@ -399,10 +399,12 @@ public class d_MSMR {
                 TreeDk testDk = deserializeTreeDk(dkBytes);
 
                 byte[] trBytes = st.tr;
+                byte[] svkBytes = st.svk;
                 byte[] diffBytes = serializeObject_Diff(queuedOp.diff);
                 byte[] dkLenBytes = intToByteArray(dkBytes.length);
                 byte[] trLenBytes = intToByteArray(trBytes.length);
-                byte[] dkTrDiff = concatAll(dkLenBytes, trLenBytes, dkBytes, trBytes, diffBytes);
+                byte[] svkLenBytes = intToByteArray(svkBytes.length);
+                byte[] dkTrDiff = concatAll(dkLenBytes, trLenBytes, svkLenBytes, dkBytes, trBytes, svkBytes, diffBytes);
 
                 byte[] hash = RandomOracle.Hash2(k, c1);
                 byte[] c2 = xor(hash, dkTrDiff);
@@ -506,9 +508,11 @@ public class d_MSMR {
 
                         int dkLen = byteArrayToInt(Arrays.copyOfRange(plaintext, 0, 4));
                         int trLen = byteArrayToInt(Arrays.copyOfRange(plaintext, 4, 8));
-                        byte[] dkBytes = Arrays.copyOfRange(plaintext, 8, 8 + dkLen);
-                        byte[] trBytes = Arrays.copyOfRange(plaintext, 8 + dkLen, 8 + dkLen + trLen);
-                        byte[] diffBytes = Arrays.copyOfRange(plaintext, 8 + dkLen + trLen, plaintext.length);
+                        int svkLen = byteArrayToInt(Arrays.copyOfRange(plaintext, 8, 12));
+                        byte[] dkBytes = Arrays.copyOfRange(plaintext, 12, 12 + dkLen);
+                        byte[] trBytes = Arrays.copyOfRange(plaintext, 12 + dkLen, 12 + dkLen + trLen);
+                        byte[] svkBytes = Arrays.copyOfRange(plaintext, 12 + dkLen + trLen, 12 + dkLen + trLen + svkLen);
+                        byte[] diffBytes = Arrays.copyOfRange(plaintext, 12 + dkLen + trLen + svkLen, plaintext.length);
 
                         TreeDk newDk = deserializeTreeDk(dkBytes);
                         byte[] newTr = trBytes;
@@ -518,6 +522,7 @@ public class d_MSMR {
 
                         currentDk = newDk;
                         currentTr = newTr;
+                        currentSvk = svkBytes;
 
                         MergeDiffResult mergeResult = mergeDiff(currentMemS, currentMemR,
                                 diffResult.senderAdd, diffResult.senderRemove,
@@ -1366,10 +1371,10 @@ public class d_MSMR {
             Diff d = (Diff) obj;
 
             return concatAll(
-                concatenateIntSet(d.senderAdd),
-                concatenateIntSet(d.senderRemove),
-                concatenateIntSet(d.receiverAdd),
-                concatenateIntSet(d.receiverRemove)
+                intToByteArray(d.senderAdd.size()), concatenateIntSet(d.senderAdd),
+                intToByteArray(d.senderRemove.size()), concatenateIntSet(d.senderRemove),
+                intToByteArray(d.receiverAdd.size()), concatenateIntSet(d.receiverAdd),
+                intToByteArray(d.receiverRemove.size()), concatenateIntSet(d.receiverRemove)
             );
         }
         else if (obj instanceof byte[])
@@ -1603,22 +1608,22 @@ public class d_MSMR {
     }
 
 
-    private static byte[] serializeDkjRMap(Map<Integer, byte[]> dkjRMap) {
-        if (dkjRMap == null || dkjRMap.isEmpty()) return new byte[0];
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            out.write(intToByteArray(dkjRMap.size()));
-            for (Map.Entry<Integer, byte[]> entry : dkjRMap.entrySet()) {
-                out.write(intToByteArray(entry.getKey()));
-                byte[] value = entry.getValue();
-                out.write(intToByteArray(value.length));
-                out.write(value);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error serializing dkjRMap", e);
-        }
-        return out.toByteArray();
-    }
+    // private static byte[] serializeDkjRMap(Map<Integer, byte[]> dkjRMap) {
+    //     if (dkjRMap == null || dkjRMap.isEmpty()) return new byte[0];
+    //     ByteArrayOutputStream out = new ByteArrayOutputStream();
+    //     try {
+    //         out.write(intToByteArray(dkjRMap.size()));
+    //         for (Map.Entry<Integer, byte[]> entry : dkjRMap.entrySet()) {
+    //             out.write(intToByteArray(entry.getKey()));
+    //             byte[] value = entry.getValue();
+    //             out.write(intToByteArray(value.length));
+    //             out.write(value);
+    //         }
+    //     } catch (Exception e) {
+    //         throw new RuntimeException("Error serializing dkjRMap", e);
+    //     }
+    //     return out.toByteArray();
+    // }
 
     private static byte[] concatAll(byte[]... arrays) {
         int totalLength = 0;
@@ -1713,13 +1718,42 @@ public class d_MSMR {
                | ((bytes[2] & 0xFF) << 8)
                | (bytes[3] & 0xFF);
     }
+    // // Helper: deserialize Diff from bytes
+    // private static Diff deserializeDiff(byte[] bytes) {
+    //     // TODO: Implement deserialization logic for Diff
+    //     throw new UnsupportedOperationException("deserializeDiff() not implemented");
+    // }
 
-
-    // Helper: deserialize Diff from bytes
     private static Diff deserializeDiff(byte[] bytes) {
-        // TODO: Implement deserialization logic for Diff
-        throw new UnsupportedOperationException("deserializeDiff() not implemented");
+        java.util.concurrent.atomic.AtomicInteger pos = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        // Helper to read a set of integers from bytes
+        java.util.function.BiFunction<byte[], Integer, Set<Integer>> readIntSet = (arr, count) -> {
+            Set<Integer> result = new HashSet<>();
+            for (int i = 0; i < count; i++) {
+                int start = pos.get();
+                int val = byteArrayToInt(Arrays.copyOfRange(arr, start, start + 4));
+                result.add(val);
+                pos.addAndGet(4);
+            }
+            return result;
+        };
+
+        int senderAddLen = byteArrayToInt(Arrays.copyOfRange(bytes, pos.get(), pos.get() + 4)); pos.addAndGet(4);
+        Set<Integer> senderAdd = readIntSet.apply(bytes, senderAddLen);
+
+        int senderRemoveLen = byteArrayToInt(Arrays.copyOfRange(bytes, pos.get(), pos.get() + 4)); pos.addAndGet(4);
+        Set<Integer> senderRemove = readIntSet.apply(bytes, senderRemoveLen);
+
+        int receiverAddLen = byteArrayToInt(Arrays.copyOfRange(bytes, pos.get(), pos.get() + 4)); pos.addAndGet(4);
+        Set<Integer> receiverAdd = readIntSet.apply(bytes, receiverAddLen);
+
+        int receiverRemoveLen = byteArrayToInt(Arrays.copyOfRange(bytes, pos.get(), pos.get() + 4)); pos.addAndGet(4);
+        Set<Integer> receiverRemove = readIntSet.apply(bytes, receiverRemoveLen);
+
+        return new Diff(senderAdd, senderRemove, receiverAdd, receiverRemove);
     }
+    
     // private static final boolean ENABLE_DEBUG = true;
     private static final boolean ENABLE_DEBUG = false;
 }
