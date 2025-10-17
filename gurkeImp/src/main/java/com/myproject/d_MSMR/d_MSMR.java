@@ -1696,13 +1696,13 @@ public class d_MSMR {
         return derivedKey;
     }
 
-    // Helper: get the length of serialized TreeDk (protocol-specific, set as needed)
-    private static int getTreeDkSerializedLength() {
-        // TODO: Return the correct length for your TreeDk serialization
-        // For example, if TreeDk always serializes to 128 bytes:
-        // return 128;
-        throw new UnsupportedOperationException("getTreeDkSerializedLength() not implemented");
-    }
+    // // Helper: get the length of serialized TreeDk (protocol-specific, set as needed)
+    // private static int getTreeDkSerializedLength() {
+    //     // TODO: Return the correct length for your TreeDk serialization
+    //     // For example, if TreeDk always serializes to 128 bytes:
+    //     // return 128;
+    //     throw new UnsupportedOperationException("getTreeDkSerializedLength() not implemented");
+    // }
 
     // // Helper: deserialize TreeDk from bytes
     // private static TreeDk deserializeTreeDk(byte[] bytes) {
