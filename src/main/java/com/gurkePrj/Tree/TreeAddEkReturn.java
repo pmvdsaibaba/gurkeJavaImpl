@@ -1,4 +1,4 @@
-package com.myproject.Tree;
+package com.gurkePrj.Tree;
 
 import java.util.ArrayList;
 import java.util.List;

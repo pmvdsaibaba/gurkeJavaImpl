@@ -1,4 +1,4 @@
-package com.myproject.signatureScheme;
+package com.gurkePrj.signatureScheme;
 
 // import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;

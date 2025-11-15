@@ -1,18 +1,18 @@
-package com.myproject.d_SSMR;
+package com.gurkePrj.d_SSMR;
 
-import com.myproject.dynamicUBKem.UB_KEM;
-import com.myproject.dynamicUBKem.UB_KEM.BKGenResult;
-import com.myproject.dynamicUBKem.UB_KEM.c_BKAdd;
-import com.myproject.dynamicUBKem.UB_KEM.c_BKRemove;
+import com.gurkePrj.dynamicUBKem.UB_KEM;
+import com.gurkePrj.dynamicUBKem.UB_KEM.BKGenResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.c_BKAdd;
+import com.gurkePrj.dynamicUBKem.UB_KEM.c_BKRemove;
 
-import com.myproject.dynamicUBKem.UB_KEM.BKEncResult;
-import com.myproject.dynamicUBKem.UB_KEM.EncOutput;
-import com.myproject.dynamicUBKem.UB_KEM.FinResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.BKEncResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.EncOutput;
+import com.gurkePrj.dynamicUBKem.UB_KEM.FinResult;
 
 
-import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeDk;
-import com.myproject.signatureScheme.SignatureScheme;
+import com.gurkePrj.Tree.TreeEK;
+import com.gurkePrj.Tree.TreeDk;
+import com.gurkePrj.signatureScheme.SignatureScheme;
 
 import java.util.Set;
 import java.util.HashSet;

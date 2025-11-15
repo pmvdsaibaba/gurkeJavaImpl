@@ -1,4 +1,4 @@
-package com.myproject.standardKEM;
+package com.gurkePrj.standardKEM;
 
 import java.security.SecureRandom;
 

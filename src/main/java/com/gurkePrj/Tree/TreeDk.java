@@ -1,10 +1,10 @@
-package com.myproject.Tree;
+package com.gurkePrj.Tree;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.myproject.Tree.Tree;
+import com.gurkePrj.Tree.Tree;
 
 public class TreeDk {
 

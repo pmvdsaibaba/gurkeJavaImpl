@@ -1,14 +1,14 @@
-package com.myproject.dynamicUBKem;
+package com.gurkePrj.dynamicUBKem;
 
-import com.myproject.Tree.Tree;
-import com.myproject.Tree.TreeDk;
-import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeAddDkReturn;
-import com.myproject.Nike.Nike;
-import com.myproject.RandomOracle.RandomOracle;
-import com.myproject.Tree.TreeGetPathReturn;
-import com.myproject.Tree.TreeAddEkReturn;
-import com.myproject.Tree.TreeGetNodesReturn;
+import com.gurkePrj.Tree.Tree;
+import com.gurkePrj.Tree.TreeDk;
+import com.gurkePrj.Tree.TreeEK;
+import com.gurkePrj.Tree.TreeAddDkReturn;
+import com.gurkePrj.Nike.Nike;
+import com.gurkePrj.RandomOracle.RandomOracle;
+import com.gurkePrj.Tree.TreeGetPathReturn;
+import com.gurkePrj.Tree.TreeAddEkReturn;
+import com.gurkePrj.Tree.TreeGetNodesReturn;
 
 import java.security.SecureRandom;
 import org.bouncycastle.crypto.prng.FixedSecureRandom;

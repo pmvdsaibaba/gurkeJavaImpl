@@ -1,5 +1,5 @@
-package com.myproject.staticUBKem;
-import com.myproject.standardKEM.KEM;
+package com.gurkePrj.staticUBKem;
+import com.gurkePrj.standardKEM.KEM;
 
 public class BKEnc {
 

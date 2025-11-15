@@ -1,15 +1,15 @@
-package com.myproject.s_MSMR;
+package com.gurkePrj.s_MSMR;
 
-import com.myproject.staticUBKem.BKGen;
-import com.myproject.signatureScheme.SignatureScheme;
+import com.gurkePrj.staticUBKem.BKGen;
+import com.gurkePrj.signatureScheme.SignatureScheme;
 
-import com.myproject.staticUBKem.BKEnc;
-import com.myproject.staticUBKem.BKEnc.EncapsulationReturn;
-import com.myproject.staticUBKem.BKEnc.EncapsulationResult;
-import com.myproject.staticUBKem.BKFin;
-import com.myproject.staticUBKem.BKFin.FinResult;
-import com.myproject.staticUBKem.BKDec;
-import com.myproject.staticUBKem.BKDec.DecResult;
+import com.gurkePrj.staticUBKem.BKEnc;
+import com.gurkePrj.staticUBKem.BKEnc.EncapsulationReturn;
+import com.gurkePrj.staticUBKem.BKEnc.EncapsulationResult;
+import com.gurkePrj.staticUBKem.BKFin;
+import com.gurkePrj.staticUBKem.BKFin.FinResult;
+import com.gurkePrj.staticUBKem.BKDec;
+import com.gurkePrj.staticUBKem.BKDec.DecResult;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;

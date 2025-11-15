@@ -1,8 +1,8 @@
-package com.myproject.staticUBKem;
-import com.myproject.standardKEM.KEM;
-import com.myproject.RandomOracle.RandomOracle;
+package com.gurkePrj.staticUBKem;
+import com.gurkePrj.standardKEM.KEM;
+import com.gurkePrj.RandomOracle.RandomOracle;
 
-import com.myproject.staticUBKem.BKEnc.EncapsulationResult;
+import com.gurkePrj.staticUBKem.BKEnc.EncapsulationResult;
 
 import java.util.ArrayList;
 import java.util.List;

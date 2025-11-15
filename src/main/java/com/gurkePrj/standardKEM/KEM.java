@@ -1,4 +1,4 @@
-package com.myproject.standardKEM;
+package com.gurkePrj.standardKEM;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.crypto.*;

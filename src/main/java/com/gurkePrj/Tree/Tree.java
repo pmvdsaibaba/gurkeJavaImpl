@@ -1,11 +1,11 @@
-package com.myproject.Tree;
+package com.gurkePrj.Tree;
 
-import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeAddEkReturn;
-import com.myproject.Tree.TreeAddDkReturn;
-import com.myproject.Tree.TreeGetPathReturn;
-import com.myproject.Tree.TreeGetNodesReturn;
-import com.myproject.Tree.TreeDk;
+import com.gurkePrj.Tree.TreeEK;
+import com.gurkePrj.Tree.TreeAddEkReturn;
+import com.gurkePrj.Tree.TreeAddDkReturn;
+import com.gurkePrj.Tree.TreeGetPathReturn;
+import com.gurkePrj.Tree.TreeGetNodesReturn;
+import com.gurkePrj.Tree.TreeDk;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;

@@ -1,6 +1,6 @@
-package com.myproject.Tree;
+package com.gurkePrj.Tree;
 
-import com.myproject.Tree.TreeEK;
+import com.gurkePrj.Tree.TreeEK;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.myproject.ExampleKEM;
+package com.gurkePrj.ExampleKEM;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.*;

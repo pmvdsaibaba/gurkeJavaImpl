@@ -1,4 +1,4 @@
-package com.myproject.RandomOracle;
+package com.gurkePrj.RandomOracle;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

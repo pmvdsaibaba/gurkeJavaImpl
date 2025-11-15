@@ -1,24 +1,24 @@
-package com.myproject.d_MSMR;
+package com.gurkePrj.d_MSMR;
 
-import com.myproject.dynamicUBKem.UB_KEM;
-import com.myproject.dynamicUBKem.UB_KEM.BKGenResult;
-import com.myproject.dynamicUBKem.UB_KEM.c_BKAdd;
-import com.myproject.dynamicUBKem.UB_KEM.c_BKRemove;
-import com.myproject.dynamicUBKem.UB_KEM.c_BKFork;
+import com.gurkePrj.dynamicUBKem.UB_KEM;
+import com.gurkePrj.dynamicUBKem.UB_KEM.BKGenResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.c_BKAdd;
+import com.gurkePrj.dynamicUBKem.UB_KEM.c_BKRemove;
+import com.gurkePrj.dynamicUBKem.UB_KEM.c_BKFork;
 
-import com.myproject.dynamicUBKem.UB_KEM.BKEncResult;
-import com.myproject.dynamicUBKem.UB_KEM.EncOutput;
-import com.myproject.dynamicUBKem.UB_KEM.FinResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.BKEncResult;
+import com.gurkePrj.dynamicUBKem.UB_KEM.EncOutput;
+import com.gurkePrj.dynamicUBKem.UB_KEM.FinResult;
 
-import com.myproject.standardKEM.KEM.*;
-import com.myproject.standardKEM.KEM;
+import com.gurkePrj.standardKEM.KEM.*;
+import com.gurkePrj.standardKEM.KEM;
 
-import com.myproject.RandomOracle.RandomOracle;
+import com.gurkePrj.RandomOracle.RandomOracle;
 
-import com.myproject.Tree.TreeEK;
-import com.myproject.Tree.TreeDk;
-import com.myproject.Tree.Tree;
-import com.myproject.signatureScheme.SignatureScheme;
+import com.gurkePrj.Tree.TreeEK;
+import com.gurkePrj.Tree.TreeDk;
+import com.gurkePrj.Tree.Tree;
+import com.gurkePrj.signatureScheme.SignatureScheme;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -983,12 +983,12 @@ public class d_MSMR {
         Queue<QueuedCiphertext> cq = enqResult.cq;
 
         // Step 3: Generate new signature keypair for the new sender
-        com.myproject.signatureScheme.SignatureScheme.KeyPair newSigKeys = com.myproject.signatureScheme.SignatureScheme.gen();
+        com.gurkePrj.signatureScheme.SignatureScheme.KeyPair newSigKeys = com.gurkePrj.signatureScheme.SignatureScheme.gen();
         byte[] svkuid = newSigKeys.getVk();
         byte[] sskuid = newSigKeys.getSk();
 
         // Step 4: Fork the BK tree for the new sender
-        com.myproject.dynamicUBKem.UB_KEM.BKForkResult forkResult = com.myproject.dynamicUBKem.UB_KEM.fork(st.ek);
+        com.gurkePrj.dynamicUBKem.UB_KEM.BKForkResult forkResult = com.gurkePrj.dynamicUBKem.UB_KEM.fork(st.ek);
         // ek1 = for current sender, ek2 = for new sender
         TreeEK ekuid = forkResult.ek2;
         Object cM = forkResult.c;
