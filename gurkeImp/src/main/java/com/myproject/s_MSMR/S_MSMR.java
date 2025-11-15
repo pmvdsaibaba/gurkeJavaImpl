@@ -207,7 +207,6 @@ public class S_MSMR {
         };
     }
 
-    // Implements: procRcv
     public static class ProcRcvResult {
         public ReceiverState updatedState;
         public byte[] k;
@@ -228,6 +227,7 @@ public class S_MSMR {
         }
     }
 
+    // Implements: procRcv
     public static Object procRcv(ReceiverState st, byte[] ad, Ciphertext c) throws Exception {
         int nS = st.nS;
         int nR = st.nR;

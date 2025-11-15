@@ -22,9 +22,8 @@ public class KEM {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    // This method generates an X25519 key pair (public and private keys) using BouncyCastle
     public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException {
-        // Create a SecureRandom instance
+
         SecureRandom random = new SecureRandom();
 
         // Initialize the X25519 key pair generator
@@ -36,8 +35,7 @@ public class KEM {
 
         // Generate the key pair
         AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
-        
-        // Extract the public and private keys from the key pair
+
         X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();
         X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();
 
@@ -67,9 +65,7 @@ public class KEM {
         }
     }
 
-    // This method generates an X25519 key pair based on the provided seed (for deterministic generation)
     public static KeyPair gen(byte[] seed) throws NoSuchAlgorithmException, NoSuchProviderException {
-        // Initialize the FixedSecureRandom instance with the provided seed
         FixedSecureRandom random = new FixedSecureRandom(seed); // Pass the seed directly
 
         // Initialize the X25519 key pair generator
@@ -82,7 +78,6 @@ public class KEM {
         // Generate the key pair
         AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        // Extract the public and private keys from the key pair
         X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();
         X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();
 
@@ -90,42 +85,33 @@ public class KEM {
         byte[] publicKeyBytes = publicKeyParameters.getEncoded();
         byte[] privateKeyBytes = privateKeyParameters.getEncoded();
 
-        // Return the key pair (with public and private keys as byte arrays)
         return new KeyPair(publicKeyBytes, privateKeyBytes);
     }
 
-    // This method simulates the enc function to generate a key and ciphertext
     public static EncapsulationResult enc(byte[] ek) throws Exception {
-        // Convert the byte array to an X25519 public key
-        // X509EncodedKeySpec keySpec = new X509EncodedKeySpec(ek);
-        KeyFactory keyFactory = KeyFactory.getInstance("X25519", "BC");
-        X25519PublicKeyParameters publicKey = new X25519PublicKeyParameters(ek, 0);
 
-        // Generate a random shared secret
-        // SecureRandom secureRandom = new SecureRandom();
+        X25519PublicKeyParameters publicKey = new X25519PublicKeyParameters(ek, 0);
 
         byte[] seed = new byte[32]; // 256-bit seed
         Arrays.fill(seed, (byte) 0xAC); // Fill with 0xEF
 
-
         FixedSecureRandom random = new FixedSecureRandom(seed); // Pass the seed directly
 
-                // Initialize the X25519 key pair generator
-                X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();
+        // Initialize the X25519 key pair generator
+        X25519KeyPairGenerator keyPairGenerator = new X25519KeyPairGenerator();
 
-                // Initialize with X25519 parameters (using the seeded FixedSecureRandom instance)
-                X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);
-                keyPairGenerator.init(params);
+        // Initialize with X25519 parameters (using the seeded FixedSecureRandom instance)
+        X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);
+        keyPairGenerator.init(params);
 
-                // Generate the key pair
-                AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
+        // Generate the key pair
+        AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-                // Extract the public and private keys from the key pair
-                X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();
-                X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();
+        X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) keyPair.getPublic();
+        X25519PrivateKeyParameters privateKeyParameters = (X25519PrivateKeyParameters) keyPair.getPrivate();
 
-                byte[] ciphertext = publicKeyParameters.getEncoded();
-                byte[] privateKeyBytes = privateKeyParameters.getEncoded();
+        byte[] ciphertext = publicKeyParameters.getEncoded();
+        byte[] privateKeyBytes = privateKeyParameters.getEncoded();
 
         // Generate private key for encapsulation (X25519)
         X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(privateKeyBytes, 0);
@@ -137,7 +123,6 @@ public class KEM {
         byte[] secretKey = new byte[agreement.getAgreementSize()];
         agreement.calculateAgreement(publicKey, secretKey, 0);
 
-        // Return the result as an EncapsulationResult object containing both the original and encrypted keys
         return new EncapsulationResult(secretKey, ciphertext);
     }
 
@@ -160,14 +145,9 @@ public class KEM {
         }
     }
 
-    // This method simulates the dec function to generate a key and ciphertext
-    public static DecapsulationResult dec(byte[] dk, byte[] c) throws Exception {
-        // Convert the byte array to an X25519 private key
-        // PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(dk);
-        // KeyFactory keyFactory = KeyFactory.getInstance("X25519", "BC");
-        X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(dk, 0);
 
-        // int debugPrintEnable = 0;
+    public static DecapsulationResult dec(byte[] dk, byte[] c) throws Exception {
+        X25519PrivateKeyParameters privateKey = new X25519PrivateKeyParameters(dk, 0);
 
         // Use X25519Agreement to perform the key agreement
         X25519Agreement agreement = new X25519Agreement();
@@ -176,21 +156,9 @@ public class KEM {
         byte[] decryptedKey = new byte[agreement.getAgreementSize()];
         agreement.calculateAgreement(new X25519PublicKeyParameters(c, 0), decryptedKey, 0);
 
-        // if (debugPrintEnable != 0)
-        // {    System.out.println("decryptedKey Key (k in dec): ");
-        //     // printByteArray(decryptedKey);
-        //     StringBuilder sb = new StringBuilder();
-        //     for (byte b : decryptedKey) {
-        //         sb.append(String.format("%02X", b));  // Convert to hexadecimal representation
-        //     }
-        //     System.out.println(sb.toString());
-        // }
-
-        // Return the result as a DecapsulationResult containing the decrypted shared key
         return new DecapsulationResult(decryptedKey);
     }
 
-    // DecapsulationResult class to hold key and ciphertext
     public static class DecapsulationResult {
         byte[] k;
 
@@ -202,6 +170,5 @@ public class KEM {
             return k;
         }
     }
-
 
 }

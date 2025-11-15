@@ -1,6 +1,6 @@
 package com.myproject.signatureScheme;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+// import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.security.*;
@@ -20,7 +20,7 @@ public class SignatureScheme {
     // --- S.gen : ∅ →$ VK × SK ---
     public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException
     {
-        Security.addProvider(new BouncyCastleProvider());
+        // Security.addProvider(new BouncyCastleProvider());
         
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
 
