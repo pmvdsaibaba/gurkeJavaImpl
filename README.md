@@ -1,7 +1,7 @@
-# gurkeImp Project
+# gurkeJavaImpl Project
 
 ## Overview
-gurkeImp implements a KEM protocol called GURKE (Group Unidirectional
+gurkeJavaImpl implements a KEM protocol called GURKE (Group Unidirectional
 Ratcheted Key Exchange) published by Daniel Collins and Paul Rösler. The project structure follows standard Maven conventions, with source code organized in a Java package structure.
 
 ## Programming Language & Version
@@ -15,40 +15,33 @@ Source code and test code organized in Java package structure. Build output in t
 
 Here is the structure of the project:
 ```
-gurkeImp/
-├── pom.xml
-├── README.md
-├── src/
-│   ├── main/
-│   │   └── java/
-│   │       └── com/
-│   │           └── gurkePrj/
-│   │               ├── signatureScheme/
-│   │               │   └── SignatureScheme.java
-│   │               └── s_MSMR/
-│   │                   └── S_MSMR.java
-│   └── test/
-│       └── java/
-│           └── com/
-│               └── gurkePrj/
-│                   └── TestSignature/
-│                       └── TestSignatureScheme.java
-│                   └── TestS_MSMR/
-│                       └── TestS_MSMR_init.java
-└── target/
-    ├── classes/
-    ├── test-classes/
-    ├── surefire-reports/
-    └── site/
-        └── jacoco/
-```
+
+pom.xml
+README.md
+src/
+├── main/
+│   └── java/
+│       └── com/
+│           └── gurkePrj/
+│               ├── signatureScheme/
+│               │   └── SignatureScheme.java
+│               └── s_MSMR/
+│                   └── S_MSMR.java
+└── test/
+    └── java/
+        └── com/
+            └── gurkePrj/
+                └── TestSignature/
+                    └── TestSignatureScheme.java
+                └── TestS_MSMR/
+                    └── TestS_MSMR_init.java
+
 
 ## Setup Instructions
 
 1. **Clone the Repository**
    ```sh
    git clone <your-repo-url>
-   cd gurkeImp
    ```
 
 2. **Install Dependencies**
