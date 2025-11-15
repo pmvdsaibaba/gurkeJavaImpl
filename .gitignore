@@ -24,3 +24,4 @@ target/site/jacoco/jacoco-sessions.html
 target/site/jacoco/jacoco.csv
 target/site/jacoco/jacoco.xml
 /target
+*.xml
