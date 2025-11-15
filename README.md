@@ -22,7 +22,7 @@ gurkeImp/
 │   ├── main/
 │   │   └── java/
 │   │       └── com/
-│   │           └── myproject/
+│   │           └── gurkePrj/
 │   │               ├── signatureScheme/
 │   │               │   └── SignatureScheme.java
 │   │               └── s_MSMR/
@@ -30,7 +30,7 @@ gurkeImp/
 │   └── test/
 │       └── java/
 │           └── com/
-│               └── myproject/
+│               └── gurkePrj/
 │                   └── TestSignature/
 │                       └── TestSignatureScheme.java
 │                   └── TestS_MSMR/
