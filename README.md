@@ -36,6 +36,12 @@ src/
                     └── TestS_MSMR_init.java
    ```
 
+## Testing
+Testing uses JUnit Jupiter 5.8.2 (modern) and for deprecated format it seems to use JUnit 3.8.1 (legacy).
+
+###Code Coverage
+Jacoco Maven Plugin provides a code coverage automatically if the build is executed successfully. Coverage reports will be generated in \target\site\jacoco
+
 ## Setup Instructions
 
 1. **Clone the Repository**
@@ -56,10 +62,11 @@ src/
    ```sh
    mvn test
    ```
-   **Run Specific Tests**
+   **Run Specific Test**
    ```sh
    mvn -Dtest=TestClassName test
    ```
+   Example: mvn -Dtest=TestTreeAddEk test
 
 ## Dependencies
 
