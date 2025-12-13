@@ -1,6 +1,5 @@
 package com.gurkePrj.signatureScheme;
 
-// import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.security.*;
@@ -13,15 +12,9 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class SignatureScheme {
 
-    // static {
-    //     Security.addProvider(new BouncyCastleProvider());
-    // }
-
     // --- S.gen : ∅ →$ VK × SK ---
     public static KeyPair gen() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException
     {
-        // Security.addProvider(new BouncyCastleProvider());
-        
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
 
         SecureRandom random = new SecureRandom(); // no fixed seed!
@@ -38,8 +31,8 @@ public class SignatureScheme {
     }
 
     public static class KeyPair {
-        byte[] vk; // public key in bytes
-        byte[] sk; // private key in bytes
+        byte[] vk;
+        byte[] sk;
 
         public KeyPair(byte[] vk, byte[] sk) {
             this.vk = vk;

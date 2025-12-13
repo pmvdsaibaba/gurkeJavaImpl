@@ -53,6 +53,21 @@ public class TestNikeGen {
         assertNotNull(dk);
         System.out.println("Nike decapsulation Key (dk): ");
         printByteArray(dk);
+        
+        
+        result2 = Nike.gen(seed);
+
+
+        ek = result2.getEk();
+        dk = result2.getDk(); 
+
+        assertNotNull(ek);
+        System.out.println("Nike Encapsulation Key (ek): ");
+        printByteArray(ek);
+
+        assertNotNull(dk);
+        System.out.println("Nike decapsulation Key (dk): ");
+        printByteArray(dk);
 
     }
     

@@ -53,7 +53,7 @@ public class d_SSMR {
         public TreeDk dk;
         public byte[] svk;
         public byte[] tr;
-        boolean isNewAddRcvr;
+        boolean isNewAddRcvr; // GURKE modified
 
         public ReceiverState(Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr, boolean isNewAddRcvr) {
         // public ReceiverState(Set<Integer> memR, TreeDk dk, byte[] svk, byte[] tr) {

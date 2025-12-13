@@ -9,7 +9,6 @@ public class TreeAddDkReturn {
     private Map<Integer, byte[]> dataSk;
     private int LeafIndex;
 
-    // this is unclear for now
     private int LeafIntersectionIndex;
     private Tree Tree;
 

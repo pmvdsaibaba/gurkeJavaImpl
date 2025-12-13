@@ -1,7 +1,6 @@
 package com.gurkePrj.TestTree;
 
 import com.gurkePrj.Tree.Tree;
-import com.gurkePrj.Tree.TreeV2;
 import com.gurkePrj.Tree.TreeEK;
 import com.gurkePrj.Tree.TreeDk;
 import com.gurkePrj.Nike.Nike;

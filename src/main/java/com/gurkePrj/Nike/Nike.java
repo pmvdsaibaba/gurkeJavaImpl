@@ -86,10 +86,10 @@ public class Nike {
     
     // KeyPair class to hold the encapsulation key and decapsulation key
     public static class KeyPair {
-        private byte[] publicKey; // Store the public key as a byte array
-        private byte[] privateKey; // Store the private key as a byte array
+        private byte[] publicKey;
+        private byte[] privateKey;
 
-        // Constructor to initialize KeyPairHolder with public and private keys as byte arrays
+        // Constructor to initialize KeyPairHolder with ek and dk
         public KeyPair(byte[] ek, byte[] dk) {
             this.publicKey = ek;
             this.privateKey = dk;
@@ -104,7 +104,7 @@ public class Nike {
             }
     }
 
-    // N.gen(s) : Generate the public and private keys with a given seed (SK -> PK)
+    // N.gen(s) : Generate the public and private keys with a given seed
     public static KeyPair gen(byte[] seed) throws NoSuchAlgorithmException, NoSuchProviderException {
         // Add the BouncyCastle provider
         // Security.addProvider(new BouncyCastleProvider());
@@ -144,7 +144,7 @@ public class Nike {
         return new KeyPair(publicKeyBytes, privateKeyBytes);
     }
 
-    // N.key : Compute the shared key using secret key and public key (SK, PK -> K)
+    // N.key : Compute the shared key using secret key and public key
     public static byte[] key(byte[] secretKey, byte[] publicKey) throws Exception {
         // Convert byte arrays into X25519 Private and Public Key parameters
         X25519PrivateKeyParameters privateKeyParameters = new X25519PrivateKeyParameters(secretKey, 0);
@@ -160,7 +160,6 @@ public class Nike {
         // Calculate the shared agreement
         agreement.calculateAgreement(publicKeyParameters, sharedKey, 0);
 
-        // Return the shared key
         return sharedKey;
     }
 

@@ -101,7 +101,9 @@ public class d_MSMR {
         public Set<Integer> memS;
         public Set<Integer> memR;
         public Map<Integer, TreeDk> dkMap; // St[i] for each sender i
+        // This is obselete now. Same is done using dkjRMap in ReceiverEntry. But this is kept for code consistency. and In GURKE this is how it is shown
         public Map<Integer, byte[]> kemDkMap; // KEM decapsulation keys for each sender i (if any)
+
         public Map<Integer, byte[]> svkMap; // svk for each sender i
         public Map<Integer, byte[]> trMap; // tr for each sender i
 
