@@ -45,8 +45,8 @@ public class TestS_MSMR_SndRcv {
         }
         // System.out.println("Repeated procSnd and procRcv succeeded.");
 
-        S_MSMR.printAndResetBKDecStats();
         S_MSMR.printAndResetBKEncStats();
+        S_MSMR.printAndResetBKDecStats();
         S_MSMR.printAndResetBKFinStats();
     }
 

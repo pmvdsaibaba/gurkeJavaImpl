@@ -39,23 +39,24 @@ public class UB_KEM {
     public static int procInvocationCount = 0;
 
     public static void printAndResetUBKEMStats() {
+        System.out.println("-----------------------------------------------");
         if (encInvocationCount > 0)
-            System.out.println("UB_KEM.enc avg time: " + (totalEncTimeNs / 1_000_000.0 / encInvocationCount) + " ms over " + encInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.enc avg time: " + (totalEncTimeNs / 1_000_000.0 / encInvocationCount) + " ms over " + encInvocationCount + " calls");
         if (decInvocationCount > 0)
-            System.out.println("UB_KEM.dec avg time: " + (totalDecTimeNs / 1_000_000.0 / decInvocationCount) + " ms over " + decInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.dec avg time: " + (totalDecTimeNs / 1_000_000.0 / decInvocationCount) + " ms over " + decInvocationCount + " calls");
         if (finInvocationCount > 0)
-            System.out.println("UB_KEM.fin avg time: " + (totalFinTimeNs / 1_000_000.0 / finInvocationCount) + " ms over " + finInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.fin avg time: " + (totalFinTimeNs / 1_000_000.0 / finInvocationCount) + " ms over " + finInvocationCount + " calls");
         if (addInvocationCount > 0)
-            System.out.println("UB_KEM.add avg time: " + (totalAddTimeNs / 1_000_000.0 / addInvocationCount) + " ms over " + addInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.add avg time: " + (totalAddTimeNs / 1_000_000.0 / addInvocationCount) + " ms over " + addInvocationCount + " calls");
         if (rmvInvocationCount > 0)
-            System.out.println("UB_KEM.rmv avg time: " + (totalRmvTimeNs / 1_000_000.0 / rmvInvocationCount) + " ms over " + rmvInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.rmv avg time: " + (totalRmvTimeNs / 1_000_000.0 / rmvInvocationCount) + " ms over " + rmvInvocationCount + " calls");
         if (forkInvocationCount > 0)
-            System.out.println("UB_KEM.fork avg time: " + (totalForkTimeNs / 1_000_000.0 / forkInvocationCount) + " ms over " + forkInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.fork avg time: " + (totalForkTimeNs / 1_000_000.0 / forkInvocationCount) + " ms over " + forkInvocationCount + " calls");
         if (procInvocationCount > 0)
-            System.out.println("UB_KEM.proc avg time: " + (totalProcTimeNs / 1_000_000.0 / procInvocationCount) + " ms over " + procInvocationCount + " calls");
+            System.out.println("Dynamic UB_KEM.proc avg time: " + (totalProcTimeNs / 1_000_000.0 / procInvocationCount) + " ms over " + procInvocationCount + " calls");
         // Reset all
-        totalEncTimeNs = totalDecTimeNs = totalFinTimeNs = totalAddTimeNs = totalRmvTimeNs = totalForkTimeNs = totalProcTimeNs = 0;
-        encInvocationCount = decInvocationCount = finInvocationCount = addInvocationCount = rmvInvocationCount = forkInvocationCount = procInvocationCount = 0;
+        // totalEncTimeNs = totalDecTimeNs = totalFinTimeNs = totalAddTimeNs = totalRmvTimeNs = totalForkTimeNs = totalProcTimeNs = 0;
+        // encInvocationCount = decInvocationCount = finInvocationCount = addInvocationCount = rmvInvocationCount = forkInvocationCount = procInvocationCount = 0;
     }
 
     public static class BKGenResult {
