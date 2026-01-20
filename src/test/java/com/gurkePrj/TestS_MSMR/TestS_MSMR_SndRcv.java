@@ -24,48 +24,30 @@ public class TestS_MSMR_SndRcv {
         byte[] ad = new byte[16];
         new Random().nextBytes(ad);
 
-        // Step 3: Execute procSnd
-        ProcSndResult sndResult = S_MSMR.procSnd(senderState, ad);
-        assertNotNull(sndResult.ciphertext);
-        assertNotNull(sndResult.key);
-        assertNotNull(sndResult.kid);
+        // Repeat send/receive/validate steps multiple times
+        for (int i = 0; i < 1000; i++) {
+            // Step 3: Execute procSnd
+            ProcSndResult sndResult = S_MSMR.procSnd(senderState, ad);
+            assertNotNull(sndResult.ciphertext);
+            assertNotNull(sndResult.key);
+            assertNotNull(sndResult.kid);
 
-        // Step 4: Execute procRcv with the resulting ciphertext
-        Object rcvOutput = S_MSMR.procRcv(receiverState, ad, sndResult.ciphertext);
-        ProcRcvResult rcvResult = (ProcRcvResult) rcvOutput;
+            // Step 4: Execute procRcv with the resulting ciphertext
+            Object rcvOutput = S_MSMR.procRcv(receiverState, ad, sndResult.ciphertext);
+            ProcRcvResult rcvResult = (ProcRcvResult) rcvOutput;
 
-        // Step 5: Validate output
-        assertNotNull(rcvResult.k);
-        assertArrayEquals(sndResult.key, rcvResult.k, "Shared keys should match");
-        assertEquals(sndResult.kid.senderId, rcvResult.kid.senderId, "Sender ID must match");
-        assertEquals(sndResult.kid.nS, rcvResult.kid.nS, "nS must match");
-        assertEquals(sndResult.kid.nR, rcvResult.kid.nR, "nR must match");
+            // Step 5: Validate output
+            assertNotNull(rcvResult.k);
+            assertArrayEquals(sndResult.key, rcvResult.k, "Shared keys should match");
+            assertEquals(sndResult.kid.senderId, rcvResult.kid.senderId, "Sender ID must match");
+            assertEquals(sndResult.kid.nS, rcvResult.kid.nS, "nS must match");
+            assertEquals(sndResult.kid.nR, rcvResult.kid.nR, "nR must match");
+        }
+        // System.out.println("Repeated procSnd and procRcv succeeded.");
 
-        System.out.println("procSnd and procRcv succeeded. Shared key (k):");
-        printByteArray(rcvResult.k);
-        printByteArray(sndResult.key);
-
-        // Step 3: Execute procSnd
-        sndResult = S_MSMR.procSnd(senderState, ad);
-        sndResult = S_MSMR.procSnd(senderState, ad);
-        assertNotNull(sndResult.ciphertext);
-        assertNotNull(sndResult.key);
-        assertNotNull(sndResult.kid);
-
-        // Step 4: Execute procRcv with the resulting ciphertext
-        rcvOutput = S_MSMR.procRcv(receiverState, ad, sndResult.ciphertext);
-        rcvResult = (ProcRcvResult) rcvOutput;
-
-        // Step 5: Validate output
-        assertNotNull(rcvResult.k);
-        assertArrayEquals(sndResult.key, rcvResult.k, "Shared keys should match");
-        assertEquals(sndResult.kid.senderId, rcvResult.kid.senderId, "Sender ID must match");
-        assertEquals(sndResult.kid.nS, rcvResult.kid.nS, "nS must match");
-        assertEquals(sndResult.kid.nR, rcvResult.kid.nR, "nR must match");
-
-        System.out.println("procSnd and procRcv succeeded. Shared key (k):");
-        printByteArray(rcvResult.k);
-        printByteArray(sndResult.key);
+        S_MSMR.printAndResetBKDecStats();
+        S_MSMR.printAndResetBKEncStats();
+        S_MSMR.printAndResetBKFinStats();
     }
 
     // Utility to print byte arrays

@@ -18,6 +18,47 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class S_MSMR {
+        // For BKEnc.enc timing statistics
+        private static long totalBKEncTimeNs = 0;
+        private static int bkEncInvocationCount = 0;
+        public static void printAndResetBKEncStats() {
+            if (bkEncInvocationCount > 0) {
+                double avgMs = (totalBKEncTimeNs / 1_000_000.0) / bkEncInvocationCount;
+                System.out.println("Static UBKEM BKEnc.enc average time over " + bkEncInvocationCount + " calls: " + avgMs + " ms");
+            } else {
+                System.out.println("BKEnc.enc was not called.");
+            }
+            totalBKEncTimeNs = 0;
+            bkEncInvocationCount = 0;
+        }
+
+        // For BKFin.fin timing statistics
+        private static long totalBKFinTimeNs = 0;
+        private static int bkFinInvocationCount = 0;
+        public static void printAndResetBKFinStats() {
+            if (bkFinInvocationCount > 0) {
+                double avgMs = (totalBKFinTimeNs / 1_000_000.0) / bkFinInvocationCount;
+                System.out.println("Static UBKEM BKFin.fin average time over " + bkFinInvocationCount + " calls: " + avgMs + " ms");
+            } else {
+                System.out.println("BKFin.fin was not called.");
+            }
+            totalBKFinTimeNs = 0;
+            bkFinInvocationCount = 0;
+        }
+    // For BKDec.dec timing statistics
+    private static long totalBKDecTimeNs = 0;
+    private static int bkDecInvocationCount = 0;
+
+    public static void printAndResetBKDecStats() {
+        if (bkDecInvocationCount > 0) {
+            double avgMs = (totalBKDecTimeNs / 1_000_000.0) / bkDecInvocationCount;
+            System.out.println("Static UBKEM BKDec.dec average time over " + bkDecInvocationCount + " calls: " + avgMs + " ms");
+        } else {
+            System.out.println("BKDec.dec was not called.");
+        }
+        totalBKDecTimeNs = 0;
+        bkDecInvocationCount = 0;
+    }
 
     public static class SenderState {
         public int id;
@@ -154,7 +195,11 @@ public class S_MSMR {
         byte[] ek = st.ek;
         byte[] ssk = st.ssk;
 
+        long encStart = System.nanoTime();
         EncapsulationReturn encRet = BKEnc.enc(ek);
+        long encEnd = System.nanoTime();
+        totalBKEncTimeNs += (encEnd - encStart);
+        bkEncInvocationCount++;
         EncapsulationResult u = encRet.getU();
         byte[] cPrime = encRet.getC();
 
@@ -170,7 +215,11 @@ public class S_MSMR {
         Ciphertext ciphertext = new Ciphertext(i, cPrime, svkPrime, sigma);
 
         byte[] cConcat = concatAll(ad, intToBytes(i), cPrime, svkPrime, sigma);
+        long finStart = System.nanoTime();
         FinResult finResult = BKFin.fin(u, cConcat);
+        long finEnd = System.nanoTime();
+        totalBKFinTimeNs += (finEnd - finStart);
+        bkFinInvocationCount++;
         byte[] newEk = finResult.getEk();
         byte[] k = finResult.getK();
 
@@ -251,7 +300,14 @@ public class S_MSMR {
 
         // (dk, (k, id)) ← BK.dec(dk, (ad, c), c′)
         byte[] fullC = concatAll(ad, intToBytes(i), cPrime, svkPrime, sigma);
+        long startTime = System.nanoTime();
         DecResult decResult = BKDec.dec(dk, fullC, cPrime);
+        long endTime = System.nanoTime();
+        totalBKDecTimeNs += (endTime - startTime);
+        bkDecInvocationCount++;
+        // Optionally, comment out the per-call print:
+        // double durationMs = (endTime - startTime) / 1_000_000.0;
+        // System.out.println("BKDec.dec took " + durationMs + " ms");
 
         byte[] newDk = decResult.getDk();
         byte[] k = decResult.getK();
