@@ -3,6 +3,7 @@ package com.gurkePrj.TestD_MSMR;
 import com.gurkePrj.d_MSMR.d_MSMR;
 import com.gurkePrj.d_MSMR.d_MSMR.*;
 import org.junit.jupiter.api.Test;
+import com.gurkePrj.dynamicUBKem.UB_KEM;
 
 import com.gurkePrj.Tree.*;
 
@@ -112,6 +113,7 @@ public class TestD_MSMR {
 
 
         System.out.println("procInit test passed successfully");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
     @Test
@@ -258,6 +260,7 @@ public class TestD_MSMR {
 
         System.out.println("**********************************************");
 
+        UB_KEM.printAndResetUBKEMStats();
     }
 
 
@@ -390,6 +393,7 @@ public class TestD_MSMR {
         }
 
         System.out.println("************** End of test 1 *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
     @Test
@@ -527,6 +531,7 @@ public class TestD_MSMR {
             currentReceiverStatesMap.put(uid, rcvResult.updatedState);
         }
         System.out.println("\n************** End of test 2 *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
 
@@ -585,6 +590,7 @@ public class TestD_MSMR {
             assertNotNull(rcvResult, "Receiver " + r + " should be able to process remove ciphertext");
             assertTrue(rcvResult.success, "Receiver " + r + " should process remove ciphertext successfully");
             assertArrayEquals(rmvResult.key, rcvResult.key, "Receiver " + r + " keys should match after remove");
+            // Update receiver state after receive
             currentReceiverStatesMap.put(r, rcvResult.updatedState);
         }
 
@@ -603,6 +609,7 @@ public class TestD_MSMR {
         System.out.println("testProcRmvReceiver passed. Key after remove:");
         printByteArray(rmvResult.key);
         System.out.println("************** End of remove receiver test *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
 
@@ -665,6 +672,7 @@ public class TestD_MSMR {
         System.out.println("testProcRmvSender passed. Key after sender removal:");
         printByteArray(rmvResult.key);
         System.out.println("************** End of remove sender test *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
     @Test
@@ -748,6 +756,7 @@ public class TestD_MSMR {
 
 
         System.out.println("\n************** End of add sender test *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
 
@@ -1008,6 +1017,7 @@ public class TestD_MSMR {
 
 
         System.out.println("************** End of multi-sender add receiver test *******************");
+        UB_KEM.printAndResetUBKEMStats();
     }
 
 

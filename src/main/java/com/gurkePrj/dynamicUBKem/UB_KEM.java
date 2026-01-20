@@ -22,6 +22,41 @@ import java.util.HashMap;
 
 public class UB_KEM {
 
+    // Timing statistics for UB_KEM operations
+    public static long totalEncTimeNs = 0;
+    public static int encInvocationCount = 0;
+    public static long totalDecTimeNs = 0;
+    public static int decInvocationCount = 0;
+    public static long totalFinTimeNs = 0;
+    public static int finInvocationCount = 0;
+    public static long totalAddTimeNs = 0;
+    public static int addInvocationCount = 0;
+    public static long totalRmvTimeNs = 0;
+    public static int rmvInvocationCount = 0;
+    public static long totalForkTimeNs = 0;
+    public static int forkInvocationCount = 0;
+    public static long totalProcTimeNs = 0;
+    public static int procInvocationCount = 0;
+
+    public static void printAndResetUBKEMStats() {
+        if (encInvocationCount > 0)
+            System.out.println("UB_KEM.enc avg time: " + (totalEncTimeNs / 1_000_000.0 / encInvocationCount) + " ms over " + encInvocationCount + " calls");
+        if (decInvocationCount > 0)
+            System.out.println("UB_KEM.dec avg time: " + (totalDecTimeNs / 1_000_000.0 / decInvocationCount) + " ms over " + decInvocationCount + " calls");
+        if (finInvocationCount > 0)
+            System.out.println("UB_KEM.fin avg time: " + (totalFinTimeNs / 1_000_000.0 / finInvocationCount) + " ms over " + finInvocationCount + " calls");
+        if (addInvocationCount > 0)
+            System.out.println("UB_KEM.add avg time: " + (totalAddTimeNs / 1_000_000.0 / addInvocationCount) + " ms over " + addInvocationCount + " calls");
+        if (rmvInvocationCount > 0)
+            System.out.println("UB_KEM.rmv avg time: " + (totalRmvTimeNs / 1_000_000.0 / rmvInvocationCount) + " ms over " + rmvInvocationCount + " calls");
+        if (forkInvocationCount > 0)
+            System.out.println("UB_KEM.fork avg time: " + (totalForkTimeNs / 1_000_000.0 / forkInvocationCount) + " ms over " + forkInvocationCount + " calls");
+        if (procInvocationCount > 0)
+            System.out.println("UB_KEM.proc avg time: " + (totalProcTimeNs / 1_000_000.0 / procInvocationCount) + " ms over " + procInvocationCount + " calls");
+        // Reset all
+        totalEncTimeNs = totalDecTimeNs = totalFinTimeNs = totalAddTimeNs = totalRmvTimeNs = totalForkTimeNs = totalProcTimeNs = 0;
+        encInvocationCount = decInvocationCount = finInvocationCount = addInvocationCount = rmvInvocationCount = forkInvocationCount = procInvocationCount = 0;
+    }
 
     public static class BKGenResult {
         public TreeEK ek;
@@ -99,7 +134,7 @@ public class UB_KEM {
     }
 
     public static  BKEncResult enc(TreeEK ek) throws Exception {
-
+        long start = System.nanoTime();
         byte E = (byte) 'E';  // 69
 
         Nike.KeyPair kp = Nike.gen();
@@ -120,7 +155,9 @@ public class UB_KEM {
             System.out.println(Arrays.toString(pk));
             System.out.println("----------------------------------------------------------------------------------------_");
         }
-
+        long end = System.nanoTime();
+        totalEncTimeNs += (end - start);
+        encInvocationCount++;
         return new BKEncResult(u, c);
     }
 
@@ -142,6 +179,7 @@ public class UB_KEM {
     }
 
     public static FinResult fin(EncOutput u, byte[] ad) throws Exception {
+        long start = System.nanoTime();
         TreeEK ek = u.ek;
         byte[] sk = u.sk;
         byte[] c = u.c;
@@ -215,9 +253,10 @@ public class UB_KEM {
                 }
             }
         }
-
         TreeEK newEk = getnodesreturn.getTree().setNodes(newPkMap);
-
+        long end = System.nanoTime();
+        totalFinTimeNs += (end - start);
+        finInvocationCount++;
         return new FinResult(newEk, kFinal);
     }
 
@@ -232,47 +271,28 @@ public class UB_KEM {
     }
 
     public static DecResult dec(TreeDk dk, byte[] ad, byte[] c) throws Exception {
-
+        long start = System.nanoTime();
         TreeGetPathReturn pathResult = Tree.getPath(dk);
         int i = pathResult.getLeafIndex();
         Map<Integer, byte[]> skMap = pathResult.getDataSk();
-
         byte[] pk = new byte[c.length - 1];
         System.arraycopy(c, 1, pk, 0, pk.length);
-
         Map<Integer, byte[]> updatedSkMap = new HashMap<>();
         byte[] kFinal = null;
-
-
-        // In tree add and rmv. these pk and sk map should be updated.
-        // to do: may be get the tree with valid nodes.
         for (Map.Entry<Integer, byte[]> entry : skMap.entrySet()) {
             int nodeId = entry.getKey();
             byte[] skl = entry.getValue();
-
             byte[] kPrime = Nike.key(skl, pk);
-
             RandomOracle.RandomOracleResult hashOutput = RandomOracle.H(c, kPrime, ad);
             byte[] s = hashOutput.getS();
             byte[] kl = hashOutput.getK();
-
             Nike.KeyPair newKp = Nike.gen(s);
             byte[] newSk = newKp.getDk();
             byte[] newPk = newKp.getEk();
-
             updatedSkMap.put(nodeId, newSk);
-
             if ((kFinal == null) && ( nodeId == 1 ))
             {
                 kFinal = kl;
-
-                // System.out.println("BK.dec SK:");
-                // printByteArray(skl);
-                // System.out.println("BK.dec PK:");
-                // printByteArray(pk);
-                // System.out.println("BK.dec  k prime ");
-                // printByteArray(kPrime);
-
                 if (ENABLE_DEBUG)
                 {
                     System.out.println("***** BK Dec ***** N.Key (sk, pk) ***** Key ***************");
@@ -288,24 +308,19 @@ public class UB_KEM {
                     System.out.println(Arrays.toString(c));
                     System.out.print("** ad :");
                     System.out.println(Arrays.toString(ad));
-
-
-
                     System.out.println("***** BK Dec ***** N.gen (Pair) ***************");
                     System.out.print("** sk new (in Tree):");
                     System.out.println(Arrays.toString(newSk));
                     System.out.print("** pk new (in Tree):");
                     System.out.println(Arrays.toString(newPk));
                     System.out.println("----------------------------------------------------------------------------------------_");
-
                 }
             }
-
-            // kFinal = kl;
         }
-
         TreeDk newDk = pathResult.getTree().setPath(i, updatedSkMap);
-
+        long end = System.nanoTime();
+        totalDecTimeNs += (end - start);
+        decInvocationCount++;
         return new DecResult(newDk, kFinal); // Step 43: Return (dk, k)
     }
 
@@ -334,78 +349,55 @@ public class UB_KEM {
     }
 
     public static BKAddResult add(TreeEK ek) throws Exception {
-
+        long start = System.nanoTime();
         TreeAddEkReturn addReturn = Tree.T_add_Ek(ek);
-        // Map<Integer, byte[]> pkMap = addReturn.getDataPk();
-
         Map<Integer, byte[]> originalMap = addReturn.getDataPk();
         Map<Integer, byte[]> pkMap = new HashMap<>();
-
         for (Map.Entry<Integer, byte[]> entry : originalMap.entrySet()) {
             pkMap.put(entry.getKey(), Arrays.copyOf(entry.getValue(), entry.getValue().length));
         }
-
         List<Integer> path = addReturn.getPathList(); 
         List<Integer> coPath = addReturn.getCoPathList(); 
         int n = addReturn.getLeafsCount();
         Tree tempTree = addReturn.getTree();
-
-        // pk*
         Map<Integer, byte[]> pkStarMap =  new HashMap<>();
-
         for (Integer pathNodeIndex : coPath) {
             pkStarMap.put(pathNodeIndex, pkMap.get(pathNodeIndex));
         }
-
         Nike.KeyPair leafKeyPair = Nike.gen();
         byte[] sk = leafKeyPair.getDk();
         byte[] pk = leafKeyPair.getEk();
-
         Map<Integer, byte[]> pkNewMap = new HashMap<>();
         Map<Integer, byte[]> skNewMap = new HashMap<>();
-
         skNewMap.put(path.get(0), sk);
         pkMap.put(path.get(0), pk);
-
         byte[] seed = new byte[32]; // 256-bit seed
         Arrays.fill(seed, (byte) 0xAC); // Fill with 0xEF
-
-        // FixedSecureRandom secureRandom = new FixedSecureRandom(seed); 
         SecureRandom secureRandom = new SecureRandom();
         byte[] sPrime = new byte[32];
         secureRandom.nextBytes(sPrime);
-
-
-
         for (int l = 0; l < (path.size() - 1);  l++) {
             Nike.KeyPair kp = Nike.gen(sPrime);
             byte[] pk_l = kp.getEk();
             byte[] sk_l = kp.getDk();
-
             pkNewMap.put(path.get(l), pk_l);
-
             byte[] k = Nike.key(sk_l, pkMap.get(coPath.get(l)));
-
             RandomOracle.RandomOracleResult roRes = RandomOracle.H(k, pk_l);
             byte[] s = roRes.getS();
             sPrime = roRes.getK(); // updated s′
-
             Nike.KeyPair kpPrev = Nike.gen(s);
             byte[] pkPrev = kpPrev.getEk();
             byte[] skPrev = kpPrev.getDk();
-
             pkMap.put(path.get(l+1), pkPrev);
             skNewMap.put(path.get(l+1), skPrev);
         }
-
         TreeEK newEk = tempTree.setNodes(pkMap);
-
-        // here n is not the num of leaves but the added latest leaf index
         TreeDk newDk = tempTree.setPath(n, skNewMap);
-
         byte A = (byte) 'A';
         c_BKAdd c = new c_BKAdd(A, pkStarMap, pkNewMap);
-
+        long end = System.nanoTime();
+        totalAddTimeNs += (end - start);
+        addInvocationCount++;
         return new BKAddResult(newEk, newDk, c);
     }
 
@@ -435,70 +427,54 @@ public class UB_KEM {
         }
     }
 
-    public static BKRemoveResult rmv(TreeEK ek, int i) throws Exception
-    {
+    public static BKRemoveResult rmv(TreeEK ek, int i) throws Exception {
+        long start = System.nanoTime();
         TreeAddEkReturn remReturn = Tree.T_rem_Ek(ek, i);
-
-        // Map<Integer, byte[]> pkMap = remReturn.getDataPk();
-
         Map<Integer, byte[]> originalMap = remReturn.getDataPk();
         Map<Integer, byte[]> pkMap = new HashMap<>();
-
         for (Map.Entry<Integer, byte[]> entry : originalMap.entrySet()) {
             pkMap.put(entry.getKey(), Arrays.copyOf(entry.getValue(), entry.getValue().length));
         }
-
         List<Integer> path = remReturn.getPathList();
         List<Integer> coPath = remReturn.getCoPathList();     // (cpl)
         Tree tempTree = remReturn.getTree();
-
         Map<Integer, byte[]> pkStarMap = new HashMap<>();
-
         for (Integer coPathNode : coPath) {
             pkStarMap.put(coPathNode, pkMap.get(coPathNode));
         }
-
         Nike.KeyPair kpCircle = Nike.gen();
         byte[] pkCircle = kpCircle.getEk();
         byte[] skCircle = kpCircle.getDk();
-
         byte[] pkpL = pkMap.get(path.get(0));
         byte[] k = Nike.key(skCircle, pkpL);
-
         RandomOracle.RandomOracleResult ro1 = RandomOracle.H(k, pkCircle);
         byte[] s = ro1.getS();
         byte[] sPrime = ro1.getK();
-
         Nike.KeyPair kpPL = Nike.gen(s);
         byte[] newPkpL = kpPL.getEk();
         pkMap.put(path.get(0), newPkpL);
-
         Map<Integer, byte[]> pkPrimeMap = new HashMap<>();
-
         for (int l = 0; l < (path.size() - 1);  l++) 
         {
             Nike.KeyPair kpPrimeL = Nike.gen(sPrime);
             byte[] pkPrimeL = kpPrimeL.getEk();
             byte[] skPrimeL = kpPrimeL.getDk();
             pkPrimeMap.put(path.get(l), pkPrimeL);
-
             byte[] pkCoPath = pkMap.get(coPath.get(l));
             k = Nike.key(skPrimeL, pkCoPath);
-
             RandomOracle.RandomOracleResult ro2 = RandomOracle.H(k, pkPrimeL);
             s = ro2.getS();
             sPrime = ro2.getK();
-
             Nike.KeyPair kpParent = Nike.gen(s);
             byte[] pkParent = kpParent.getEk();
             pkMap.put(path.get(l + 1), pkParent);
         }
-
         TreeEK newEk = tempTree.setNodes(pkMap);
-
         byte R = (byte) 'R';
         c_BKRemove c = new c_BKRemove(R, i, pkStarMap, pkCircle, pkPrimeMap);
-
+        long end = System.nanoTime();
+        totalRmvTimeNs += (end - start);
+        rmvInvocationCount++;
         return new BKRemoveResult(newEk, c);
     }
 
@@ -524,8 +500,8 @@ public class UB_KEM {
         }
     }
 
-    public static BKForkResult fork(TreeEK ek) throws Exception
-    {
+    public static BKForkResult fork(TreeEK ek) throws Exception {
+        long start = System.nanoTime();
         Nike.KeyPair forkKp = Nike.gen();
         byte[] pkFork = forkKp.getEk();
         byte[] skFork = forkKp.getDk();
@@ -564,10 +540,11 @@ public class UB_KEM {
             pk1Map.put(nodeId, kp1j.getEk());
             pk2Map.put(nodeId, kp2j.getEk());
         }
-
         TreeEK ek1 = Tree1.setNodes(pk1Map);
         TreeEK ek2 = Tree1.setNodes(pk2Map);
-
+        long end = System.nanoTime();
+        totalForkTimeNs += (end - start);
+        forkInvocationCount++;
         return new BKForkResult(ek1, ek2, new c_BKFork(F, pkFork));
     }
 
@@ -581,8 +558,8 @@ public class UB_KEM {
         }
     }
 
-    public static BKProcResult proc(TreeDk dk, Object c) throws Exception
-    {
+    public static BKProcResult proc(TreeDk dk, Object c) throws Exception {
+        long start = System.nanoTime();
         byte t;
         Object cPrime;
 
@@ -623,9 +600,11 @@ public class UB_KEM {
                 sk1Map.put(nodeId, sk1l);
                 sk2Map.put(nodeId, sk2l);
             }
-
             TreeDk dk1 = pathResult.getTree().setPath(i, sk1Map);
             TreeDk dk2 = pathResult.getTree().setPath(i, sk2Map);
+            long end = System.nanoTime();
+            totalProcTimeNs += (end - start);
+            procInvocationCount++;
             return new BKProcResult(dk1, dk2);
         } 
         else if (c instanceof c_BKAdd || c instanceof c_BKRemove)
@@ -695,6 +674,9 @@ public class UB_KEM {
                 // Case when the removed leaf
                 if(leafNodeIndex_sk == -1)
                 {
+                    long end = System.nanoTime();
+                    totalProcTimeNs += (end - start);
+                    procInvocationCount++;
                     return new BKProcResult(null, null);
                 }
 
@@ -781,11 +763,15 @@ public class UB_KEM {
                 }
 
             }
-
             newDk = tree.setPath(i, skMap);
+            long end = System.nanoTime();
+            totalProcTimeNs += (end - start);
+            procInvocationCount++;
             return new BKProcResult(newDk, null);
         }
-
+        long end = System.nanoTime();
+        totalProcTimeNs += (end - start);
+        procInvocationCount++;
         throw new IllegalArgumentException("Unsupported ciphertext type");
     }
 
