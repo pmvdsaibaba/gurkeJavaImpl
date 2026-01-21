@@ -144,8 +144,21 @@ public class TestD_MSMR_Per_size {
 
         // Measure state sizes
         System.out.println("=== D_MSMR Size Measurements ===");
+        System.out.println("Configuration: nS=" + nS + ", nR=" + nR);
         System.out.println("SenderState size: " + calculateSenderStateSize(senderState) + " bytes");
+        System.out.println("  - TreeEK size: " + calculateTreeEKSize(senderState.ek) + " bytes");
         System.out.println("ReceiverEntry size: " + calculateReceiverEntrySize(receiverEntry) + " bytes");
+        System.out.println("  - Contains states for " + receiverEntry.stateMap.size() + " senders");
+        
+        // Calculate TreeDk map size for the first SenderStateInReceiver
+        if (receiverState != null && receiverState.dkMap != null) {
+            int treeDkMapSize = 0;
+            for (Map.Entry<Integer, TreeDk> entry : receiverState.dkMap.entrySet()) {
+                treeDkMapSize += 4; // Integer key
+                treeDkMapSize += calculateTreeDkSize(entry.getValue());
+            }
+            System.out.println("  - TreeDk Map size (in first SenderStateInReceiver): " + treeDkMapSize + " bytes");
+        }
 
         // Step 3: Execute procSnd
         SendResult sndResult = d_MSMR.procSnd(senderState, ad);

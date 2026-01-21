@@ -25,9 +25,21 @@ public class TestS_MSMR_SndRcv {
         new Random().nextBytes(ad);
 
         // Measure state sizes
-        System.out.println("=== Size Measurements ===");
+        System.out.println("=== S_MSMR Size Measurements ===");
+        System.out.println("Configuration: nS=" + nS + ", nR=" + nR);
         System.out.println("SenderState size: " + calculateSenderStateSize(senderState) + " bytes");
+        System.out.println("  - ek size: " + (senderState.ek != null ? senderState.ek.length : 0) + " bytes");
         System.out.println("ReceiverState size: " + calculateReceiverStateSize(receiverState) + " bytes");
+        System.out.println("  - Contains info for " + (receiverState.senderInfoList != null ? receiverState.senderInfoList.size() : 0) + " senders");
+        
+        // Calculate total dk sizes in ReceiverState
+        if (receiverState != null && receiverState.senderInfoList != null) {
+            int totalDkSize = 0;
+            for (ReceiverState.ReceiverInfo info : receiverState.senderInfoList) {
+                totalDkSize += (info.dk != null ? info.dk.length : 0);
+            }
+            System.out.println("  - Total dk size (all senders): " + totalDkSize + " bytes");
+        }
 
         // Repeat send/receive/validate steps multiple times
         for (int i = 0; i < 1000; i++) {
