@@ -6,14 +6,22 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
+import com.gurkePrj.Nike.Nike;
+import com.gurkePrj.standardKEM.KEM;
+import com.gurkePrj.RandomOracle.RandomOracle;
+import com.gurkePrj.signatureScheme.SignatureScheme;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestS_MSMR_SndRcv {
 
     @Test
     public void testProcSndAndRcv() throws Exception {
-        int nS = 3;
+        int nS = 5;
         int nR = 5;
+
+        // Print cryptographic primitive sizes
+        printCryptoPrimitiveSizes();
 
         // Step 1: Initialize
         InitResult initResult = S_MSMR.procInit(nS, nR);
@@ -118,5 +126,53 @@ public class TestS_MSMR_SndRcv {
             sb.append(String.format("%02X", b));
         }
         System.out.println(sb.toString());
+    }
+
+    // Method to measure and print cryptographic primitive sizes
+    private void printCryptoPrimitiveSizes() throws Exception {
+        System.out.println("\n=== Cryptographic Primitive Sizes ===");
+        
+        // NIKE measurements
+        Nike.KeyPair nikeKeyPair = Nike.gen();
+        System.out.println("\nNIKE:");
+        System.out.println("  - Public key (ek) size: " + nikeKeyPair.getEk().length + " bytes");
+        System.out.println("  - Secret key (dk) size: " + nikeKeyPair.getDk().length + " bytes");
+        
+        // Generate another key pair to compute shared key
+        Nike.KeyPair nikeKeyPair2 = Nike.gen();
+        byte[] sharedKey = Nike.key(nikeKeyPair.getDk(), nikeKeyPair2.getEk());
+        System.out.println("  - Shared key size (Nike.key): " + sharedKey.length + " bytes");
+        
+        // Standard KEM measurements
+        KEM.KeyPair kemKeyPair = KEM.gen();
+        System.out.println("\nStandard KEM:");
+        System.out.println("  - Public key (ek) size: " + kemKeyPair.getEk().length + " bytes");
+        System.out.println("  - Private key (dk) size: " + kemKeyPair.getDk().length + " bytes");
+        
+        KEM.EncapsulationResult kemEncResult = KEM.enc(kemKeyPair.getEk());
+        System.out.println("  - KEM.enc() key size: " + kemEncResult.getK().length + " bytes");
+        System.out.println("  - KEM.enc() ciphertext size: " + kemEncResult.getC().length + " bytes");
+        
+        // RandomOracle measurements
+        byte[] testInput = new byte[32];
+        RandomOracle.RandomOracleResult hashResult = RandomOracle.H(testInput);
+        System.out.println("\nRandomOracle (Hash):");
+        System.out.println("  - Hash output s size: " + hashResult.getS().length + " bytes");
+        System.out.println("  - Hash output k size: " + hashResult.getK().length + " bytes");
+        
+        byte[] hash2Result = RandomOracle.Hash2(testInput);
+        System.out.println("  - Hash2 output size: " + hash2Result.length + " bytes");
+        
+        // Signature Scheme measurements
+        SignatureScheme.KeyPair sigKeyPair = SignatureScheme.gen();
+        System.out.println("\nSignature Scheme:");
+        System.out.println("  - Verification key (vk) size: " + sigKeyPair.getVk().length + " bytes");
+        System.out.println("  - Signing key (sk) size: " + sigKeyPair.getSk().length + " bytes");
+        
+        byte[] testMessage = new byte[64];
+        byte[] signature = SignatureScheme.sgn(sigKeyPair.getSk(), testMessage);
+        System.out.println("  - Signature size: " + signature.length + " bytes");
+        
+        System.out.println("\n====================================\n");
     }
 }
